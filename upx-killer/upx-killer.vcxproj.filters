@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_FilterNuGetPackagesRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\packages'))</_FilterNuGetPackagesRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{447C7997-D687-4EDF-BBD9-68EFDA12A415}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{8AA70CB0-2484-4C6B-87AB-D3DF54969C14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Windows">
+      <UniqueIdentifier>{0395D1CC-DFF0-49E4-B9E2-B2657735FD4D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Windows\MainWindow">
+      <UniqueIdentifier>{379A6E26-A371-4657-B127-1B188F3AFDD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Pages">
+      <UniqueIdentifier>{1A97C37D-D48F-4CA1-8254-5DECE9900FD4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Pages\Overview">
+      <UniqueIdentifier>{A95C1AE9-35C6-49EA-B922-587744587A99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\ViewModels">
+      <UniqueIdentifier>{3752DBB8-A874-47F0-B282-314A101BC039}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\Navigation">
+      <UniqueIdentifier>{9D79CC89-4800-42EC-BA08-C40E522AFDF0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Unpacking">
+      <UniqueIdentifier>{A089481B-5663-4E45-B56B-AFE2622F2518}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\TargetSelection">
+      <UniqueIdentifier>{E62A38E4-4D09-4D49-9134-4FB04A9AE2A3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{31C0682B-A03E-423B-89B1-7E055D4F1D73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\BinaryInspection">
+      <UniqueIdentifier>{02842DA4-0AF9-45E0-B467-2532E699D995}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure">
+      <UniqueIdentifier>{95C68E4B-E342-45DE-B674-8A2312F3B86E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\Storage">
+      <UniqueIdentifier>{45F44C21-4E4E-4B21-B6E8-114A0E2E700D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\EngineHost">
+      <UniqueIdentifier>{B115F19D-DCA2-4532-8116-CC1A647A3AA4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{A5F8FA93-581E-4182-83A1-1A6815CC0418}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Assets">
+      <UniqueIdentifier>{1DCD4901-03AB-4843-B2B9-9E7AC3CB561F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Localization">
+      <UniqueIdentifier>{ECF27339-C3A7-4526-8A00-10B2599FF8F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Localization\en-US">
+      <UniqueIdentifier>{04105026-D6AF-41C3-A819-2F940D9EF765}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\Localization\zh-CN">
+      <UniqueIdentifier>{8EE95B16-84F4-4DE5-8744-EF5985F616CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Build">
+      <UniqueIdentifier>{01382D0B-DBB2-4F6C-8C61-4C66C474D75E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Build\Manifests">
+      <UniqueIdentifier>{8C77E71E-C481-4B6C-AFA7-8C46CC83FEBB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Build\Precompiled Headers">
+      <UniqueIdentifier>{B2133F04-5373-4B16-B6EA-EB9DA5BE5297}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Build\Verification">
+      <UniqueIdentifier>{463B5BB4-4B5B-40F1-84C7-F1345626AA79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{E0E16715-9A13-40BE-B227-342132977DB5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{29CB8E30-3140-4039-A6F1-50895FEE9D33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{EB8E5016-E1FC-474A-8765-A5727645D0B4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Filter>Application</Filter>
+    </ApplicationDefinition>
+    <ClInclude Include="App.xaml.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClCompile Include="App.xaml.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="UI\Windows\MainWindow\MainWindow.xaml">
+      <Filter>UI\Windows\MainWindow</Filter>
+    </Page>
+    <Midl Include="UI\Windows\MainWindow\MainWindow.idl">
+      <Filter>UI\Windows\MainWindow</Filter>
+    </Midl>
+    <ClInclude Include="UI\Windows\MainWindow\MainWindow.xaml.h">
+      <Filter>UI\Windows\MainWindow</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Windows\MainWindow\MainWindow.xaml.cpp">
+      <Filter>UI\Windows\MainWindow</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="UI\Navigation\NavigationPaneController.h">
+      <Filter>UI\Navigation</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Navigation\NavigationPaneController.cpp">
+      <Filter>UI\Navigation</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\Navigation\NavigationRouter.h">
+      <Filter>UI\Navigation</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Navigation\NavigationRouter.cpp">
+      <Filter>UI\Navigation</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="UI\Pages\Overview\OverviewPage.xaml">
+      <Filter>UI\Pages\Overview</Filter>
+    </Page>
+    <Midl Include="UI\Pages\Overview\OverviewPage.idl">
+      <Filter>UI\Pages\Overview</Filter>
+    </Midl>
+    <ClInclude Include="UI\Pages\Overview\OverviewPage.xaml.h">
+      <Filter>UI\Pages\Overview</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Pages\Overview\OverviewPage.xaml.cpp">
+      <Filter>UI\Pages\Overview</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\ViewModels\OverviewViewModel.h">
+      <Filter>UI\ViewModels</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\ViewModels\OverviewViewModel.cpp">
+      <Filter>UI\ViewModels</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\ViewModels\RelayCommand.h">
+      <Filter>UI\ViewModels</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application\Unpacking\UnpackWorkflow.h">
+      <Filter>Application\Unpacking</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Unpacking\IUnpackEngineClient.h">
+      <Filter>Application\Unpacking</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Unpacking\IArtifactExporter.h">
+      <Filter>Application\Unpacking</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\Unpacking\UnpackWorkflow.cpp">
+      <Filter>Application\Unpacking</Filter>
+    </ClCompile>
+    <ClInclude Include="Infrastructure\EngineHost\EngineHostClient.h">
+      <Filter>Infrastructure\EngineHost</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\EngineHost\EngineHostClient.cpp">
+      <Filter>Infrastructure\EngineHost</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h">
+      <Filter>Application\TargetSelection</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\TargetSelection\TargetSelectionWorkflow.cpp">
+      <Filter>Application\TargetSelection</Filter>
+    </ClCompile>
+    <ClInclude Include="Core\BinaryInspection\TargetBinaryInspector.h">
+      <Filter>Core\BinaryInspection</Filter>
+    </ClInclude>
+    <ClCompile Include="Core\BinaryInspection\TargetBinaryInspector.cpp">
+      <Filter>Core\BinaryInspection</Filter>
+    </ClCompile>
+    <ClInclude Include="Infrastructure\Storage\TargetFilePicker.h">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\Storage\TargetFilePicker.cpp">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClCompile>
+    <ClInclude Include="Infrastructure\Storage\ArtifactFileExporter.h">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\Storage\ArtifactFileExporter.cpp">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>Resources\Assets</Filter>
+    </Image>
+    <PRIResource Include="Strings\en-US\Resources.resw">
+      <Filter>Resources\Localization\en-US</Filter>
+    </PRIResource>
+    <PRIResource Include="Strings\zh-CN\Resources.resw">
+      <Filter>Resources\Localization\zh-CN</Filter>
+    </PRIResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="app.manifest">
+      <Filter>Build\Manifests</Filter>
+    </Manifest>
+    <AppxManifest Include="Package.appxmanifest">
+      <Filter>Build\Manifests</Filter>
+    </AppxManifest>
+    <ClInclude Include="pch.h">
+      <Filter>Build\Precompiled Headers</Filter>
+    </ClInclude>
+    <ClCompile Include="pch.cpp">
+      <Filter>Build\Precompiled Headers</Filter>
+    </ClCompile>
+    <None Include="packages.config">
+      <Filter>Dependencies</Filter>
+    </None>
+    <None Include="..\scripts\ui-tests.ps1">
+      <Filter>Build\Verification</Filter>
+    </None>
+    <None Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.AI.MachineLearning.2.1.74\build\native\..\..\runtimes\win-$(Platform.ToLower())\native\DirectML.dll">
+      <Filter>Dependencies</Filter>
+    </None>
+    <None Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.AI.MachineLearning.2.1.74\build\native\..\..\runtimes\win-$(Platform.ToLower())\native\Microsoft.Windows.AI.MachineLearning.dll">
+      <Filter>Dependencies</Filter>
+    </None>
+    <None Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.AI.MachineLearning.2.1.74\build\native\..\..\runtimes\win-$(Platform.ToLower())\native\onnxruntime.dll">
+      <Filter>Dependencies</Filter>
+    </None>
+    <Natvis Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\..\..\natvis\wil.natstepfilter">
+      <Filter>Dependencies</Filter>
+    </Natvis>
+    <Natvis Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\..\..\natvis\wil.natvis">
+      <Filter>Dependencies</Filter>
+    </Natvis>
+    <Text Include="readme.txt">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\CONTEXT.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\adr\0001-isolate-debugging-in-an-engine-host.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp">
+      <Filter>Generated</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>UPX Killer</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>用于分析和脱壳受 UPX 保护的可执行文件。</value>
+  </data>
+  <data name="MainWindow.Title" xml:space="preserve">
+    <value>UPX Killer</value>
+  </data>
+  <data name="MainWindowTitle" xml:space="preserve">
+    <value>UPX Killer</value>
+  </data>
+  <data name="OverviewNavigationItem.Content" xml:space="preserve">
+    <value>概览</value>
+  </data>
+  <data name="TargetFileTitle.Text" xml:space="preserve">
+    <value>目标文件</value>
+  </data>
+  <data name="FileSizeLabel.Text" xml:space="preserve">
+    <value>文件大小</value>
+  </data>
+  <data name="FileTypeLabel.Text" xml:space="preserve">
+    <value>文件类型</value>
+  </data>
+  <data name="ArchitectureLabel.Text" xml:space="preserve">
+    <value>架构</value>
+  </data>
+  <data name="StartUnpackButton.Content" xml:space="preserve">
+    <value>开始脱壳</value>
+  </data>
+  <data name="ExportFileButton.Content" xml:space="preserve">
+    <value>导出文件</value>
+  </data>
+  <data name="SelectTargetAutomationName" xml:space="preserve">
+    <value>选择目标文件</value>
+  </data>
+  <data name="TargetPathAutomationName" xml:space="preserve">
+    <value>目标文件路径</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>就绪</value>
+  </data>
+  <data name="StatusTargetReady" xml:space="preserve">
+    <value>目标文件已就绪</value>
+  </data>
+  <data name="StatusEngineUnavailable" xml:space="preserve">
+    <value>脱壳引擎尚未接入</value>
+  </data>
+  <data name="StatusOepRequired" xml:space="preserve">
+    <value>开始脱壳前需要提供 OEP RVA</value>
+  </data>
+  <data name="StatusFindingOep" xml:space="preserve"><value>正在寻找原始入口点</value></data>
+  <data name="StatusUnsupportedPacker" xml:space="preserve"><value>未识别为受支持的 UPX x64 可执行文件</value></data>
+  <data name="StatusOepNotFound" xml:space="preserve"><value>未找到可靠的原始入口点</value></data>
+  <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>无法可靠重建导入表，未生成输出文件</value></data>
+  <data name="StatusProcessing" xml:space="preserve"><value>处理中</value></data>
+  <data name="StatusEngineX64PeOnly" xml:space="preserve"><value>脱壳引擎目前仅支持 x64 PE 可执行文件</value></data>
+  <data name="StatusPartialImportsNotRebuilt" xml:space="preserve">
+    <value>内存映像已捕获，但尚未重建导入表</value>
+  </data>
+  <data name="StatusExportSucceeded" xml:space="preserve"><value>文件已导出</value></data>
+  <data name="StatusExportFailed" xml:space="preserve"><value>无法导出文件</value></data>
+  <data name="StatusUnpackSucceeded" xml:space="preserve">
+    <value>脱壳完成，可以导出文件</value>
+  </data>
+  <data name="StatusUnpackFailed" xml:space="preserve">
+    <value>脱壳失败</value>
+  </data>
+  <data name="StatusFileNotFound" xml:space="preserve">
+    <value>所选文件已不存在</value>
+  </data>
+  <data name="StatusAccessDenied" xml:space="preserve">
+    <value>无法读取所选文件</value>
+  </data>
+  <data name="StatusTruncatedFile" xml:space="preserve">
+    <value>所选文件不完整或已截断</value>
+  </data>
+  <data name="StatusUnsupportedFormat" xml:space="preserve">
+    <value>所选文件不是受支持的 PE 或 ELF 文件</value>
+  </data>
+  <data name="StatusUnsupportedArchitecture" xml:space="preserve">
+    <value>仅支持 x86 和 x64 目标</value>
+  </data>
+  <data name="StatusIoError" xml:space="preserve">
+    <value>无法检查所选文件</value>
+  </data>
+  <data name="StatusInvalidDrop" xml:space="preserve">
+    <value>请仅拖入一个目标文件</value>
+  </data>
+  <data name="StatusDropFailure" xml:space="preserve">
+    <value>无法读取拖入的文件</value>
+  </data>
+  <data name="BytesUnit" xml:space="preserve">
+    <value>字节</value>
+  </data>
+  <data name="BinaryPe32Executable" xml:space="preserve">
+    <value>PE32 可执行文件</value>
+  </data>
+  <data name="BinaryPe32PlusExecutable" xml:space="preserve">
+    <value>PE32+ 可执行文件</value>
+  </data>
+  <data name="BinaryPe32Library" xml:space="preserve">
+    <value>PE32 动态库</value>
+  </data>
+  <data name="BinaryPe32PlusLibrary" xml:space="preserve">
+    <value>PE32+ 动态库</value>
+  </data>
+  <data name="BinaryElf32Executable" xml:space="preserve">
+    <value>ELF32 可执行文件</value>
+  </data>
+  <data name="BinaryElf64Executable" xml:space="preserve">
+    <value>ELF64 可执行文件</value>
+  </data>
+  <data name="BinaryElf32SharedObject" xml:space="preserve">
+    <value>ELF32 共享对象</value>
+  </data>
+  <data name="BinaryElf64SharedObject" xml:space="preserve">
+    <value>ELF64 共享对象</value>
+  </data>
+  <data name="BinaryUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+</root>

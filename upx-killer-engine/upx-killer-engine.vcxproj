@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{911E077C-A45D-4468-A634-B1A8029A9DD1}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>upx_killer_engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)$(Platform)\$(Configuration)\Intermediate\</IntDir>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile><DebugInformationFormat>None</DebugInformationFormat></ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Unpacking\UnpackTypes.h" />
+    <ClInclude Include="Core\PE\Parsing\PeParser.h" />
+    <ClInclude Include="Core\PE\OepDiscovery\UpxOepLocator.h" />
+    <ClInclude Include="Core\Dumping\ProcessImageDumper.h" />
+    <ClInclude Include="Core\PE\Fixing\PeImageFixer.h" />
+    <ClInclude Include="Core\PE\Imports\ImportTypes.h" />
+    <ClInclude Include="Core\PE\Imports\ImportDiscovery.h" />
+    <ClInclude Include="Core\PE\Imports\PeExportParser.h" />
+    <ClInclude Include="Core\PE\Imports\ImportTableValidator.h" />
+    <ClInclude Include="Infrastructure\Windows\Debugging\DebugProcess.h" />
+    <ClInclude Include="Infrastructure\Windows\Debugging\ProcessMemoryReader.h" />
+    <ClInclude Include="Infrastructure\Windows\Debugging\SoftwareBreakpointSet.h" />
+    <ClInclude Include="Infrastructure\Windows\Debugging\WindowsDebugSession.h" />
+    <ClInclude Include="Infrastructure\Windows\Debugging\RemoteModuleCatalog.h" />
+    <ClInclude Include="Application\Unpacking\UnpackEngine.h" />
+    <ClInclude Include="Protocol\EngineHost\EngineHostProtocol.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\PE\Parsing\PeParser.cpp" />
+    <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp" />
+    <ClCompile Include="Core\Dumping\ProcessImageDumper.cpp" />
+    <ClCompile Include="Core\PE\Fixing\PeImageFixer.cpp" />
+    <ClCompile Include="Core\PE\Imports\ImportDiscovery.cpp" />
+    <ClCompile Include="Core\PE\Imports\PeExportParser.cpp" />
+    <ClCompile Include="Core\PE\Imports\ImportTableValidator.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Debugging\DebugProcess.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Debugging\ProcessMemoryReader.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Debugging\SoftwareBreakpointSet.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Debugging\WindowsDebugSession.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Debugging\RemoteModuleCatalog.cpp" />
+    <ClCompile Include="Application\Unpacking\UnpackEngine.cpp" />
+    <ClCompile Include="Protocol\EngineHost\EngineHostProtocol.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

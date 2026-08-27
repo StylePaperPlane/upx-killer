@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>UPX Killer</value>
+  </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>A utility for analyzing and unpacking UPX-protected executables.</value>
+  </data>
+  <data name="MainWindow.Title" xml:space="preserve">
+    <value>UPX Killer</value>
+  </data>
+  <data name="MainWindowTitle" xml:space="preserve">
+    <value>UPX Killer</value>
+  </data>
+  <data name="OverviewNavigationItem.Content" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="TargetFileTitle.Text" xml:space="preserve">
+    <value>Target file</value>
+  </data>
+  <data name="FileSizeLabel.Text" xml:space="preserve">
+    <value>File size</value>
+  </data>
+  <data name="FileTypeLabel.Text" xml:space="preserve">
+    <value>File type</value>
+  </data>
+  <data name="ArchitectureLabel.Text" xml:space="preserve">
+    <value>Architecture</value>
+  </data>
+  <data name="StartUnpackButton.Content" xml:space="preserve">
+    <value>Start unpacking</value>
+  </data>
+  <data name="ExportFileButton.Content" xml:space="preserve">
+    <value>Export file</value>
+  </data>
+  <data name="SelectTargetAutomationName" xml:space="preserve">
+    <value>Select target file</value>
+  </data>
+  <data name="TargetPathAutomationName" xml:space="preserve">
+    <value>Target file path</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="StatusTargetReady" xml:space="preserve">
+    <value>Target file is ready</value>
+  </data>
+  <data name="StatusEngineUnavailable" xml:space="preserve">
+    <value>The unpacking engine is not connected yet</value>
+  </data>
+  <data name="StatusOepRequired" xml:space="preserve">
+    <value>An OEP RVA is required before unpacking can start</value>
+  </data>
+  <data name="StatusFindingOep" xml:space="preserve"><value>Finding the original entry point</value></data>
+  <data name="StatusUnsupportedPacker" xml:space="preserve"><value>This is not a supported UPX x64 executable</value></data>
+  <data name="StatusOepNotFound" xml:space="preserve"><value>No reliable original entry point was found</value></data>
+  <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>Imports could not be resolved; no output was created</value></data>
+  <data name="StatusProcessing" xml:space="preserve"><value>Processing</value></data>
+  <data name="StatusEngineX64PeOnly" xml:space="preserve"><value>The unpacking engine currently supports x64 PE executables only</value></data>
+  <data name="StatusPartialImportsNotRebuilt" xml:space="preserve">
+    <value>Memory image captured; imports were not rebuilt</value>
+  </data>
+  <data name="StatusExportSucceeded" xml:space="preserve"><value>File exported</value></data>
+  <data name="StatusExportFailed" xml:space="preserve"><value>The file could not be exported</value></data>
+  <data name="StatusUnpackSucceeded" xml:space="preserve">
+    <value>Unpacking completed; the file is ready to export</value>
+  </data>
+  <data name="StatusUnpackFailed" xml:space="preserve">
+    <value>Unpacking failed</value>
+  </data>
+  <data name="StatusFileNotFound" xml:space="preserve">
+    <value>The selected file no longer exists</value>
+  </data>
+  <data name="StatusAccessDenied" xml:space="preserve">
+    <value>The selected file cannot be read</value>
+  </data>
+  <data name="StatusTruncatedFile" xml:space="preserve">
+    <value>The selected file is incomplete or truncated</value>
+  </data>
+  <data name="StatusUnsupportedFormat" xml:space="preserve">
+    <value>The selected file is not a supported PE or ELF image</value>
+  </data>
+  <data name="StatusUnsupportedArchitecture" xml:space="preserve">
+    <value>Only x86 and x64 targets are supported</value>
+  </data>
+  <data name="StatusIoError" xml:space="preserve">
+    <value>The selected file could not be inspected</value>
+  </data>
+  <data name="StatusInvalidDrop" xml:space="preserve">
+    <value>Drop a single target file</value>
+  </data>
+  <data name="StatusDropFailure" xml:space="preserve">
+    <value>The dropped file could not be read</value>
+  </data>
+  <data name="BytesUnit" xml:space="preserve">
+    <value>bytes</value>
+  </data>
+  <data name="BinaryPe32Executable" xml:space="preserve">
+    <value>PE32 executable</value>
+  </data>
+  <data name="BinaryPe32PlusExecutable" xml:space="preserve">
+    <value>PE32+ executable</value>
+  </data>
+  <data name="BinaryPe32Library" xml:space="preserve">
+    <value>PE32 library</value>
+  </data>
+  <data name="BinaryPe32PlusLibrary" xml:space="preserve">
+    <value>PE32+ library</value>
+  </data>
+  <data name="BinaryElf32Executable" xml:space="preserve">
+    <value>ELF32 executable</value>
+  </data>
+  <data name="BinaryElf64Executable" xml:space="preserve">
+    <value>ELF64 executable</value>
+  </data>
+  <data name="BinaryElf32SharedObject" xml:space="preserve">
+    <value>ELF32 shared object</value>
+  </data>
+  <data name="BinaryElf64SharedObject" xml:space="preserve">
+    <value>ELF64 shared object</value>
+  </data>
+  <data name="BinaryUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+</root>

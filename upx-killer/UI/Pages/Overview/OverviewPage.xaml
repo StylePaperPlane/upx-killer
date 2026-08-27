@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="upx_killer.OverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:upx_killer"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid
+        x:Name="LayoutRoot"
+        AutomationProperties.AutomationId="OverviewPageRoot"
+        AllowDrop="True"
+        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}"
+        DragOver="OnTargetDragOver"
+        Drop="OnTargetDrop">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="Narrow">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                </VisualState>
+                <VisualState x:Name="Wide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="820" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ActionsPanel.(Grid.Row)" Value="0" />
+                        <Setter Target="ActionsPanel.(Grid.Column)" Value="1" />
+                        <Setter Target="ActionsPanel.Orientation" Value="Vertical" />
+                        <Setter Target="ActionsPanel.Margin" Value="24,0,0,0" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Padding="24">
+            <Grid
+                x:Name="TileLayout"
+                AutomationProperties.AutomationId="TargetFileTile"
+                VerticalAlignment="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid RowSpacing="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            x:Uid="TargetFileTitle"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+
+                        <Grid
+                            Grid.Row="1"
+                            ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox
+                                x:Name="TargetPathTextBox"
+                                AutomationProperties.AutomationId="TargetPathTextBox"
+                                Grid.Column="0"
+                                IsReadOnly="True"
+                                IsTabStop="False"
+                                Text="{x:Bind ViewModel.TargetPath, Mode=OneWay}" />
+                            <Button
+                                x:Name="SelectTargetButton"
+                                AutomationProperties.AutomationId="SelectTargetButton"
+                                Grid.Column="1"
+                                MinWidth="40"
+                                MinHeight="32"
+                                Content="&#x2026;"
+                                Command="{x:Bind ViewModel.SelectTargetCommand, Mode=OneWay}"
+                                TabIndex="0" />
+                        </Grid>
+
+                        <Grid
+                            Grid.Row="2"
+                            ColumnSpacing="24">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock
+                                    x:Uid="FileSizeLabel"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock
+                                    AutomationProperties.AutomationId="FileSizeValue"
+                                    Text="{x:Bind ViewModel.FileSizeText, Mode=OneWay}" />
+                            </StackPanel>
+                            <StackPanel
+                                Grid.Column="1"
+                                Spacing="4">
+                                <TextBlock
+                                    x:Uid="FileTypeLabel"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock
+                                    AutomationProperties.AutomationId="FileTypeValue"
+                                    Text="{x:Bind ViewModel.FileTypeText, Mode=OneWay}" />
+                            </StackPanel>
+                            <StackPanel
+                                Grid.Column="2"
+                                Spacing="4">
+                                <TextBlock
+                                    x:Uid="ArchitectureLabel"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock
+                                    AutomationProperties.AutomationId="ArchitectureValue"
+                                    Text="{x:Bind ViewModel.ArchitectureText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Grid>
+                </Grid>
+
+                <StackPanel
+                    x:Name="ActionsPanel"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    HorizontalAlignment="Right"
+                    Margin="0,24,0,0"
+                    Orientation="Horizontal"
+                    Spacing="12">
+                        <Button
+                            x:Name="StartUnpackButton"
+                            x:Uid="StartUnpackButton"
+                            AutomationProperties.AutomationId="StartUnpackButton"
+                            MinWidth="156"
+                            MinHeight="40"
+                            Command="{x:Bind ViewModel.StartUnpackCommand, Mode=OneWay}"
+                            IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            TabIndex="1" />
+                        <Button
+                            x:Name="ExportFileButton"
+                            x:Uid="ExportFileButton"
+                            AutomationProperties.AutomationId="ExportFileButton"
+                            MinWidth="156"
+                            MinHeight="40"
+                            Command="{x:Bind ViewModel.ExportCommand, Mode=OneWay}"
+                            IsEnabled="{x:Bind ViewModel.CanExport, Mode=OneWay}"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            TabIndex="2" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <Border
+            Grid.Row="1"
+            MinHeight="40"
+            Padding="24,8"
+            Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <StackPanel
+                Orientation="Horizontal"
+                Spacing="8">
+                <SymbolIcon Symbol="Message" />
+                <TextBlock
+                    AutomationProperties.AutomationId="StatusText"
+                    VerticalAlignment="Center"
+                    Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

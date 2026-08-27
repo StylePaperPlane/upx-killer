@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Tests"><UniqueIdentifier>{C6D9FE17-9B18-4FC6-BBA8-96DFD5157938}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures"><UniqueIdentifier>{4AE18E77-542B-42AF-9D20-15DCA0C5A4C3}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup><ClCompile Include="Fixture\main.cpp"><Filter>Tests\Fixtures</Filter></ClCompile></ItemGroup>
+</Project>

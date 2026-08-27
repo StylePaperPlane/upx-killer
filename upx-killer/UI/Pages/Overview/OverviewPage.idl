@@ -1,0 +1,34 @@
+namespace upx_killer
+{
+    enum OverviewStatusKind
+    {
+        Idle,
+        Ready,
+        Busy,
+        Succeeded,
+        Unavailable,
+        Error
+    };
+
+    runtimeclass OverviewViewModel : Microsoft.UI.Xaml.Data.INotifyPropertyChanged
+    {
+        OverviewViewModel();
+        String TargetPath{ get; };
+        String FileSizeText{ get; };
+        String FileTypeText{ get; };
+        String ArchitectureText{ get; };
+        String StatusText{ get; };
+        OverviewStatusKind StatusKind{ get; };
+        Boolean CanStart{ get; };
+        Boolean CanExport{ get; };
+        Microsoft.UI.Xaml.Input.ICommand SelectTargetCommand{ get; };
+        Microsoft.UI.Xaml.Input.ICommand StartUnpackCommand{ get; };
+        Microsoft.UI.Xaml.Input.ICommand ExportCommand{ get; };
+    };
+
+    runtimeclass OverviewPage : Microsoft.UI.Xaml.Controls.Page
+    {
+        OverviewPage();
+        OverviewViewModel ViewModel{ get; };
+    };
+}

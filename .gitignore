@@ -1,0 +1,55 @@
+# Visual Studio and IDE state
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+
+# Build and generated output
+**/x64/
+**/Debug/
+**/Release/
+**/Generated Files/
+**/GeneratedFiles/
+**/Intermediate/
+**/*.tlog/
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ipdb
+*.iobj
+*.ilk
+*.exp
+*.lib
+*.recipe
+*.lastbuildstate
+*.FileListAbsolute.txt
+*.log
+
+# Restored dependencies and local publish output
+packages/
+dist/
+artifacts/
+upx-killer/verify-output/
+upx-killer/verify-no-uid/
+upx-killer/verify-languages/
+
+# Locally copied runtime binaries
+upx-killer/*.dll
+upx-killer/*.winmd
+upx-killer/*.pri
+upx-killer/*.xbf
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+*.dmp
+*.dumped.exe
+Thumbs.db
+Desktop.ini
