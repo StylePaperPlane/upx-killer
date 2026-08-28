@@ -64,7 +64,8 @@ namespace winrt::upx_killer::implementation
         winrt::Microsoft::UI::WindowId const& windowId,
         std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
         std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-        std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter)
+        std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
+        std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore)
     {
         m_windowId = windowId;
         m_targetSelectionWorkflow =
@@ -72,6 +73,7 @@ namespace winrt::upx_killer::implementation
         m_unpackWorkflow =
             std::make_unique<::upx_killer::application::UnpackWorkflow>(std::move(engineClient));
         m_artifactExporter = std::move(artifactExporter);
+        m_settingsStore = std::move(settingsStore);
         RaiseCommandStates();
     }
 
@@ -139,6 +141,7 @@ namespace winrt::upx_killer::implementation
 
         auto lifetime = get_strong();
         winrt::apartment_context uiContext;
+        auto dispatcher = winrt::Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread();
         auto const targetPath = m_targetPath;
         m_busy = true;
         SetStatus(winrt::upx_killer::OverviewStatusKind::Busy, L"StatusFindingOep");
@@ -146,7 +149,12 @@ namespace winrt::upx_killer::implementation
         RaisePropertyChanged(L"CanExport");
         RaiseCommandStates();
         co_await winrt::resume_background();
-        auto const result = m_unpackWorkflow->Start(targetPath);
+        auto const progress = [lifetime, dispatcher](::upx_killer::engine::EngineStage stage)
+        {
+            if (!dispatcher) return;
+            dispatcher.TryEnqueue([lifetime, stage]() { lifetime->SetProgress(stage); });
+        };
+        auto const result = m_unpackWorkflow->Start(targetPath, std::nullopt, progress);
         co_await uiContext;
         m_busy = false;
         if (result.outcome == ::upx_killer::application::UnpackOutcome::NeedsOep)
@@ -180,6 +188,24 @@ namespace winrt::upx_killer::implementation
             result.outcome == ::upx_killer::application::UnpackOutcome::ImportsAmbiguous)
         {
             SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusImportsNotRebuilt");
+            RaisePropertyChanged(L"CanStart");
+            RaisePropertyChanged(L"CanExport");
+            RaiseCommandStates();
+            co_return;
+        }
+
+        if (result.outcome == ::upx_killer::application::UnpackOutcome::RelocationEvidenceFailed)
+        {
+            SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusRelocationEvidenceFailed");
+            RaisePropertyChanged(L"CanStart");
+            RaisePropertyChanged(L"CanExport");
+            RaiseCommandStates();
+            co_return;
+        }
+
+        if (result.outcome == ::upx_killer::application::UnpackOutcome::RelocationValidationFailed)
+        {
+            SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusRelocationValidationFailed");
             RaisePropertyChanged(L"CanStart");
             RaisePropertyChanged(L"CanExport");
             RaiseCommandStates();
@@ -235,6 +261,11 @@ namespace winrt::upx_killer::implementation
             exported = false;
         }
         m_busy = false;
+        if (exported && m_settingsStore && m_settingsStore->Load().deleteAfterExport)
+        {
+            m_hasOutput = false;
+            m_outputPath.clear();
+        }
         SetStatus(
             exported ? winrt::upx_killer::OverviewStatusKind::Succeeded : winrt::upx_killer::OverviewStatusKind::Error,
             exported ? L"StatusExportSucceeded" : L"StatusExportFailed");
@@ -296,6 +327,34 @@ namespace winrt::upx_killer::implementation
         m_statusText = Resource(resourceKey);
         RaisePropertyChanged(L"StatusKind");
         RaisePropertyChanged(L"StatusText");
+    }
+
+    void OverviewViewModel::SetProgress(::upx_killer::engine::EngineStage stage)
+    {
+        wchar_t const* resourceKey{};
+        switch (stage)
+        {
+        case ::upx_killer::engine::EngineStage::DiscoveringOep:
+            resourceKey = L"StatusFindingOep";
+            break;
+        case ::upx_killer::engine::EngineStage::CapturingRelocations:
+            resourceKey = L"StatusCapturingRelocations";
+            break;
+        case ::upx_killer::engine::EngineStage::RebuildingRelocations:
+            resourceKey = L"StatusRebuildingRelocations";
+            break;
+        case ::upx_killer::engine::EngineStage::RebuildingImports:
+            resourceKey = L"StatusRebuildingImports";
+            break;
+        case ::upx_killer::engine::EngineStage::Dumping:
+            resourceKey = L"StatusDumping";
+            break;
+        default:
+            break;
+        }
+
+        if (resourceKey)
+            SetStatus(winrt::upx_killer::OverviewStatusKind::Busy, resourceKey);
     }
 
     void OverviewViewModel::RaisePropertyChanged(wchar_t const* propertyName)

@@ -14,8 +14,9 @@ If imports cannot be uniquely resolved, the Application returns `ImportsNotFound
 
 The engine does not execute repaired output. Runtime snapshots are platform-neutral at the Core boundary, limits are enforced during remote enumeration and parsing, and protocol callers may still provide an explicit plan.
 
-Because a memory dump can contain loader-resolved absolute pointers outside the
-source relocation table (notably CRT initializer entries), the fixer pins a
-repaired image to its captured load base and clears dynamic/base-relocation
-metadata. This prevents the Windows loader from applying a partial relocation
-delta that would leave runtime pointers targeting the old process.
+Because a Memory Dump can contain loader-resolved absolute pointers outside the
+source relocation table, runtime Imports alone are not sufficient to make the
+Repaired Image relocatable. ADR 0003 therefore requires three controlled-base
+snapshots, reconstructs the actual relocation slots, normalizes them to
+0x140000000, and publishes a new Base Relocation Directory before an artifact
+can be reported as Completed.

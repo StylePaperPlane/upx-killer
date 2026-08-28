@@ -28,6 +28,12 @@
                 AutomationProperties.AutomationId="OverviewNavigationItem"
                 Icon="Home"
                 Tag="overview" />
+            <NavigationViewItem
+                x:Name="ConfigurationNavigationItem"
+                x:Uid="ConfigurationNavigationItem"
+                AutomationProperties.AutomationId="ConfigurationNavigationItem"
+                Icon="Setting"
+                Tag="configuration" />
         </NavigationView.MenuItems>
 
         <Frame

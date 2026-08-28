@@ -1,4 +1,5 @@
 #include "Core/PE/Fixing/PeImageFixer.h"
+#include "Core/PE/Sections/SectionLayoutRebuilder.h"
 
 #include <Windows.h>
 
@@ -42,11 +43,36 @@ namespace upx_killer::engine::pe
         {
             if (request.oep.value >= layout.sizeOfImage || dump.bytes.size() < layout.sizeOfImage || layout.sections.empty())
                 return { std::nullopt, EngineError::OepOutOfRange };
+            if (request.relocations.preferredImageBase.value == 0 ||
+                request.relocations.slots.empty() ||
+                request.relocations.directoryBytes.empty())
+                return { std::nullopt, EngineError::RelocationEvidenceInsufficient };
+
+            auto normalizedImage = dump.bytes;
+            for (auto const& slot : request.relocations.slots)
+            {
+                if (slot.location.value >= layout.sizeOfImage ||
+                    sizeof(std::uint64_t) > layout.sizeOfImage - slot.location.value ||
+                    slot.imageTarget.value >= layout.sizeOfImage ||
+                    request.relocations.preferredImageBase.value >
+                        std::numeric_limits<std::uint64_t>::max() - slot.imageTarget.value)
+                    return { std::nullopt, EngineError::RelocationValidationFailed };
+                auto const value =
+                    request.relocations.preferredImageBase.value + slot.imageTarget.value;
+                WriteAt(normalizedImage, slot.location.value, value);
+            }
+            auto const sectionLayout = sections::SectionLayoutRebuilder::Build(
+                layout,
+                { normalizedImage, request.relocations.preferredImageBase, request.oep,
+                    request.imports ? &*request.imports : nullptr });
+            if (!sectionLayout.plan)
+                return { std::nullopt, EngineError::RebuildFailed };
 
             auto const addImportSection = request.imports.has_value() && !request.imports->modules.empty();
-            if (layout.sections.size() + (addImportSection ? 1u : 0u) > 96)
+            if (sectionLayout.plan->sections.size() + (addImportSection ? 1u : 0u) + 1u > 96)
                 return { std::nullopt, EngineError::RebuildFailed };
-            auto const sectionCount = static_cast<std::uint16_t>(layout.sections.size() + (addImportSection ? 1 : 0));
+            auto const sectionCount = static_cast<std::uint16_t>(
+                sectionLayout.plan->sections.size() + (addImportSection ? 1 : 0) + 1);
             auto const sectionTableOffset = static_cast<std::uint32_t>(
                 layout.ntHeaderOffset + sizeof(DWORD) + sizeof(IMAGE_FILE_HEADER) + sizeof(IMAGE_OPTIONAL_HEADER64));
             auto const headerSize = Align(
@@ -55,17 +81,17 @@ namespace upx_killer::engine::pe
 
             FixedPeImage fixed{};
             fixed.bytes.resize(headerSize);
-            std::copy_n(dump.bytes.begin(), std::min<std::size_t>(layout.sizeOfHeaders, fixed.bytes.size()), fixed.bytes.begin());
+            std::copy_n(normalizedImage.begin(), std::min<std::size_t>(layout.sizeOfHeaders, fixed.bytes.size()), fixed.bytes.begin());
 
             std::vector<IMAGE_SECTION_HEADER> sectionHeaders;
             sectionHeaders.reserve(sectionCount);
             std::uint32_t nextRaw = headerSize;
             std::uint32_t highestVirtualEnd{};
-            for (auto const& source : layout.sections)
+            for (auto const& source : sectionLayout.plan->sections)
             {
                 IMAGE_SECTION_HEADER section{};
                 std::memcpy(section.Name, source.name.data(), source.name.size());
-                section.Misc.VirtualSize = std::max(source.virtualSize, source.rawSize);
+                section.Misc.VirtualSize = source.virtualSize;
                 section.VirtualAddress = source.virtualAddress.value;
                 auto const available = layout.sizeOfImage - source.virtualAddress.value;
                 auto const virtualBytes = std::min<std::uint32_t>(section.Misc.VirtualSize, available);
@@ -74,7 +100,7 @@ namespace upx_killer::engine::pe
                 section.Characteristics = source.characteristics;
                 fixed.bytes.resize(static_cast<std::size_t>(nextRaw) + section.SizeOfRawData);
                 std::copy_n(
-                    dump.bytes.begin() + source.virtualAddress.value,
+                    normalizedImage.begin() + source.virtualAddress.value,
                     virtualBytes,
                     fixed.bytes.begin() + nextRaw);
                 nextRaw += section.SizeOfRawData;
@@ -122,7 +148,9 @@ namespace upx_killer::engine::pe
                         auto const& symbol = module.symbols[symbolIndex];
                         ULONGLONG thunk{};
                         if (symbol.ordinal.has_value() == symbol.name.has_value())
+                        {
                             return { std::nullopt, EngineError::ImportPlanInvalid };
+                        }
                         if (symbol.ordinal)
                         {
                             thunk = IMAGE_ORDINAL_FLAG64 | *symbol.ordinal;
@@ -150,8 +178,10 @@ namespace upx_killer::engine::pe
                             }
                             return false;
                         };
-                        if (!patchIat(module.firstThunk.value + static_cast<std::uint32_t>(symbolIndex * sizeof(ULONGLONG)), thunk))
-                            return { std::nullopt, EngineError::ImportPlanInvalid };
+                    if (!patchIat(module.firstThunk.value + static_cast<std::uint32_t>(symbolIndex * sizeof(ULONGLONG)), thunk))
+                    {
+                        return { std::nullopt, EngineError::ImportPlanInvalid };
+                    }
                     }
 
                     IMAGE_IMPORT_DESCRIPTOR descriptor{};
@@ -185,6 +215,7 @@ namespace upx_killer::engine::pe
                 std::copy(importBytes.begin(), importBytes.end(), fixed.bytes.begin() + nextRaw);
                 sectionHeaders.push_back(importSection);
                 highestVirtualEnd = Align(importSection.VirtualAddress + importSection.Misc.VirtualSize, layout.sectionAlignment);
+                nextRaw += importSection.SizeOfRawData;
                 fixed.quality = ArtifactQuality::Complete;
             }
             else if (!request.imports.has_value())
@@ -197,26 +228,68 @@ namespace upx_killer::engine::pe
                 fixed.quality = ArtifactQuality::Complete;
             }
 
+            IMAGE_SECTION_HEADER relocationSection{};
+            std::memcpy(relocationSection.Name, ".reloc", 6);
+            relocationSection.Misc.VirtualSize =
+                static_cast<DWORD>(request.relocations.directoryBytes.size());
+            relocationSection.VirtualAddress = Align(highestVirtualEnd, layout.sectionAlignment);
+            relocationSection.SizeOfRawData = Align(relocationSection.Misc.VirtualSize, layout.fileAlignment);
+            relocationSection.PointerToRawData = nextRaw;
+            relocationSection.Characteristics =
+                IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_DISCARDABLE;
+            fixed.bytes.resize(static_cast<std::size_t>(nextRaw) + relocationSection.SizeOfRawData);
+            std::copy(
+                request.relocations.directoryBytes.begin(),
+                request.relocations.directoryBytes.end(),
+                fixed.bytes.begin() + nextRaw);
+            sectionHeaders.push_back(relocationSection);
+            highestVirtualEnd = Align(
+                relocationSection.VirtualAddress + relocationSection.Misc.VirtualSize,
+                layout.sectionAlignment);
+
             auto* nt = reinterpret_cast<IMAGE_NT_HEADERS64*>(fixed.bytes.data() + layout.ntHeaderOffset);
             nt->Signature = IMAGE_NT_SIGNATURE;
             nt->FileHeader.Machine = IMAGE_FILE_MACHINE_AMD64;
             nt->FileHeader.NumberOfSections = sectionCount;
             nt->FileHeader.SizeOfOptionalHeader = sizeof(IMAGE_OPTIONAL_HEADER64);
-            nt->FileHeader.Characteristics = layout.characteristics;
+            nt->FileHeader.Characteristics = static_cast<WORD>(
+                layout.characteristics & ~IMAGE_FILE_RELOCS_STRIPPED);
             nt->OptionalHeader.Magic = IMAGE_NT_OPTIONAL_HDR64_MAGIC;
-            nt->OptionalHeader.ImageBase = dump.loadedBase.value;
+            nt->OptionalHeader.ImageBase = request.relocations.preferredImageBase.value;
             nt->OptionalHeader.AddressOfEntryPoint = request.oep.value;
             nt->OptionalHeader.SizeOfHeaders = headerSize;
             nt->OptionalHeader.SizeOfImage = highestVirtualEnd;
+            nt->OptionalHeader.SizeOfCode = 0;
+            nt->OptionalHeader.SizeOfInitializedData = 0;
+            nt->OptionalHeader.SizeOfUninitializedData = 0;
+            nt->OptionalHeader.BaseOfCode = 0;
+            for (auto const& section : sectionHeaders)
+            {
+                if ((section.Characteristics & IMAGE_SCN_CNT_CODE) != 0)
+                {
+                    if (section.SizeOfRawData > std::numeric_limits<DWORD>::max() - nt->OptionalHeader.SizeOfCode)
+                        return { std::nullopt, EngineError::RebuildFailed };
+                    nt->OptionalHeader.SizeOfCode += section.SizeOfRawData;
+                    if (nt->OptionalHeader.BaseOfCode == 0 || section.VirtualAddress < nt->OptionalHeader.BaseOfCode)
+                        nt->OptionalHeader.BaseOfCode = section.VirtualAddress;
+                }
+                if ((section.Characteristics & IMAGE_SCN_CNT_INITIALIZED_DATA) != 0)
+                {
+                    if (section.SizeOfRawData > std::numeric_limits<DWORD>::max() - nt->OptionalHeader.SizeOfInitializedData)
+                        return { std::nullopt, EngineError::RebuildFailed };
+                    nt->OptionalHeader.SizeOfInitializedData += section.SizeOfRawData;
+                }
+                if ((section.Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) != 0)
+                {
+                    if (section.SizeOfRawData > std::numeric_limits<DWORD>::max() - nt->OptionalHeader.SizeOfUninitializedData)
+                        return { std::nullopt, EngineError::RebuildFailed };
+                    nt->OptionalHeader.SizeOfUninitializedData += section.SizeOfRawData;
+                }
+            }
             nt->OptionalHeader.CheckSum = 0;
-            // The dump contains loader-resolved absolute pointers (for example
-            // CRT initializer entries) that are not all covered by the source
-            // relocation table. Keep the captured base and make the image
-            // non-relocatable so the loader cannot silently apply a partial
-            // relocation delta and leave those pointers stale.
-            nt->OptionalHeader.DllCharacteristics &= static_cast<WORD>(~(
+            nt->OptionalHeader.DllCharacteristics |= static_cast<WORD>(
                 IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE |
-                IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA));
+                IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA);
             nt->OptionalHeader.NumberOfRvaAndSizes = IMAGE_NUMBEROF_DIRECTORY_ENTRIES;
             nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY] = {};
             nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC] = {};
@@ -224,11 +297,20 @@ namespace upx_killer::engine::pe
             nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT] = {};
             nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT] = {};
             nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT] = {};
+            // TLS callbacks and load-config metadata are not reconstructed by
+            // the dump path. Keep stale packed directory pointers from being
+            // consumed by the Windows loader before the OEP.
+            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] = {};
+            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG] = {};
             if (addImportSection)
             {
                 nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT] = { importSection.VirtualAddress, importDirectorySize };
                 nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IAT] = { iatStart, iatEnd - iatStart };
             }
+            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC] = {
+                relocationSection.VirtualAddress,
+                relocationSection.Misc.VirtualSize
+            };
 
             auto* outputSections = IMAGE_FIRST_SECTION(nt);
             std::copy(sectionHeaders.begin(), sectionHeaders.end(), outputSections);

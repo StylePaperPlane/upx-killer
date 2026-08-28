@@ -7,19 +7,6 @@
 
 namespace upx_killer::engine::application
 {
-    enum class EngineStage
-    {
-        Validating,
-        DiscoveringOep,
-        Launching,
-        WaitingForOep,
-        Dumping,
-        RebuildingImports,
-        Fixing,
-        ValidatingOutput,
-        Completed,
-    };
-
     using ProgressCallback = std::function<void(EngineStage)>;
 
     class UnpackEngine final

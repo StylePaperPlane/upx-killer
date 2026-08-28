@@ -3,6 +3,8 @@
 #include "Infrastructure/Storage/TargetFilePicker.h"
 #include "Infrastructure/EngineHost/EngineHostClient.h"
 #include "Infrastructure/Storage/ArtifactFileExporter.h"
+#include "Infrastructure/Settings/LocalTemporaryFileSettingsStore.h"
+#include "Infrastructure/Storage/TemporaryFolderPicker.h"
 #include "UI/Windows/MainWindow/MainWindow.xaml.h"
 
 #include <memory>
@@ -43,12 +45,17 @@ namespace winrt::upx_killer::implementation
     /// <param name="e">Details about the launch request and process.</param>
     void App::OnLaunched([[maybe_unused]] LaunchActivatedEventArgs const& e)
     {
+        auto const temporaryFileSettings =
+            std::make_shared<::upx_killer::infrastructure::LocalTemporaryFileSettingsStore>();
         auto const mainWindow = make<MainWindow>();
         get_self<MainWindow>(mainWindow)->InitializeShell(
             std::make_shared<::upx_killer::infrastructure::TargetFilePicker>(),
             std::make_shared<::upx_killer::infrastructure::EngineHostClient>(
-                ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath()),
-            std::make_shared<::upx_killer::infrastructure::ArtifactFileExporter>());
+                ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath(),
+                temporaryFileSettings),
+            std::make_shared<::upx_killer::infrastructure::ArtifactFileExporter>(temporaryFileSettings),
+            temporaryFileSettings,
+            std::make_shared<::upx_killer::infrastructure::TemporaryFolderPicker>());
 
         window = mainWindow;
         window.Activate();

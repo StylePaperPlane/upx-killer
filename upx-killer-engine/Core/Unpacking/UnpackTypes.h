@@ -66,6 +66,26 @@ namespace upx_killer::engine
         ImportsNotFound,
         ImportsAmbiguous,
         ImportSnapshotFailed,
+        SourceRelocationsInvalid,
+        ControlledBaseUnavailable,
+        RelocationEvidenceInsufficient,
+        RelocationCandidatesAmbiguous,
+        RelocationValidationFailed,
+    };
+
+    enum class EngineStage
+    {
+        Validating,
+        DiscoveringOep,
+        Launching,
+        WaitingForOep,
+        Dumping,
+        RebuildingImports,
+        CapturingRelocations,
+        RebuildingRelocations,
+        Fixing,
+        ValidatingOutput,
+        Completed,
     };
 
     struct ImportSymbol

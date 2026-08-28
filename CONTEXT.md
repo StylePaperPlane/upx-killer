@@ -36,8 +36,30 @@ _Avoid_: Remote HANDLE, process export table
 An import symbol whose IAT slot was matched uniquely to an executable runtime export.
 _Avoid_: Guessed API, probable import
 
+**Controlled-Base Snapshot**:
+A Memory Dump captured after the same supported target reaches the same OEP RVA at one of the engine's exact required image bases.
+_Avoid_: Random ASLR dump, rebased output
+
+**Source Relocation Evidence**:
+Validated DIR64 slots read from the Target Image's Base Relocation Directory. These slots are used only to prepare controlled-base copies and to exclude unchanged packer-stub residue.
+_Avoid_: Reconstructed relocations, guessed pointers
+
+**No Source Relocations Path**:
+The UPX-specific controlled-loading path used only when the Target Image has an empty Base Relocation Directory and automatic UPX analysis has produced a valid OEP discovery plan. Transient copies change loader-placement metadata but never synthesize source relocation entries.
+_Avoid_: Fake relocation table, fixed-base export
+
+**Relocation Slot**:
+A byte-accurate location in the unpacked Loaded Image whose DIR64 value changes by exactly the image-base delta across all three Controlled-Base Snapshots.
+_Avoid_: Pointer-looking value, aligned qword guess
+
+**Relocation Rebuild Plan**:
+The validated Relocation Slots, their image-relative targets, the normalized preferred base, and the encoded Base Relocation Directory used to build the Repaired Image.
+_Avoid_: Source relocation table, address patch list
+
 **Partial Artifact**:
 A Repaired Image whose structural validation passed but whose imports have not been rebuilt.
 _Avoid_: Successful unpack, completed image
 
-Automatic OEP captures with validated imports are `Completed`. Ambiguous or unresolved imports fail before writing an artifact.
+Automatic OEP captures are Completed only after Imports, IAT, semantic sections,
+and reconstructed relocations all validate. Ambiguous or insufficient evidence
+fails before writing an artifact.

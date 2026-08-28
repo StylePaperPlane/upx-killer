@@ -20,6 +20,7 @@ namespace upx_killer::engine::debugging
 
         [[nodiscard]] static std::optional<DebugProcess> Launch(
             std::filesystem::path const& targetPath,
+            std::filesystem::path const& workingDirectory,
             std::uint32_t& nativeError) noexcept;
 
         [[nodiscard]] HANDLE ProcessHandle() const noexcept { return process_; }

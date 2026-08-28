@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Dumping/ProcessImageDumper.h"
+#include "Core/PE/Relocations/RelocationReconstructor.h"
 
 #include <cstddef>
 #include <optional>
@@ -12,6 +13,7 @@ namespace upx_killer::engine::pe
     {
         RelativeVirtualAddress oep;
         std::optional<ImportRebuildPlan> imports;
+        relocations::RelocationRebuildPlan relocations;
     };
 
     struct FixedPeImage

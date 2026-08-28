@@ -39,7 +39,12 @@
     <ClCompile Include="Tests\EngineModuleTests.cpp" />
     <ClCompile Include="Tests\Unit\OepDiscoveryTests.cpp" />
     <ClCompile Include="Tests\Unit\Imports\ImportDiscoveryTests.cpp" />
+    <ClCompile Include="Tests\Unit\Sections\SectionLayoutRebuilderTests.cpp" />
+    <ClCompile Include="Tests\Unit\Rebasing\PeFileRebaserTests.cpp" />
+    <ClCompile Include="Tests\Unit\Rebasing\NoSourceRelocationsImagePreparerTests.cpp" />
+    <ClCompile Include="Tests\Unit\Relocations\RelocationReconstructorTests.cpp" />
     <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp" />
+    <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp" />
     <ClCompile Include="Tests\Support\EngineHostTestClient.cpp" />
   </ItemGroup>
   <ItemGroup>

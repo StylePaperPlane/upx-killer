@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <functional>
 #include <stop_token>
+#include <span>
 #include <variant>
 
 namespace upx_killer::engine::debugging
@@ -19,6 +20,8 @@ namespace upx_killer::engine::debugging
         std::uint32_t sizeOfImage{};
         std::chrono::milliseconds timeout{ 60'000 };
         bool collectRuntimeImports{};
+        std::span<std::byte const> stagedTargetImage;
+        std::optional<LoadedAddress> requiredImageBase;
     };
 
     struct DebugCaptureResult

@@ -1,0 +1,17 @@
+namespace upx_killer
+{
+    runtimeclass ConfigurationViewModel : Microsoft.UI.Xaml.Data.INotifyPropertyChanged
+    {
+        ConfigurationViewModel();
+        String TemporaryDirectory{ get; };
+        Int32 AutoDeleteSelectedIndex;
+        String AutoDeleteHelpText{ get; };
+        Microsoft.UI.Xaml.Input.ICommand SelectTemporaryDirectoryCommand{ get; };
+    };
+
+    runtimeclass ConfigurationPage : Microsoft.UI.Xaml.Controls.Page
+    {
+        ConfigurationPage();
+        ConfigurationViewModel ViewModel{ get; };
+    };
+}

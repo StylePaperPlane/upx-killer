@@ -19,6 +19,8 @@ namespace upx_killer::application
         OepNotFound,
         ImportsNotFound,
         ImportsAmbiguous,
+        RelocationEvidenceFailed,
+        RelocationValidationFailed,
         Failed,
     };
 
@@ -35,7 +37,8 @@ namespace upx_killer::application
         explicit UnpackWorkflow(std::shared_ptr<IUnpackEngineClient> client);
         [[nodiscard]] UnpackResult Start(
             std::filesystem::path const& targetPath,
-            std::optional<engine::RelativeVirtualAddress> oep = std::nullopt) const noexcept;
+            std::optional<engine::RelativeVirtualAddress> oep = std::nullopt,
+            IUnpackEngineClient::ProgressCallback const& progress = {}) const noexcept;
 
     private:
         std::shared_ptr<IUnpackEngineClient> m_client;

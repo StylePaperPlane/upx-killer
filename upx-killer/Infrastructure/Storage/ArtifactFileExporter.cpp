@@ -5,6 +5,12 @@
 
 namespace upx_killer::infrastructure
 {
+    ArtifactFileExporter::ArtifactFileExporter(
+        std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore)
+        : m_settingsStore(std::move(settingsStore))
+    {
+    }
+
     winrt::Windows::Foundation::IAsyncOperation<bool> ArtifactFileExporter::ExportAsync(
         winrt::Microsoft::UI::WindowId const& windowId,
         std::filesystem::path const& artifactPath)
@@ -21,6 +27,16 @@ namespace upx_killer::infrastructure
         picker.FileTypeChoices().Insert(L"*.exe", extensions);
         auto const destination = co_await picker.PickSaveFileAsync();
         if (!destination) co_return false;
-        co_return CopyFileW(artifactPath.c_str(), destination.Path().c_str(), FALSE) != FALSE;
+        if (!CopyFileW(artifactPath.c_str(), destination.Path().c_str(), FALSE)) co_return false;
+
+        if (m_settingsStore && m_settingsStore->Load().deleteAfterExport)
+        {
+            std::error_code error;
+            std::filesystem::remove(artifactPath, error);
+            if (!error)
+                std::filesystem::remove(artifactPath.parent_path(), error);
+        }
+
+        co_return true;
     }
 }

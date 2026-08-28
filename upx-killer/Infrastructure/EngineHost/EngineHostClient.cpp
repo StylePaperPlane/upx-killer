@@ -12,16 +12,10 @@
 
 namespace
 {
-    std::filesystem::path ArtifactRoot()
-    {
-        return std::filesystem::temp_directory_path() / L"upx-killer";
-    }
-
-    void CleanupStaleArtifacts() noexcept
+    void CleanupStaleArtifacts(std::filesystem::path const& root) noexcept
     {
         try
         {
-            auto const root = ArtifactRoot();
             if (!std::filesystem::is_directory(root)) return;
             auto const cutoff = std::filesystem::file_time_type::clock::now() - std::chrono::hours{ 24 * 7 };
             for (auto const& entry : std::filesystem::directory_iterator(root))
@@ -75,10 +69,12 @@ namespace
 
 namespace upx_killer::infrastructure
 {
-    EngineHostClient::EngineHostClient(std::filesystem::path hostPath)
-        : m_hostPath(std::move(hostPath))
+    EngineHostClient::EngineHostClient(
+        std::filesystem::path hostPath,
+        std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore)
+        : m_hostPath(std::move(hostPath)),
+          m_settingsStore(std::move(settingsStore))
     {
-        CleanupStaleArtifacts();
     }
 
     std::filesystem::path EngineHostClient::AdjacentHostPath()
@@ -90,18 +86,29 @@ namespace upx_killer::infrastructure
             L"upx_killer_engine_host.exe";
     }
 
-    engine::EngineResult EngineHostClient::Execute(engine::UnpackRequest const& request) noexcept
+    engine::EngineResult EngineHostClient::Execute(
+        engine::UnpackRequest const& request,
+        ProgressCallback const& progress) noexcept
     {
         try
         {
             if (!std::filesystem::is_regular_file(m_hostPath))
                 return { engine::EngineOutcome::Failed, engine::EngineError::LaunchFailed, std::nullopt, ERROR_FILE_NOT_FOUND };
+            if (!m_settingsStore)
+                return { engine::EngineOutcome::Failed, engine::EngineError::LaunchFailed };
+
+            auto const temporaryFileSettings = m_settingsStore->Load();
+            auto const& artifactRoot = temporaryFileSettings.directory;
+            if (artifactRoot.empty())
+                return { engine::EngineOutcome::Failed, engine::EngineError::LaunchFailed };
+            if (temporaryFileSettings.deleteAfterExport)
+                CleanupStaleArtifacts(artifactRoot);
 
             auto hostRequest = request;
             if (hostRequest.outputPath.empty())
             {
                 auto const session = std::to_wstring(GetCurrentProcessId()) + L"-" + std::to_wstring(GetTickCount64());
-                hostRequest.outputPath = ArtifactRoot() / session /
+                hostRequest.outputPath = artifactRoot / session /
                     (request.targetPath.stem().wstring() + L".dumped.exe");
             }
 
@@ -155,10 +162,20 @@ namespace upx_killer::infrastructure
             }
             requestWrite.reset();
             engine::EngineResult result{};
-            if (!engine::protocol::ReadResult(resultRead.get(), result))
+            for (;;)
             {
-                TerminateProcess(process.get(), ERROR_READ_FAULT);
-                return { engine::EngineOutcome::Failed, engine::EngineError::ProtocolMismatch, std::nullopt, GetLastError() };
+                engine::protocol::HostResponse response{};
+                if (!engine::protocol::ReadResponse(resultRead.get(), response))
+                {
+                    TerminateProcess(process.get(), ERROR_READ_FAULT);
+                    return { engine::EngineOutcome::Failed, engine::EngineError::ProtocolMismatch, std::nullopt, GetLastError() };
+                }
+                if (response.progress && progress) progress(*response.progress);
+                if (response.result)
+                {
+                    result = std::move(*response.result);
+                    break;
+                }
             }
             if (WaitForSingleObject(process.get(), 5'000) == WAIT_TIMEOUT)
                 TerminateProcess(process.get(), WAIT_TIMEOUT);

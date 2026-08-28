@@ -40,6 +40,10 @@
     <ClInclude Include="Core\PE\OepDiscovery\UpxOepLocator.h" />
     <ClInclude Include="Core\Dumping\ProcessImageDumper.h" />
     <ClInclude Include="Core\PE\Fixing\PeImageFixer.h" />
+    <ClInclude Include="Core\PE\Sections\SectionLayoutRebuilder.h" />
+    <ClInclude Include="Core\PE\Rebasing\PeFileRebaser.h" />
+    <ClInclude Include="Core\PE\Rebasing\NoSourceRelocations\NoSourceRelocationsImagePreparer.h" />
+    <ClInclude Include="Core\PE\Relocations\RelocationReconstructor.h" />
     <ClInclude Include="Core\PE\Imports\ImportTypes.h" />
     <ClInclude Include="Core\PE\Imports\ImportDiscovery.h" />
     <ClInclude Include="Core\PE\Imports\PeExportParser.h" />
@@ -49,6 +53,8 @@
     <ClInclude Include="Infrastructure\Windows\Debugging\SoftwareBreakpointSet.h" />
     <ClInclude Include="Infrastructure\Windows\Debugging\WindowsDebugSession.h" />
     <ClInclude Include="Infrastructure\Windows\Debugging\RemoteModuleCatalog.h" />
+    <ClInclude Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.h" />
+    <ClInclude Include="Infrastructure\Windows\Verification\ExecutableVerifier.h" />
     <ClInclude Include="Application\Unpacking\UnpackEngine.h" />
     <ClInclude Include="Protocol\EngineHost\EngineHostProtocol.h" />
   </ItemGroup>
@@ -57,6 +63,10 @@
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp" />
     <ClCompile Include="Core\Dumping\ProcessImageDumper.cpp" />
     <ClCompile Include="Core\PE\Fixing\PeImageFixer.cpp" />
+    <ClCompile Include="Core\PE\Sections\SectionLayoutRebuilder.cpp" />
+    <ClCompile Include="Core\PE\Rebasing\PeFileRebaser.cpp" />
+    <ClCompile Include="Core\PE\Rebasing\NoSourceRelocations\NoSourceRelocationsImagePreparer.cpp" />
+    <ClCompile Include="Core\PE\Relocations\RelocationReconstructor.cpp" />
     <ClCompile Include="Core\PE\Imports\ImportDiscovery.cpp" />
     <ClCompile Include="Core\PE\Imports\PeExportParser.cpp" />
     <ClCompile Include="Core\PE\Imports\ImportTableValidator.cpp" />
@@ -65,6 +75,8 @@
     <ClCompile Include="Infrastructure\Windows\Debugging\SoftwareBreakpointSet.cpp" />
     <ClCompile Include="Infrastructure\Windows\Debugging\WindowsDebugSession.cpp" />
     <ClCompile Include="Infrastructure\Windows\Debugging\RemoteModuleCatalog.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Verification\ExecutableVerifier.cpp" />
     <ClCompile Include="Application\Unpacking\UnpackEngine.cpp" />
     <ClCompile Include="Protocol\EngineHost\EngineHostProtocol.cpp" />
   </ItemGroup>

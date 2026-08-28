@@ -3,6 +3,8 @@
 #include "Core/PE/Fixing/PeImageFixer.h"
 #include "Application/Unpacking/UnpackEngine.h"
 #include "Protocol/EngineHost/EngineHostProtocol.h"
+#include "Infrastructure/Windows/Debugging/WindowsDebugSession.h"
+#include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Tests/Support/EngineHostTestClient.h"
 
 #include <Windows.h>
@@ -64,6 +66,23 @@ namespace
         section->Characteristics = IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ;
         bytes[0x200] = std::byte{ 0xC3 };
         return bytes;
+    }
+
+    pe::relocations::RelocationRebuildPlan MakeRelocations(
+        std::uint64_t imageBase,
+        std::uint32_t location = 0x1080,
+        std::uint32_t target = 0x1000)
+    {
+        pe::relocations::RelocationRebuildPlan plan{};
+        plan.preferredImageBase = { imageBase };
+        plan.slots.push_back({ { location }, { target } });
+        plan.directoryBytes.resize(12);
+        IMAGE_BASE_RELOCATION block{ location & ~0xfffu, 12 };
+        std::memcpy(plan.directoryBytes.data(), &block, sizeof(block));
+        auto* entries = reinterpret_cast<WORD*>(plan.directoryBytes.data() + sizeof(block));
+        entries[0] = static_cast<WORD>((IMAGE_REL_BASED_DIR64 << 12) | (location & 0xfffu));
+        entries[1] = 0;
+        return plan;
     }
 
     class MemoryReader final : public dumping::IRemoteMemoryReader
@@ -138,7 +157,10 @@ namespace
         std::copy_n(file.begin(), 0x200, dump.bytes.begin());
         dump.bytes[0x1000] = std::byte{ 0xC3 };
 
-        auto fixed = pe::PeImageFixer::Rebuild(*parsed.layout, dump, { RelativeVirtualAddress{ 0x1000 }, std::nullopt });
+        auto fixed = pe::PeImageFixer::Rebuild(
+            *parsed.layout, dump,
+            { RelativeVirtualAddress{ 0x1000 }, std::nullopt,
+                MakeRelocations(dump.loadedBase.value) });
         Expect(fixed.Succeeded(), "basic PE rebuild succeeds");
         Expect(fixed.image && fixed.image->quality == ArtifactQuality::Partial, "missing import plan is reported as partial");
         Expect(fixed.image && fixed.image->bytes.size() >= 0x400, "rebuilt file has raw section data");
@@ -160,7 +182,9 @@ namespace
         module.symbols.push_back({ std::string{ "ExitProcess" }, std::nullopt, 0 });
         plan.modules.push_back(std::move(module));
         auto fixed = pe::PeImageFixer::Rebuild(
-            *parsed.layout, dump, { RelativeVirtualAddress{ 0x1000 }, std::move(plan) });
+            *parsed.layout, dump,
+            { RelativeVirtualAddress{ 0x1000 }, std::move(plan),
+                MakeRelocations(dump.loadedBase.value) });
         Expect(fixed.Succeeded(), "a valid import plan is rebuilt");
         Expect(fixed.image && fixed.image->quality == ArtifactQuality::Complete, "rebuilt imports produce a complete artifact");
         if (fixed.image)
@@ -171,13 +195,15 @@ namespace
         }
     }
 
-    void FixerPinsCapturedBaseWhenRelocationsAreIncomplete()
+    void FixerCreatesDynamicallyRelocatableImage()
     {
         auto file = MakePe64();
         auto* sourceNt = reinterpret_cast<IMAGE_NT_HEADERS64*>(file.data() + 0x80);
         sourceNt->OptionalHeader.DllCharacteristics =
             IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE | IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA;
         sourceNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC] = { 0x1000, 8 };
+        sourceNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] = { 0x1000, sizeof(IMAGE_TLS_DIRECTORY64) };
+        sourceNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG] = { 0x1000, sizeof(IMAGE_LOAD_CONFIG_DIRECTORY64) };
         auto parsed = pe::PeParser::Parse(file);
         dumping::DumpedImage dump{};
         dump.loadedBase = LoadedAddress{ 0x7ff700000000ull };
@@ -185,19 +211,28 @@ namespace
         std::copy_n(file.begin(), 0x200, dump.bytes.begin());
         dump.bytes[0x1000] = std::byte{ 0xC3 };
 
-        auto fixed = pe::PeImageFixer::Rebuild(*parsed.layout, dump, { RelativeVirtualAddress{ 0x1000 }, ImportRebuildPlan{} });
-        Expect(fixed.Succeeded(), "fixer preserves a valid image while pinning the captured base");
+        auto fixed = pe::PeImageFixer::Rebuild(
+            *parsed.layout, dump,
+            { RelativeVirtualAddress{ 0x1000 }, ImportRebuildPlan{},
+                MakeRelocations(0x140000000ull) });
+        Expect(fixed.Succeeded(), "fixer rebuilds a dynamically relocatable image");
         if (!fixed.image) return;
         auto const reparsed = pe::PeParser::Parse(fixed.image->bytes);
-        Expect(reparsed.layout && reparsed.layout->preferredImageBase == dump.loadedBase.value,
-            "rebuilt image uses the captured load base");
+        Expect(reparsed.layout && reparsed.layout->preferredImageBase == 0x140000000ull,
+            "rebuilt image uses the standard preferred base");
         if (!reparsed.layout) return;
         auto const* nt = reinterpret_cast<IMAGE_NT_HEADERS64*>(fixed.image->bytes.data() + reparsed.layout->ntHeaderOffset);
-        Expect((nt->OptionalHeader.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE) == 0,
-            "rebuilt image disables dynamic base relocation");
-        Expect(nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress == 0 &&
-            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size == 0,
-            "rebuilt image clears the incomplete relocation directory");
+        Expect((nt->OptionalHeader.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE) != 0,
+            "rebuilt image enables dynamic base relocation");
+        Expect(nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress != 0 &&
+            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC].Size == 12,
+            "rebuilt image publishes the reconstructed relocation directory");
+        Expect(nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress == 0 &&
+            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size == 0,
+            "rebuilt image clears stale TLS metadata until callbacks are reconstructed");
+        Expect(nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].VirtualAddress == 0 &&
+            nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size == 0,
+            "rebuilt image clears stale load-config metadata until it is reconstructed");
     }
 
     void ProtocolRoundTripsAnExplicitRequest()
@@ -250,6 +285,48 @@ namespace
         auto const result = application::UnpackEngine::Execute(request, {});
         Expect(result.outcome == EngineOutcome::Completed, "fixture capture produces a completed artifact");
         Expect(result.artifact && result.artifact->loaderMappable, "captured artifact passes non-executing image validation");
+        if (result.artifact)
+        {
+            std::ifstream repairedStream(result.artifact->path, std::ios::binary | std::ios::ate);
+            std::vector<std::byte> repairedBytes(
+                static_cast<std::size_t>(repairedStream.tellg()));
+            repairedStream.seekg(0);
+            repairedStream.read(
+                reinterpret_cast<char*>(repairedBytes.data()),
+                static_cast<std::streamsize>(repairedBytes.size()));
+            auto repairedLayout = pe::PeParser::Parse(repairedBytes);
+            Expect(repairedLayout.layout &&
+                repairedLayout.layout->preferredImageBase == 0x140000000ull &&
+                repairedLayout.layout->directories[IMAGE_DIRECTORY_ENTRY_BASERELOC].address.value != 0,
+                "captured artifact publishes a low preferred base and relocation directory");
+            if (repairedLayout.layout)
+            {
+                auto rebased = pe::rebasing::PeFileRebaser::Rebase(
+                    repairedBytes,
+                    *repairedLayout.layout,
+                    LoadedAddress{ 0x200000000ull });
+                Expect(rebased.Succeeded(), "repaired artifact applies its own relocation table");
+                if (rebased.image)
+                {
+                    auto fourthBase = debugging::WindowsDebugSession::Capture(
+                        { result.artifact->path,
+                            repairedLayout.layout->entryPoint,
+                            repairedLayout.layout->sizeOfImage,
+                            std::chrono::seconds{ 10 },
+                            false,
+                            rebased.image->bytes,
+                            rebased.image->requiredBase },
+                        [](auto const&, auto const& loaded, auto, auto const&)
+                        {
+                            return loaded.base.value == 0x200000000ull
+                                ? EngineError::None
+                                : EngineError::RelocationValidationFailed;
+                        });
+                    Expect(fourthBase.Succeeded(),
+                        "repaired artifact reaches OEP at a fourth controlled base");
+                }
+            }
+        }
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
     }
@@ -290,6 +367,11 @@ namespace
 int RunOepDiscoveryTests();
 int RunOepDiscoveryIntegrationTests();
 int RunImportDiscoveryTests();
+int RunSectionLayoutRebuilderTests();
+int RunSemanticSectionRebuildTests();
+int RunPeFileRebaserTests();
+int RunNoSourceRelocationsImagePreparerTests();
+int RunRelocationReconstructorTests();
 int AnalyzeAutomaticOepTarget(std::filesystem::path const& target);
 int ValidateAutomaticOepTarget(std::filesystem::path const& target);
 int ValidateAutomaticOepTargetThroughHost(std::filesystem::path const& target);
@@ -307,13 +389,18 @@ int wmain(int argc, wchar_t** argv)
     DumperReadsVirtualImage();
     FixerCreatesExportablePartialImage();
     FixerRebuildsImportsFromAPlan();
-    FixerPinsCapturedBaseWhenRelocationsAreIncomplete();
+    FixerCreatesDynamicallyRelocatableImage();
     ProtocolRoundTripsAnExplicitRequest();
     EngineCapturesFixtureAtItsEntryPoint();
     EngineHostRoundTripsARealCapture();
     failures += RunOepDiscoveryTests();
     failures += RunOepDiscoveryIntegrationTests();
     failures += RunImportDiscoveryTests();
+    failures += RunSectionLayoutRebuilderTests();
+    failures += RunSemanticSectionRebuildTests();
+    failures += RunPeFileRebaserTests();
+    failures += RunNoSourceRelocationsImagePreparerTests();
+    failures += RunRelocationReconstructorTests();
     if (failures == 0)
     {
         std::cout << "All engine module tests passed.\n";

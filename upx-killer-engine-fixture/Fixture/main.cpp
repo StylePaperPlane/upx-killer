@@ -2,5 +2,7 @@
 
 int wmain()
 {
-    return IsDebuggerPresent() ? 0 : 1;
+    static volatile BOOL debuggerObserved{};
+    debuggerObserved = IsDebuggerPresent();
+    return 0;
 }

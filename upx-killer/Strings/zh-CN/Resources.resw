@@ -33,6 +33,39 @@
   <data name="OverviewNavigationItem.Content" xml:space="preserve">
     <value>概览</value>
   </data>
+  <data name="ConfigurationNavigationItem.Content" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="TemporaryFilesTitle.Text" xml:space="preserve">
+    <value>临时文件</value>
+  </data>
+  <data name="TemporaryDirectoryLabel.Text" xml:space="preserve">
+    <value>临时文件保存位置</value>
+  </data>
+  <data name="AutoDeleteTemporaryFilesLabel.Text" xml:space="preserve">
+    <value>导出后自动删除临时文件</value>
+  </data>
+  <data name="AutoDeleteYesOption.Content" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="AutoDeleteNoOption.Content" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="TemporaryFilesRetentionHelp" xml:space="preserve">
+    <value>选择“否”会保留临时文件，便于脱壳失败时分析未修复的内存转储文件。</value>
+  </data>
+  <data name="TemporaryDirectoryAutomationName" xml:space="preserve">
+    <value>临时文件保存位置</value>
+  </data>
+  <data name="SelectTemporaryDirectoryAutomationName" xml:space="preserve">
+    <value>选择临时文件保存位置</value>
+  </data>
+  <data name="AutoDeleteHelpAutomationName" xml:space="preserve">
+    <value>了解自动删除临时文件</value>
+  </data>
+  <data name="AutoDeleteAutomationName" xml:space="preserve">
+    <value>是否在导出后自动删除临时文件</value>
+  </data>
   <data name="TargetFileTitle.Text" xml:space="preserve">
     <value>目标文件</value>
   </data>
@@ -70,6 +103,12 @@
     <value>开始脱壳前需要提供 OEP RVA</value>
   </data>
   <data name="StatusFindingOep" xml:space="preserve"><value>正在寻找原始入口点</value></data>
+  <data name="StatusCapturingRelocations" xml:space="preserve"><value>正在捕获重定位信息</value></data>
+  <data name="StatusRebuildingRelocations" xml:space="preserve"><value>正在重建重定位表</value></data>
+  <data name="StatusRebuildingImports" xml:space="preserve"><value>正在重建导入表</value></data>
+  <data name="StatusDumping" xml:space="preserve"><value>正在捕获脱壳映像</value></data>
+  <data name="StatusRelocationEvidenceFailed" xml:space="preserve"><value>无法可靠恢复重定位信息</value></data>
+  <data name="StatusRelocationValidationFailed" xml:space="preserve"><value>重定位验证失败</value></data>
   <data name="StatusUnsupportedPacker" xml:space="preserve"><value>未识别为受支持的 UPX x64 可执行文件</value></data>
   <data name="StatusOepNotFound" xml:space="preserve"><value>未找到可靠的原始入口点</value></data>
   <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>无法可靠重建导入表，未生成输出文件</value></data>

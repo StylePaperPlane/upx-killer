@@ -100,7 +100,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\upx-killer-engine;$(GeneratedFilesDir)UI\Windows\MainWindow;$(GeneratedFilesDir)UI\Pages\Overview;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\upx-killer-engine;$(GeneratedFilesDir)UI\Windows\MainWindow;$(GeneratedFilesDir)UI\Pages\Overview;$(GeneratedFilesDir)UI\Pages\Configuration;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
@@ -148,23 +148,33 @@
     <ClInclude Include="Application\Unpacking\UnpackWorkflow.h" />
     <ClInclude Include="Application\Unpacking\IUnpackEngineClient.h" />
     <ClInclude Include="Application\Unpacking\IArtifactExporter.h" />
+    <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettings.h" />
+    <ClInclude Include="Application\TemporaryFiles\ITemporaryFolderPicker.h" />
+    <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.h" />
     <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h" />
     <ClInclude Include="Core\BinaryInspection\TargetBinaryInspector.h" />
     <ClInclude Include="Infrastructure\Storage\TargetFilePicker.h" />
     <ClInclude Include="Infrastructure\Storage\ArtifactFileExporter.h" />
+    <ClInclude Include="Infrastructure\Storage\TemporaryFolderPicker.h" />
+    <ClInclude Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.h" />
     <ClInclude Include="Infrastructure\EngineHost\EngineHostClient.h" />
     <ClInclude Include="UI\Navigation\NavigationPaneController.h" />
     <ClInclude Include="UI\Navigation\NavigationRouter.h" />
     <ClInclude Include="UI\Pages\Overview\OverviewPage.xaml.h">
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
     </ClInclude>
+    <ClInclude Include="UI\Pages\Configuration\ConfigurationPage.xaml.h">
+      <DependentUpon>UI\Pages\Configuration\ConfigurationPage.xaml</DependentUpon>
+    </ClInclude>
     <ClInclude Include="UI\ViewModels\OverviewViewModel.h" />
+    <ClInclude Include="UI\ViewModels\ConfigurationViewModel.h" />
     <ClInclude Include="UI\ViewModels\RelayCommand.h" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
     <Page Include="UI\Windows\MainWindow\MainWindow.xaml" />
     <Page Include="UI\Pages\Overview\OverviewPage.xaml" />
+    <Page Include="UI\Pages\Configuration\ConfigurationPage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <PRIResource Include="Strings\en-US\Resources.resw" />
@@ -181,17 +191,24 @@
       <DependentUpon>UI\Windows\MainWindow\MainWindow.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="Application\Unpacking\UnpackWorkflow.cpp" />
+    <ClCompile Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.cpp" />
     <ClCompile Include="Infrastructure\EngineHost\EngineHostClient.cpp" />
     <ClCompile Include="Application\TargetSelection\TargetSelectionWorkflow.cpp" />
     <ClCompile Include="Core\BinaryInspection\TargetBinaryInspector.cpp" />
     <ClCompile Include="Infrastructure\Storage\TargetFilePicker.cpp" />
     <ClCompile Include="Infrastructure\Storage\ArtifactFileExporter.cpp" />
+    <ClCompile Include="Infrastructure\Storage\TemporaryFolderPicker.cpp" />
+    <ClCompile Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.cpp" />
     <ClCompile Include="UI\Navigation\NavigationPaneController.cpp" />
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp" />
     <ClCompile Include="UI\Pages\Overview\OverviewPage.xaml.cpp">
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
     </ClCompile>
+    <ClCompile Include="UI\Pages\Configuration\ConfigurationPage.xaml.cpp">
+      <DependentUpon>UI\Pages\Configuration\ConfigurationPage.xaml</DependentUpon>
+    </ClCompile>
     <ClCompile Include="UI\ViewModels\OverviewViewModel.cpp" />
+    <ClCompile Include="UI\ViewModels\ConfigurationViewModel.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +219,10 @@
     <Midl Include="UI\Pages\Overview\OverviewPage.idl">
       <SubType>Code</SubType>
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
+    </Midl>
+    <Midl Include="UI\Pages\Configuration\ConfigurationPage.idl">
+      <SubType>Code</SubType>
+      <DependentUpon>UI\Pages\Configuration\ConfigurationPage.xaml</DependentUpon>
     </Midl>
   </ItemGroup>
   <ItemGroup Condition="'$(Platform)'=='x64'">
@@ -219,6 +240,8 @@
     </Text>
     <Text Include="..\CONTEXT.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0001-isolate-debugging-in-an-engine-host.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0002-runtime-import-observation-and-rebuild.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0003-multi-base-relocation-reconstruction.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png" />

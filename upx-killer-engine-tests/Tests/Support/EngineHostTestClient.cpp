@@ -41,7 +41,18 @@ namespace upx_killer::engine::tests
         auto const wrote = protocol::WriteRequest(requestWrite, request);
         CloseHandle(requestWrite);
         EngineResult result{};
-        auto const read = protocol::ReadResult(resultRead, result);
+        bool read{};
+        for (;;)
+        {
+            protocol::HostResponse response{};
+            if (!protocol::ReadResponse(resultRead, response)) break;
+            if (response.result)
+            {
+                result = std::move(*response.result);
+                read = true;
+                break;
+            }
+        }
         CloseHandle(resultRead);
         if (WaitForSingleObject(process.hProcess, 65'000) == WAIT_TIMEOUT)
             TerminateProcess(process.hProcess, WAIT_TIMEOUT);

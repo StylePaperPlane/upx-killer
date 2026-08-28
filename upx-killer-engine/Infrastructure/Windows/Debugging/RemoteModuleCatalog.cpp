@@ -54,6 +54,71 @@ namespace
             read == destination.size();
     }
 
+
+    bool ReadMappedImage(
+        HANDLE process,
+        std::uint64_t base,
+        std::uint32_t imageSize,
+        std::vector<std::byte>& image) noexcept
+    {
+        if (imageSize == 0 || imageSize > MaxImageSize) return false;
+        image.assign(imageSize, std::byte{});
+        auto const initial = std::min<std::uint32_t>(imageSize, 0x1000u);
+        if (!ReadRemote(process, base, std::span<std::byte>{ image.data(), initial })) return false;
+
+        IMAGE_DOS_HEADER dos{};
+        if (image.size() < sizeof(dos)) return false;
+        std::memcpy(&dos, image.data(), sizeof(dos));
+        if (dos.e_magic != IMAGE_DOS_SIGNATURE || dos.e_lfanew < sizeof(dos)) return false;
+        auto const ntOffset = static_cast<std::uint64_t>(dos.e_lfanew);
+        DWORD signature{};
+        IMAGE_FILE_HEADER file{};
+        auto const fileOffset = ntOffset + sizeof(signature);
+        auto const optionalOffset = fileOffset + sizeof(file);
+        if (optionalOffset + sizeof(WORD) > image.size() ||
+            !ReadRemote(process, base + ntOffset, std::span<std::byte>{ image.data() + ntOffset, sizeof(signature) }) ||
+            !ReadRemote(process, base + fileOffset, std::span<std::byte>{ image.data() + fileOffset, sizeof(file) }))
+            return false;
+        std::memcpy(&signature, image.data() + ntOffset, sizeof(signature));
+        std::memcpy(&file, image.data() + fileOffset, sizeof(file));
+        if (signature != IMAGE_NT_SIGNATURE || file.NumberOfSections == 0 || file.NumberOfSections > 96)
+            return false;
+        auto const headerEnd = optionalOffset + file.SizeOfOptionalHeader +
+            static_cast<std::uint64_t>(file.NumberOfSections) * sizeof(IMAGE_SECTION_HEADER);
+        if (headerEnd > imageSize) return false;
+        if (headerEnd > initial &&
+            !ReadRemote(process, base + initial, std::span<std::byte>{ image.data() + initial,
+                static_cast<std::size_t>(headerEnd - initial) }))
+            return false;
+
+        auto const sectionTable = optionalOffset + file.SizeOfOptionalHeader;
+        for (WORD index = 0; index < file.NumberOfSections; ++index)
+        {
+            IMAGE_SECTION_HEADER section{};
+            auto const offset = sectionTable + static_cast<std::uint64_t>(index) * sizeof(section);
+            std::memcpy(&section, image.data() + offset, sizeof(section));
+            // A mapped image commits VirtualSize bytes; SizeOfRawData is a
+            // file-layout value and may extend into an uncommitted gap.
+            auto const extent = section.Misc.VirtualSize != 0
+                ? section.Misc.VirtualSize
+                : section.SizeOfRawData;
+            if (extent == 0) continue;
+            if (section.VirtualAddress >= imageSize || extent > imageSize - section.VirtualAddress) return false;
+            auto const sectionBytes = std::span<std::byte>{ image.data() + section.VirtualAddress, extent };
+            if (!ReadRemote(process, base + section.VirtualAddress, sectionBytes)) return false;
+        }
+        return true;
+    }
+
+    int ProviderPriority(std::string const& module) noexcept
+    {
+        if (module == "kernelbase.dll") return 100;
+        if (module == "kernel32.dll" || module == "user32.dll" || module == "advapi32.dll") return 90;
+        if (module == "ucrtbase.dll" || module == "vcruntime140.dll" || module == "msvcp140.dll") return 80;
+        if (module == "ntdll.dll") return 10;
+        return 50;
+    }
+
     bool ResolveExport(
         RuntimeModuleSnapshot const& snapshot,
         RuntimeExport const& input,
@@ -94,17 +159,33 @@ namespace
                 }
             }
         }
-        // API-set forwarders are often represented by a contract name that is
-        // absent from the module list; resolve them against a unique provider.
+        // API-set contracts may have several implementation exports at
+        // the same name. Prefer the stable user-mode provider rather than
+        // discarding the logical forwarding alias as ambiguous.
         if (!match && moduleName.rfind("api-", 0) == 0)
         {
+            int bestPriority = -1;
+            bool ambiguous{};
             for (auto const& module : snapshot.modules)
+            {
+                auto const priority = ProviderPriority(Normalize(module.moduleName));
                 for (auto const& candidate : module.exports)
-                    if ((name && candidate.name && EqualName(*candidate.name, *name)) || (ordinal && candidate.ordinal == ordinal))
+                    if ((name && candidate.name && EqualName(*candidate.name, *name)) ||
+                        (ordinal && candidate.ordinal == ordinal))
                     {
-                        if (match) return false;
-                        match = &candidate;
+                        if (priority > bestPriority)
+                        {
+                            bestPriority = priority;
+                            match = &candidate;
+                            ambiguous = false;
+                        }
+                        else if (priority == bestPriority && match != &candidate)
+                        {
+                            ambiguous = true;
+                        }
                     }
+            }
+            if (ambiguous) match = nullptr;
         }
         if (!match) return false;
         return ResolveExport(snapshot, *match, resolved, depth + 1);
@@ -143,8 +224,8 @@ namespace upx_killer::engine::debugging
             }
             auto const imageSize = static_cast<std::uint32_t>(entry.modBaseSize);
             if (imageSize == 0 || imageSize > MaxImageSize) continue;
-            std::vector<std::byte> image(imageSize);
-            if (!ReadRemote(process, reinterpret_cast<std::uint64_t>(entry.modBaseAddr), image)) continue;
+            std::vector<std::byte> image;
+            if (!ReadMappedImage(process, reinterpret_cast<std::uint64_t>(entry.modBaseAddr), imageSize, image)) continue;
             auto moduleName = Normalize(Narrow(entry.szModule));
             auto parsed = pe::imports::PeExportParser::Parse(image, { reinterpret_cast<std::uint64_t>(entry.modBaseAddr) }, moduleName);
             if (!parsed.Succeeded()) continue;
@@ -167,7 +248,12 @@ namespace upx_killer::engine::debugging
             {
                 RuntimeExport value{};
                 if (!ResolveExport(resolved, exported, value, 0)) continue;
-                value.moduleName = value.moduleName.empty() ? module.moduleName : value.moduleName;
+                // Keep the logical import contract that owned the forwarder;
+                // the resolved address still comes from the final provider.
+                value.moduleName = module.moduleName;
+                value.name = exported.name;
+                value.ordinal = exported.ordinal;
+                value.forwarder.reset();
                 filtered.push_back(std::move(value));
             }
             module.exports = std::move(filtered);

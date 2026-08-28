@@ -22,6 +22,9 @@
     <Filter Include="UI\Pages\Overview">
       <UniqueIdentifier>{A95C1AE9-35C6-49EA-B922-587744587A99}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI\Pages\Configuration">
+      <UniqueIdentifier>{D4C84208-5BC4-4B29-BDCF-F69C5901A313}</UniqueIdentifier>
+    </Filter>
     <Filter Include="UI\ViewModels">
       <UniqueIdentifier>{3752DBB8-A874-47F0-B282-314A101BC039}</UniqueIdentifier>
     </Filter>
@@ -33,6 +36,9 @@
     </Filter>
     <Filter Include="Application\TargetSelection">
       <UniqueIdentifier>{E62A38E4-4D09-4D49-9134-4FB04A9AE2A3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\TemporaryFiles">
+      <UniqueIdentifier>{FF76BFD9-5589-47E5-A6F0-672130EF1D5D}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{31C0682B-A03E-423B-89B1-7E055D4F1D73}</UniqueIdentifier>
@@ -48,6 +54,9 @@
     </Filter>
     <Filter Include="Infrastructure\EngineHost">
       <UniqueIdentifier>{B115F19D-DCA2-4532-8116-CC1A647A3AA4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\Settings">
+      <UniqueIdentifier>{610A6D4F-04B0-4DB5-B48D-A735F822B56A}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{A5F8FA93-581E-4182-83A1-1A6815CC0418}</UniqueIdentifier>
@@ -147,6 +156,24 @@
     <ClInclude Include="UI\ViewModels\RelayCommand.h">
       <Filter>UI\ViewModels</Filter>
     </ClInclude>
+    <Page Include="UI\Pages\Configuration\ConfigurationPage.xaml">
+      <Filter>UI\Pages\Configuration</Filter>
+    </Page>
+    <Midl Include="UI\Pages\Configuration\ConfigurationPage.idl">
+      <Filter>UI\Pages\Configuration</Filter>
+    </Midl>
+    <ClInclude Include="UI\Pages\Configuration\ConfigurationPage.xaml.h">
+      <Filter>UI\Pages\Configuration</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Pages\Configuration\ConfigurationPage.xaml.cpp">
+      <Filter>UI\Pages\Configuration</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\ViewModels\ConfigurationViewModel.h">
+      <Filter>UI\ViewModels</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\ViewModels\ConfigurationViewModel.cpp">
+      <Filter>UI\ViewModels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\Unpacking\UnpackWorkflow.h">
@@ -160,6 +187,18 @@
     </ClInclude>
     <ClCompile Include="Application\Unpacking\UnpackWorkflow.cpp">
       <Filter>Application\Unpacking</Filter>
+    </ClCompile>
+    <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettings.h">
+      <Filter>Application\TemporaryFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\TemporaryFiles\ITemporaryFolderPicker.h">
+      <Filter>Application\TemporaryFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.h">
+      <Filter>Application\TemporaryFiles</Filter>
+    </ClInclude>
+    <ClCompile Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.cpp">
+      <Filter>Application\TemporaryFiles</Filter>
     </ClCompile>
     <ClInclude Include="Infrastructure\EngineHost\EngineHostClient.h">
       <Filter>Infrastructure\EngineHost</Filter>
@@ -190,6 +229,18 @@
     </ClInclude>
     <ClCompile Include="Infrastructure\Storage\ArtifactFileExporter.cpp">
       <Filter>Infrastructure\Storage</Filter>
+    </ClCompile>
+    <ClInclude Include="Infrastructure\Storage\TemporaryFolderPicker.h">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\Storage\TemporaryFolderPicker.cpp">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClCompile>
+    <ClInclude Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.h">
+      <Filter>Infrastructure\Settings</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.cpp">
+      <Filter>Infrastructure\Settings</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -262,6 +313,12 @@
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\adr\0001-isolate-debugging-in-an-engine-host.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\adr\0002-runtime-import-observation-and-rebuild.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\adr\0003-multi-base-relocation-reconstruction.md">
       <Filter>Documentation</Filter>
     </Text>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp">

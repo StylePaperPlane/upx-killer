@@ -6,8 +6,11 @@
 #include "Application/TargetSelection/TargetSelectionWorkflow.h"
 #include "Application/Unpacking/IUnpackEngineClient.h"
 #include "Application/Unpacking/IArtifactExporter.h"
+#include "Application/TemporaryFiles/ITemporaryFolderPicker.h"
+#include "Application/TemporaryFiles/TemporaryFileSettings.h"
 
 #include <memory>
+#include <cstdint>
 
 namespace upx_killer::ui
 {
@@ -25,7 +28,9 @@ namespace winrt::upx_killer::implementation
         void InitializeShell(
             std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
             std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-            std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter);
+            std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
+            std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
+            std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker);
 
     private:
         void OnNavigationSelectionChanged(
@@ -34,6 +39,7 @@ namespace winrt::upx_killer::implementation
 
         std::unique_ptr<::upx_killer::ui::NavigationPaneController> m_navigationPaneController;
         std::unique_ptr<::upx_killer::ui::NavigationRouter> m_navigationRouter;
+        std::uintptr_t m_windowHandle{};
     };
 }
 

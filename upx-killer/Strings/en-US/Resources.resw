@@ -33,6 +33,39 @@
   <data name="OverviewNavigationItem.Content" xml:space="preserve">
     <value>Overview</value>
   </data>
+  <data name="ConfigurationNavigationItem.Content" xml:space="preserve">
+    <value>Configuration</value>
+  </data>
+  <data name="TemporaryFilesTitle.Text" xml:space="preserve">
+    <value>Temporary files</value>
+  </data>
+  <data name="TemporaryDirectoryLabel.Text" xml:space="preserve">
+    <value>Temporary file location</value>
+  </data>
+  <data name="AutoDeleteTemporaryFilesLabel.Text" xml:space="preserve">
+    <value>Delete temporary files after export</value>
+  </data>
+  <data name="AutoDeleteYesOption.Content" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="AutoDeleteNoOption.Content" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="TemporaryFilesRetentionHelp" xml:space="preserve">
+    <value>Select No to retain temporary files for analyzing unrepaired memory dumps after an unpacking failure.</value>
+  </data>
+  <data name="TemporaryDirectoryAutomationName" xml:space="preserve">
+    <value>Temporary file location</value>
+  </data>
+  <data name="SelectTemporaryDirectoryAutomationName" xml:space="preserve">
+    <value>Select temporary file location</value>
+  </data>
+  <data name="AutoDeleteHelpAutomationName" xml:space="preserve">
+    <value>About deleting temporary files</value>
+  </data>
+  <data name="AutoDeleteAutomationName" xml:space="preserve">
+    <value>Delete temporary files after export</value>
+  </data>
   <data name="TargetFileTitle.Text" xml:space="preserve">
     <value>Target file</value>
   </data>
@@ -70,6 +103,12 @@
     <value>An OEP RVA is required before unpacking can start</value>
   </data>
   <data name="StatusFindingOep" xml:space="preserve"><value>Finding the original entry point</value></data>
+  <data name="StatusCapturingRelocations" xml:space="preserve"><value>Capturing relocation information</value></data>
+  <data name="StatusRebuildingRelocations" xml:space="preserve"><value>Rebuilding relocation table</value></data>
+  <data name="StatusRebuildingImports" xml:space="preserve"><value>Rebuilding imports</value></data>
+  <data name="StatusDumping" xml:space="preserve"><value>Capturing the unpacked image</value></data>
+  <data name="StatusRelocationEvidenceFailed" xml:space="preserve"><value>Relocation information could not be recovered reliably</value></data>
+  <data name="StatusRelocationValidationFailed" xml:space="preserve"><value>Relocation validation failed</value></data>
   <data name="StatusUnsupportedPacker" xml:space="preserve"><value>This is not a supported UPX x64 executable</value></data>
   <data name="StatusOepNotFound" xml:space="preserve"><value>No reliable original entry point was found</value></data>
   <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>Imports could not be resolved; no output was created</value></data>

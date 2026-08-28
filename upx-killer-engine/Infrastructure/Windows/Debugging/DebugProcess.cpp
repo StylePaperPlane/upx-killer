@@ -32,16 +32,20 @@ namespace upx_killer::engine::debugging
 
     std::optional<DebugProcess> DebugProcess::Launch(
         std::filesystem::path const& targetPath,
+        std::filesystem::path const& workingDirectory,
         std::uint32_t& nativeError) noexcept
     {
         nativeError = ERROR_SUCCESS;
         STARTUPINFOW startup{ sizeof(startup) };
         PROCESS_INFORMATION information{};
         auto commandLine = L"\"" + targetPath.wstring() + L"\"";
-        if (!CreateProcessW(
+        auto const previousErrorMode = SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
+        auto const created = CreateProcessW(
                 targetPath.c_str(), commandLine.data(), nullptr, nullptr, FALSE,
                 DEBUG_ONLY_THIS_PROCESS | CREATE_SUSPENDED | CREATE_UNICODE_ENVIRONMENT,
-                nullptr, targetPath.parent_path().c_str(), &startup, &information))
+                nullptr, workingDirectory.c_str(), &startup, &information);
+        SetErrorMode(previousErrorMode);
+        if (!created)
         {
             nativeError = GetLastError();
             return std::nullopt;

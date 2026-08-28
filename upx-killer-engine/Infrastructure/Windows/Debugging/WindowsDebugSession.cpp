@@ -4,6 +4,7 @@
 #include "Infrastructure/Windows/Debugging/ProcessMemoryReader.h"
 #include "Infrastructure/Windows/Debugging/SoftwareBreakpointSet.h"
 #include "Infrastructure/Windows/Debugging/RemoteModuleCatalog.h"
+#include "Infrastructure/Windows/Debugging/Staging/StagedDebugTarget.h"
 
 #include <Windows.h>
 
@@ -24,6 +25,7 @@ namespace
     constexpr std::uint32_t PackedEntryBreakpointId = 1;
     constexpr std::uint32_t CandidateBreakpointBase = 2;
     constexpr std::size_t ValidationByteCount = 16;
+
 
     void CloseDebugEventHandles(DEBUG_EVENT const& event) noexcept
     {
@@ -124,7 +126,18 @@ namespace upx_killer::engine::debugging
             return { explicitOep ? EngineError::OepOutOfRange : EngineError::OepNotFound, ERROR_INVALID_PARAMETER };
 
         std::uint32_t launchError{};
-        auto process = DebugProcess::Launch(request.targetPath, launchError);
+        std::optional<staging::StagedDebugTarget> stagedTarget;
+        auto launchPath = request.targetPath;
+        if (!request.stagedTargetImage.empty())
+        {
+            stagedTarget = staging::StagedDebugTarget::Create(
+                request.targetPath, request.stagedTargetImage, launchError);
+            if (!stagedTarget)
+                return { EngineError::ControlledBaseUnavailable, launchError };
+            launchPath = stagedTarget->ExecutablePath();
+        }
+        auto process = DebugProcess::Launch(
+            launchPath, request.targetPath.parent_path(), launchError);
         if (!process) return { EngineError::LaunchFailed, launchError };
 
         SoftwareBreakpointSet breakpoints{ process->ProcessHandle() };
@@ -169,14 +182,24 @@ namespace upx_killer::engine::debugging
             if (event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT)
             {
                 imageBase = reinterpret_cast<std::uint64_t>(event.u.CreateProcessInfo.lpBaseOfImage);
-                std::uint32_t breakpointError{};
-                auto const address = imageBase + (explicitOep ? explicitOep->value : discovery->packedEntryPoint.value);
-                auto const id = explicitOep ? ExplicitBreakpointId : PackedEntryBreakpointId;
-                if (!breakpoints.Install(address, id, breakpointError))
+                if (request.requiredImageBase &&
+                    imageBase != request.requiredImageBase->value)
                 {
                     terminal = true;
-                    terminalError = EngineError::DebugProtocolFailed;
-                    terminalNativeError = breakpointError;
+                    terminalError = EngineError::ControlledBaseUnavailable;
+                    terminalNativeError = ERROR_INVALID_ADDRESS;
+                }
+                else
+                {
+                    std::uint32_t breakpointError{};
+                    auto const address = imageBase + (explicitOep ? explicitOep->value : discovery->packedEntryPoint.value);
+                    auto const id = explicitOep ? ExplicitBreakpointId : PackedEntryBreakpointId;
+                    if (!breakpoints.Install(address, id, breakpointError))
+                    {
+                        terminal = true;
+                        terminalError = EngineError::DebugProtocolFailed;
+                        terminalNativeError = breakpointError;
+                    }
                 }
             }
             else if (event.dwDebugEventCode == EXCEPTION_DEBUG_EVENT)

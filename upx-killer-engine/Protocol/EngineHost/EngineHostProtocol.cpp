@@ -12,6 +12,7 @@ namespace
     constexpr std::uint32_t Magic = 0x4b585055;
     constexpr std::uint32_t RequestType = 1;
     constexpr std::uint32_t ResultType = 2;
+    constexpr std::uint32_t ProgressType = 3;
 
     bool WriteExact(HANDLE handle, std::span<std::byte const> bytes)
     {
@@ -111,7 +112,7 @@ namespace
         return WriteExact(pipe, header) && WriteExact(pipe, payload);
     }
 
-    bool ReadFrame(HANDLE pipe, std::uint32_t expectedType, std::vector<std::byte>& payload)
+    bool ReadFrameAny(HANDLE pipe, std::uint32_t& messageType, std::vector<std::byte>& payload)
     {
         std::array<std::byte, 16> header{};
         if (!ReadExact(pipe, header)) return false;
@@ -120,9 +121,49 @@ namespace
         if (!GetU32(header, offset, magic) || !GetU32(header, offset, version) ||
             !GetU32(header, offset, type) || !GetU32(header, offset, size)) return false;
         if (magic != Magic || version != upx_killer::engine::protocol::ProtocolVersion ||
-            type != expectedType || size > upx_killer::engine::protocol::MaximumFrameSize) return false;
+            size > upx_killer::engine::protocol::MaximumFrameSize) return false;
+        messageType = type;
         payload.resize(size);
         return ReadExact(pipe, payload);
+    }
+
+    bool ReadFrame(HANDLE pipe, std::uint32_t expectedType, std::vector<std::byte>& payload)
+    {
+        std::uint32_t type{};
+        return ReadFrameAny(pipe, type, payload) && type == expectedType;
+    }
+
+    bool DecodeResult(std::span<std::byte const> payload, upx_killer::engine::EngineResult& result)
+    {
+        using namespace upx_killer::engine;
+        std::size_t offset{};
+        std::uint32_t outcome{}, error{}, native{}, hasArtifact{};
+        if (!GetU32(payload, offset, outcome) || !GetU32(payload, offset, error) ||
+            !GetU32(payload, offset, native) || !GetU32(payload, offset, hasArtifact)) return false;
+        result = {};
+        result.outcome = static_cast<EngineOutcome>(outcome);
+        result.error = static_cast<EngineError>(error);
+        result.nativeError = native;
+        if (hasArtifact)
+        {
+            EngineArtifact artifact{};
+            std::wstring path;
+            std::uint32_t quality{}, mappable{}, warningCount{};
+            if (!GetWide(payload, offset, path) || !GetU32(payload, offset, quality) ||
+                !GetU32(payload, offset, mappable) || !GetU32(payload, offset, warningCount) ||
+                warningCount > 4096) return false;
+            artifact.path = path;
+            artifact.quality = static_cast<ArtifactQuality>(quality);
+            artifact.loaderMappable = mappable != 0;
+            for (std::uint32_t i = 0; i < warningCount; ++i)
+            {
+                std::string warning;
+                if (!GetNarrow(payload, offset, warning)) return false;
+                artifact.warnings.push_back(std::move(warning));
+            }
+            result.artifact = std::move(artifact);
+        }
+        return offset == payload.size();
     }
 }
 
@@ -209,6 +250,17 @@ namespace upx_killer::engine::protocol
         catch (...) { return false; }
     }
 
+    bool WriteProgress(HANDLE pipe, EngineStage stage) noexcept
+    {
+        try
+        {
+            std::vector<std::byte> payload;
+            PutU32(payload, static_cast<std::uint32_t>(stage));
+            return WriteFrame(pipe, ProgressType, payload);
+        }
+        catch (...) { return false; }
+    }
+
     bool WriteResult(HANDLE pipe, EngineResult const& result) noexcept
     {
         try
@@ -237,33 +289,37 @@ namespace upx_killer::engine::protocol
         {
             std::vector<std::byte> payload;
             if (!ReadFrame(pipe, ResultType, payload)) return false;
-            std::size_t offset{};
-            std::uint32_t outcome{}, error{}, native{}, hasArtifact{};
-            if (!GetU32(payload, offset, outcome) || !GetU32(payload, offset, error) ||
-                !GetU32(payload, offset, native) || !GetU32(payload, offset, hasArtifact)) return false;
-            result = {};
-            result.outcome = static_cast<EngineOutcome>(outcome);
-            result.error = static_cast<EngineError>(error);
-            result.nativeError = native;
-            if (hasArtifact)
+            return DecodeResult(payload, result);
+        }
+        catch (...) { return false; }
+    }
+
+    bool ReadResponse(HANDLE pipe, HostResponse& response) noexcept
+    {
+        try
+        {
+            response = {};
+            std::vector<std::byte> payload;
+            std::uint32_t type{};
+            if (!ReadFrameAny(pipe, type, payload)) return false;
+            if (type == ProgressType)
             {
-                EngineArtifact artifact{};
-                std::wstring path;
-                std::uint32_t quality{}, mappable{}, warningCount{};
-                if (!GetWide(payload, offset, path) || !GetU32(payload, offset, quality) ||
-                    !GetU32(payload, offset, mappable) || !GetU32(payload, offset, warningCount) || warningCount > 4096) return false;
-                artifact.path = path;
-                artifact.quality = static_cast<ArtifactQuality>(quality);
-                artifact.loaderMappable = mappable != 0;
-                for (std::uint32_t i = 0; i < warningCount; ++i)
-                {
-                    std::string warning;
-                    if (!GetNarrow(payload, offset, warning)) return false;
-                    artifact.warnings.push_back(std::move(warning));
-                }
-                result.artifact = std::move(artifact);
+                std::size_t offset{};
+                std::uint32_t stage{};
+                if (!GetU32(payload, offset, stage) || offset != payload.size() ||
+                    stage > static_cast<std::uint32_t>(EngineStage::Completed))
+                    return false;
+                response.progress = static_cast<EngineStage>(stage);
+                return true;
             }
-            return offset == payload.size();
+            if (type == ResultType)
+            {
+                EngineResult result{};
+                if (!DecodeResult(payload, result)) return false;
+                response.result = std::move(result);
+                return true;
+            }
+            return false;
         }
         catch (...) { return false; }
     }

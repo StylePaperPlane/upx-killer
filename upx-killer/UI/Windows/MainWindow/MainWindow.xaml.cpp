@@ -42,6 +42,7 @@ namespace winrt::upx_killer::implementation
 
         HWND windowHandle{};
         winrt::check_hresult(nativeWindow->get_WindowHandle(&windowHandle));
+        m_windowHandle = reinterpret_cast<std::uintptr_t>(windowHandle);
 
         auto const scale =
             static_cast<double>(GetDpiForWindow(windowHandle)) / 96.0;
@@ -84,7 +85,9 @@ namespace winrt::upx_killer::implementation
     void MainWindow::InitializeShell(
         std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
         std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-        std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter)
+        std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
+        std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
+        std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker)
     {
         if (m_navigationRouter)
         {
@@ -95,9 +98,12 @@ namespace winrt::upx_killer::implementation
             std::make_unique<::upx_killer::ui::NavigationRouter>(
                 ContentFrame(),
                 AppWindow().Id(),
+                m_windowHandle,
                 std::move(picker),
                 std::move(engineClient),
-                std::move(artifactExporter));
+                std::move(artifactExporter),
+                std::move(settingsStore),
+                std::move(folderPicker));
 
         RootNavigationView().SelectionChanged(
             { this, &MainWindow::OnNavigationSelectionChanged });

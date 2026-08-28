@@ -5,16 +5,25 @@
     <Filter Include="Tests\Unit"><UniqueIdentifier>{8B60D8F1-4555-42C5-A273-EC9F9D56B79E}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration"><UniqueIdentifier>{463AE437-5B13-4308-AF96-B64DAED87E79}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\OepDiscovery"><UniqueIdentifier>{C9B0300E-78F1-475D-8D29-B1474FC39EE8}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\Sections"><UniqueIdentifier>{6E797341-13B5-4524-997F-2D5E50C5DE4E}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Support"><UniqueIdentifier>{5E72177B-89BF-49F6-BDB0-5873FFDBE756}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Module"><UniqueIdentifier>{CD9BA7A7-C377-4673-B279-64C55F0725F2}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\OepDiscovery"><UniqueIdentifier>{1B6E794A-B976-4B65-92DA-9C0E82019E29}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Imports"><UniqueIdentifier>{D2F7AE1C-1D14-4F2E-A3D5-16B7B3F0A91E}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\Sections"><UniqueIdentifier>{8EBE54C3-F14C-4B3A-AE05-C4C25D20AE31}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\Rebasing"><UniqueIdentifier>{C1ED75E3-612D-4B0B-B3B2-115091FAB346}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\Relocations"><UniqueIdentifier>{45F68E6B-5B10-47D4-B821-9D79512D5054}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests\EngineModuleTests.cpp"><Filter>Tests\Module</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\OepDiscoveryTests.cpp"><Filter>Tests\Unit\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Imports\ImportDiscoveryTests.cpp"><Filter>Tests\Unit\Imports</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\Sections\SectionLayoutRebuilderTests.cpp"><Filter>Tests\Unit\Sections</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\Rebasing\PeFileRebaserTests.cpp"><Filter>Tests\Unit\Rebasing</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\Rebasing\NoSourceRelocationsImagePreparerTests.cpp"><Filter>Tests\Unit\Rebasing</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\Relocations\RelocationReconstructorTests.cpp"><Filter>Tests\Unit\Relocations</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp"><Filter>Tests\Integration\OepDiscovery</Filter></ClCompile>
+    <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp"><Filter>Tests\Integration\Sections</Filter></ClCompile>
     <ClCompile Include="Tests\Support\EngineHostTestClient.cpp"><Filter>Tests\Support</Filter></ClCompile>
   </ItemGroup>
   <ItemGroup>

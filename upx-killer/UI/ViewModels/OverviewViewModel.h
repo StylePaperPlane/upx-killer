@@ -5,6 +5,7 @@
 #include "Application/TargetSelection/TargetSelectionWorkflow.h"
 #include "Application/Unpacking/UnpackWorkflow.h"
 #include "Application/Unpacking/IArtifactExporter.h"
+#include "Application/TemporaryFiles/TemporaryFileSettings.h"
 #include "Core/BinaryInspection/TargetBinaryInspector.h"
 #include "UI/ViewModels/RelayCommand.h"
 
@@ -12,6 +13,7 @@
 #include <memory>
 
 #include <winrt/Microsoft.UI.h>
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Data.h>
 #include <winrt/Microsoft.UI.Xaml.Input.h>
 #include <winrt/Microsoft.Windows.ApplicationModel.Resources.h>
@@ -43,7 +45,8 @@ namespace winrt::upx_killer::implementation
             winrt::Microsoft::UI::WindowId const& windowId,
             std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
             std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-            std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter);
+            std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
+            std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore);
         void LoadTargetPath(winrt::hstring const& path);
         void ReportInvalidDrop();
         void ReportDropFailure();
@@ -58,6 +61,7 @@ namespace winrt::upx_killer::implementation
         void SetStatus(
             winrt::upx_killer::OverviewStatusKind kind,
             wchar_t const* resourceKey);
+        void SetProgress(::upx_killer::engine::EngineStage stage);
         void RaisePropertyChanged(wchar_t const* propertyName);
         void RaiseCommandStates();
         winrt::hstring Resource(wchar_t const* resourceKey) const;
@@ -82,6 +86,7 @@ namespace winrt::upx_killer::implementation
         std::unique_ptr<::upx_killer::application::TargetSelectionWorkflow> m_targetSelectionWorkflow;
         std::unique_ptr<::upx_killer::application::UnpackWorkflow> m_unpackWorkflow;
         std::shared_ptr<::upx_killer::application::IArtifactExporter> m_artifactExporter;
+        std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> m_settingsStore;
         std::filesystem::path m_outputPath;
         winrt::com_ptr<::upx_killer::ui::RelayCommand> m_selectTargetCommand;
         winrt::com_ptr<::upx_killer::ui::RelayCommand> m_startUnpackCommand;
