@@ -13,6 +13,9 @@
     <Filter Include="Tests\Unit\Sections"><UniqueIdentifier>{8EBE54C3-F14C-4B3A-AE05-C4C25D20AE31}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Rebasing"><UniqueIdentifier>{C1ED75E3-612D-4B0B-B3B2-115091FAB346}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Relocations"><UniqueIdentifier>{45F68E6B-5B10-47D4-B821-9D79512D5054}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\PE32"><UniqueIdentifier>{BB287075-E272-45B9-9CD5-384974FD4317}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\PE32\DLL"><UniqueIdentifier>{15B3467B-2F9F-43CF-88CC-B76A7A66015B}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\WOW64"><UniqueIdentifier>{21FA6867-DA1D-4E5E-B804-36A6C51D5814}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests\EngineModuleTests.cpp"><Filter>Tests\Module</Filter></ClCompile>
@@ -22,6 +25,9 @@
     <ClCompile Include="Tests\Unit\Rebasing\PeFileRebaserTests.cpp"><Filter>Tests\Unit\Rebasing</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Rebasing\NoSourceRelocationsImagePreparerTests.cpp"><Filter>Tests\Unit\Rebasing</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Relocations\RelocationReconstructorTests.cpp"><Filter>Tests\Unit\Relocations</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\PE32\Pe32FormatTests.cpp"><Filter>Tests\Unit\PE32</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\PE32\DLL\Pe32DllExportTests.cpp"><Filter>Tests\Unit\PE32\DLL</Filter></ClCompile>
+    <ClCompile Include="Tests\Integration\WOW64\Wow64DebugSessionTests.cpp"><Filter>Tests\Integration\WOW64</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp"><Filter>Tests\Integration\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp"><Filter>Tests\Integration\Sections</Filter></ClCompile>
     <ClCompile Include="Tests\Support\EngineHostTestClient.cpp"><Filter>Tests\Support</Filter></ClCompile>

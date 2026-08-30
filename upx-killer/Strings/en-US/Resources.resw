@@ -103,6 +103,7 @@
     <value>An OEP RVA is required before unpacking can start</value>
   </data>
   <data name="StatusFindingOep" xml:space="preserve"><value>Finding the original entry point</value></data>
+  <data name="StatusLoadingTargetLibrary" xml:space="preserve"><value>Loading the target library</value></data>
   <data name="StatusCapturingRelocations" xml:space="preserve"><value>Capturing relocation information</value></data>
   <data name="StatusRebuildingRelocations" xml:space="preserve"><value>Rebuilding relocation table</value></data>
   <data name="StatusRebuildingImports" xml:space="preserve"><value>Rebuilding imports</value></data>
@@ -113,7 +114,9 @@
   <data name="StatusOepNotFound" xml:space="preserve"><value>No reliable original entry point was found</value></data>
   <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>Imports could not be resolved; no output was created</value></data>
   <data name="StatusProcessing" xml:space="preserve"><value>Processing</value></data>
-  <data name="StatusEngineX64PeOnly" xml:space="preserve"><value>The unpacking engine currently supports x64 PE executables only</value></data>
+  <data name="StatusEnginePeOnly" xml:space="preserve"><value>The unpacking engine supports x86/x64 PE executables and x86 PE libraries</value></data>
+  <data name="StatusWow64Unavailable" xml:space="preserve"><value>WOW64 debugging is unavailable on this system</value></data>
+  <data name="StatusUnsupportedPe32Relocation" xml:space="preserve"><value>This PE32 file uses unsupported legacy relocations</value></data>
   <data name="StatusPartialImportsNotRebuilt" xml:space="preserve">
     <value>Memory image captured; imports were not rebuilt</value>
   </data>

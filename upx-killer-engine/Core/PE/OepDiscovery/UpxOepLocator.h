@@ -8,44 +8,44 @@
 #include <span>
 #include <vector>
 
-namespace upx_killer::engine::pe::oep
-{
-    constexpr std::size_t MaximumOepCandidates = 32;
+namespace upx_killer::engine::pe::oep {
+constexpr std::size_t MaximumOepCandidates = 32;
 
-    enum class OepDiscoveryError
-    {
-        None,
-        UnsupportedPacker,
-        OepNotFound,
-    };
+enum class OepDiscoveryError {
+  None,
+  UnsupportedPacker,
+  OepNotFound,
+};
 
-    struct OepTransferCandidate
-    {
-        RelativeVirtualAddress transfer;
-        RelativeVirtualAddress target;
-    };
+enum class OepTransferKind : std::uint8_t {
+  DirectJump,
+  DllReturn,
+};
 
-    struct OepDiscoveryPlan
-    {
-        RelativeVirtualAddress packedEntryPoint;
-        RelativeVirtualAddress stubStart;
-        std::uint32_t stubSize{};
-        std::vector<OepTransferCandidate> candidates;
-    };
+struct OepTransferCandidate {
+  OepTransferKind kind{OepTransferKind::DirectJump};
+  RelativeVirtualAddress transfer;
+  RelativeVirtualAddress target;
+  RelativeVirtualAddress validationTarget;
+};
 
-    struct OepDiscoveryResult
-    {
-        std::optional<OepDiscoveryPlan> plan;
-        OepDiscoveryError error{ OepDiscoveryError::None };
+struct OepDiscoveryPlan {
+  RelativeVirtualAddress packedEntryPoint;
+  RelativeVirtualAddress stubStart;
+  std::uint32_t stubSize{};
+  std::vector<OepTransferCandidate> candidates;
+};
 
-        [[nodiscard]] bool Succeeded() const noexcept { return plan.has_value(); }
-    };
+struct OepDiscoveryResult {
+  std::optional<OepDiscoveryPlan> plan;
+  OepDiscoveryError error{OepDiscoveryError::None};
 
-    class UpxOepLocator final
-    {
-    public:
-        [[nodiscard]] static OepDiscoveryResult Analyze(
-            std::span<std::byte const> sourceBytes,
-            PeImageLayout const& layout) noexcept;
-    };
+  [[nodiscard]] bool Succeeded() const noexcept { return plan.has_value(); }
+};
+
+class UpxOepLocator final {
+ public:
+  [[nodiscard]] static OepDiscoveryResult Analyze(std::span<std::byte const> sourceBytes,
+                                                  PeImageLayout const& layout) noexcept;
+};
 }

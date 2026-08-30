@@ -5,8 +5,20 @@ UPX Killer loads a protected executable as Windows would load it, captures its i
 ## Language
 
 **Target Image**:
-The original executable selected for analysis and unpacking.
+The original executable or dynamic library selected for analysis and unpacking.
 _Avoid_: Input binary, source EXE
+
+**Image Kind**:
+Whether a PE Target Image is an Executable or a Dynamic Library. Image Kind controls the isolated Windows loading strategy; it does not change PE format or machine width.
+_Avoid_: File extension, launch mode
+
+**Source Load Policy**:
+The Target Image's preferred base, `DYNAMIC_BASE`, `HIGH_ENTROPY_VA`, and validated relocation availability. The Repaired Image preserves this intent instead of enabling ASLR merely because a relocation table can be built.
+_Avoid_: Output ASLR preference, fixer defaults
+
+**DLL Loader**:
+The isolated Win32 helper that maps and detaches a PE32 Dynamic Library without invoking unknown exports. The Engine Host identifies the Target Image from its `LOAD_DLL_DEBUG_EVENT` file handle.
+_Avoid_: DLL runner, export harness
 
 **Loaded Image**:
 The Target Image after the operating-system loader has mapped it into a process address space.
@@ -55,6 +67,10 @@ _Avoid_: Pointer-looking value, aligned qword guess
 **Relocation Rebuild Plan**:
 The validated Relocation Slots, their image-relative targets, the normalized preferred base, and the encoded Base Relocation Directory used to build the Repaired Image.
 _Avoid_: Source relocation table, address patch list
+
+**Export Directory Model**:
+The bounded, validated names, ordinals, function RVAs, and forwarders recovered from a mapped Dynamic Library. Non-forwarded targets are also code evidence for semantic section rebuilding.
+_Avoid_: Export name list, dumpbin output
 
 **Partial Artifact**:
 A Repaired Image whose structural validation passed but whose imports have not been rebuilt.

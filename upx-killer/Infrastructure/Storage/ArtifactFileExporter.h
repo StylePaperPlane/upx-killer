@@ -5,19 +5,19 @@
 
 #include <memory>
 
-namespace upx_killer::infrastructure
-{
-    class ArtifactFileExporter final : public application::IArtifactExporter
-    {
-    public:
-        explicit ArtifactFileExporter(
-            std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore);
+namespace upx_killer::infrastructure {
 
-        [[nodiscard]] winrt::Windows::Foundation::IAsyncOperation<bool> ExportAsync(
-            winrt::Microsoft::UI::WindowId const& windowId,
-            std::filesystem::path const& artifactPath) override;
+class ArtifactFileExporter final : public application::IArtifactExporter {
+ public:
+  explicit ArtifactFileExporter(
+      std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore);
 
-    private:
-        std::shared_ptr<application::ITemporaryFileSettingsStore> m_settingsStore;
-    };
+  [[nodiscard]] winrt::Windows::Foundation::IAsyncOperation<bool> ExportAsync(
+      winrt::Microsoft::UI::WindowId const& windowId,
+      std::filesystem::path const& artifactPath) override;
+
+ private:
+  std::shared_ptr<application::ITemporaryFileSettingsStore> m_settingsStore;
+};
+
 }

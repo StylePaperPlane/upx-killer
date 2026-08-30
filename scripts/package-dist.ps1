@@ -33,9 +33,11 @@ if (-not (Test-Path -LiteralPath $sourceDirectory -PathType Container)) {
 $requiredFiles = @(
     'upx_killer.exe',
     'upx_killer_engine_host.exe',
+    'upx_killer_dll_loader_x86.exe',
     'upx_killer.pri',
     'App.xbf',
     'UI\Pages\Overview\OverviewPage.xbf',
+    'UI\Pages\Configuration\ConfigurationPage.xbf',
     'UI\Windows\MainWindow\MainWindow.xbf'
 )
 foreach ($relativePath in $requiredFiles) {
@@ -46,7 +48,10 @@ foreach ($relativePath in $requiredFiles) {
 }
 
 if (Test-Path -LiteralPath $destinationDirectory) {
-    Remove-Item -LiteralPath $destinationDirectory -Recurse -Force
+    # Keep the destination directory itself so packaging also works when
+    # Explorer has the folder open and holds a directory handle.
+    Get-ChildItem -LiteralPath $destinationDirectory -Force |
+        Remove-Item -Recurse -Force
 }
 New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $payloadDirectory -Force | Out-Null

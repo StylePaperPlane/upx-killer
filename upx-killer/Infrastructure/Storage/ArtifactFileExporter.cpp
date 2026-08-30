@@ -3,40 +3,44 @@
 
 #include <winrt/Microsoft.Windows.Storage.Pickers.h>
 
-namespace upx_killer::infrastructure
-{
-    ArtifactFileExporter::ArtifactFileExporter(
-        std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore)
-        : m_settingsStore(std::move(settingsStore))
-    {
-    }
+#include <algorithm>
+#include <cwctype>
 
-    winrt::Windows::Foundation::IAsyncOperation<bool> ArtifactFileExporter::ExportAsync(
-        winrt::Microsoft::UI::WindowId const& windowId,
-        std::filesystem::path const& artifactPath)
-    {
-        using namespace winrt::Microsoft::Windows::Storage::Pickers;
+namespace upx_killer::infrastructure {
 
-        if (!std::filesystem::is_regular_file(artifactPath)) co_return false;
-        FileSavePicker picker{ windowId };
-        picker.SuggestedStartLocation(PickerLocationId::DocumentsLibrary);
-        picker.SuggestedFileName(winrt::hstring{ artifactPath.stem().wstring() });
-        picker.DefaultFileExtension(L".exe");
-        auto extensions = winrt::single_threaded_vector<winrt::hstring>();
-        extensions.Append(L".exe");
-        picker.FileTypeChoices().Insert(L"*.exe", extensions);
-        auto const destination = co_await picker.PickSaveFileAsync();
-        if (!destination) co_return false;
-        if (!CopyFileW(artifactPath.c_str(), destination.Path().c_str(), FALSE)) co_return false;
+ArtifactFileExporter::ArtifactFileExporter(
+    std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore)
+    : m_settingsStore(std::move(settingsStore)) {}
 
-        if (m_settingsStore && m_settingsStore->Load().deleteAfterExport)
-        {
-            std::error_code error;
-            std::filesystem::remove(artifactPath, error);
-            if (!error)
-                std::filesystem::remove(artifactPath.parent_path(), error);
-        }
+winrt::Windows::Foundation::IAsyncOperation<bool> ArtifactFileExporter::ExportAsync(
+    winrt::Microsoft::UI::WindowId const& windowId, std::filesystem::path const& artifactPath) {
+  using namespace winrt::Microsoft::Windows::Storage::Pickers;
 
-        co_return true;
-    }
+  if (!std::filesystem::is_regular_file(artifactPath)) co_return false;
+  FileSavePicker picker{windowId};
+
+  picker.SuggestedStartLocation(PickerLocationId::DocumentsLibrary);
+  picker.SuggestedFileName(winrt::hstring{artifactPath.stem().wstring()});
+  auto extension = artifactPath.extension().wstring();
+  std::transform(extension.begin(), extension.end(), extension.begin(),
+                 [](wchar_t value) { return static_cast<wchar_t>(std::towlower(value)); });
+  if (extension != L".dll") extension = L".exe";
+  picker.DefaultFileExtension(winrt::hstring{extension});
+  auto extensions = winrt::single_threaded_vector<winrt::hstring>();
+  extensions.Append(winrt::hstring{extension});
+  picker.FileTypeChoices().Insert(winrt::hstring{L"*" + extension}, extensions);
+
+  auto const destination = co_await picker.PickSaveFileAsync();
+  if (!destination) co_return false;
+  if (!CopyFileW(artifactPath.c_str(), destination.Path().c_str(), FALSE)) co_return false;
+
+  if (m_settingsStore && m_settingsStore->Load().deleteAfterExport) {
+    std::error_code error;
+    std::filesystem::remove(artifactPath, error);
+    if (!error) std::filesystem::remove(artifactPath.parent_path(), error);
+  }
+
+  co_return true;
+}
+
 }

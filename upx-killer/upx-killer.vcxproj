@@ -242,6 +242,7 @@
     <Text Include="..\docs\adr\0001-isolate-debugging-in-an-engine-host.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0002-runtime-import-observation-and-rebuild.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0003-multi-base-relocation-reconstruction.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0004-isolated-pe32-dll-loading-and-source-aslr-intent.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\LockScreenLogo.scale-200.png" />

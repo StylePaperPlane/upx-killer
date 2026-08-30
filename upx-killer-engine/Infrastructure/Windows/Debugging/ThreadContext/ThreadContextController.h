@@ -1,0 +1,45 @@
+#pragma once
+
+#include "Core/PE/Format/PeFormat.h"
+#include "Core/Unpacking/UnpackTypes.h"
+
+#include <Windows.h>
+
+#include <cstdint>
+#include <optional>
+
+namespace upx_killer::engine::debugging::thread_context {
+struct ThreadControlContext {
+  std::uint64_t instructionPointer{};
+  std::uint64_t stackPointer{};
+};
+
+class ThreadContextController final {
+ public:
+  ~ThreadContextController();
+  ThreadContextController(ThreadContextController const&) = delete;
+  ThreadContextController& operator=(ThreadContextController const&) = delete;
+  ThreadContextController(ThreadContextController&& other) noexcept;
+  ThreadContextController& operator=(ThreadContextController&& other) noexcept;
+
+  [[nodiscard]] static EngineError ValidateProcess(HANDLE process, pe::PeFormat expectedFormat,
+                                                   std::uint32_t& nativeError) noexcept;
+  [[nodiscard]] static std::optional<ThreadContextController> Open(
+      DWORD threadId, pe::PeFormat format, std::uint32_t& nativeError) noexcept;
+
+  [[nodiscard]] ThreadControlContext const& Context() const noexcept;
+  [[nodiscard]] bool SetInstructionPointer(std::uint64_t value,
+                                           std::uint32_t& nativeError) noexcept;
+  [[nodiscard]] bool Commit(std::uint32_t& nativeError) noexcept;
+
+ private:
+  ThreadContextController(HANDLE thread, pe::PeFormat format) noexcept;
+  void Reset() noexcept;
+
+  HANDLE m_thread{};
+  pe::PeFormat m_format{pe::PeFormat::Pe64};
+  ThreadControlContext m_control{};
+  CONTEXT m_native{};
+  WOW64_CONTEXT m_wow64{};
+};
+}

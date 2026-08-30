@@ -321,6 +321,9 @@
     <Text Include="..\docs\adr\0003-multi-base-relocation-reconstruction.md">
       <Filter>Documentation</Filter>
     </Text>
+    <Text Include="..\docs\adr\0004-isolated-pe32-dll-loading-and-source-aslr-intent.md">
+      <Filter>Documentation</Filter>
+    </Text>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp">
       <Filter>Generated</Filter>
     </ClCompile>

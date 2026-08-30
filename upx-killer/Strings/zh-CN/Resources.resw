@@ -103,6 +103,7 @@
     <value>开始脱壳前需要提供 OEP RVA</value>
   </data>
   <data name="StatusFindingOep" xml:space="preserve"><value>正在寻找原始入口点</value></data>
+  <data name="StatusLoadingTargetLibrary" xml:space="preserve"><value>正在加载目标动态链接库</value></data>
   <data name="StatusCapturingRelocations" xml:space="preserve"><value>正在捕获重定位信息</value></data>
   <data name="StatusRebuildingRelocations" xml:space="preserve"><value>正在重建重定位表</value></data>
   <data name="StatusRebuildingImports" xml:space="preserve"><value>正在重建导入表</value></data>
@@ -113,7 +114,9 @@
   <data name="StatusOepNotFound" xml:space="preserve"><value>未找到可靠的原始入口点</value></data>
   <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>无法可靠重建导入表，未生成输出文件</value></data>
   <data name="StatusProcessing" xml:space="preserve"><value>处理中</value></data>
-  <data name="StatusEngineX64PeOnly" xml:space="preserve"><value>脱壳引擎目前仅支持 x64 PE 可执行文件</value></data>
+  <data name="StatusEnginePeOnly" xml:space="preserve"><value>脱壳引擎支持 x86/x64 PE 可执行文件和 x86 PE 动态链接库</value></data>
+  <data name="StatusWow64Unavailable" xml:space="preserve"><value>当前系统无法使用 WOW64 调试</value></data>
+  <data name="StatusUnsupportedPe32Relocation" xml:space="preserve"><value>该 PE32 文件使用了不受支持的旧式重定位</value></data>
   <data name="StatusPartialImportsNotRebuilt" xml:space="preserve">
     <value>内存映像已捕获，但尚未重建导入表</value>
   </data>

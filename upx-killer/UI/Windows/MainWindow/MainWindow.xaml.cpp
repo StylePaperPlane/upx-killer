@@ -14,129 +14,97 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Graphics.h>
 
-namespace
-{
-    constexpr double InitialWindowWidthDips = 960.0;
-    constexpr double InitialWindowHeightDips = 520.0;
-    constexpr double MinimumWindowWidthDips = 640.0;
-    constexpr double MinimumWindowHeightDips = 420.0;
-    constexpr wchar_t OverviewRoute[] = L"overview";
+namespace {
+constexpr double InitialWindowWidthDips = 960.0;
+constexpr double InitialWindowHeightDips = 520.0;
+constexpr double MinimumWindowWidthDips = 640.0;
+constexpr double MinimumWindowHeightDips = 420.0;
+constexpr wchar_t OverviewRoute[] = L"overview";
 }
 
-namespace winrt::upx_killer::implementation
-{
-    MainWindow::MainWindow()
-    {
-        InitializeComponent();
+namespace winrt::upx_killer::implementation {
+MainWindow::MainWindow() {
+  InitializeComponent();
 
-        auto const resources =
-            winrt::Microsoft::Windows::ApplicationModel::Resources::ResourceLoader{};
+  auto const resources = winrt::Microsoft::Windows::ApplicationModel::Resources::ResourceLoader{};
 
-        Title(resources.GetString(L"MainWindowTitle"));
+  Title(resources.GetString(L"MainWindowTitle"));
 
-        auto const nativeWindow = try_as<::IWindowNative>();
-        if (!nativeWindow)
-        {
-            return;
-        }
+  auto const nativeWindow = try_as<::IWindowNative>();
+  if (!nativeWindow) {
+    return;
+  }
 
-        HWND windowHandle{};
-        winrt::check_hresult(nativeWindow->get_WindowHandle(&windowHandle));
-        m_windowHandle = reinterpret_cast<std::uintptr_t>(windowHandle);
+  HWND windowHandle{};
+  winrt::check_hresult(nativeWindow->get_WindowHandle(&windowHandle));
+  m_windowHandle = reinterpret_cast<std::uintptr_t>(windowHandle);
 
-        auto const scale =
-            static_cast<double>(GetDpiForWindow(windowHandle)) / 96.0;
+  auto const scale = static_cast<double>(GetDpiForWindow(windowHandle)) / 96.0;
 
-        auto const toPhysicalPixels =
-            [scale](double dips)
-            {
-                return static_cast<std::int32_t>(dips * scale + 0.5);
-            };
+  auto const toPhysicalPixels = [scale](double dips) {
+    return static_cast<std::int32_t>(dips * scale + 0.5);
+  };
 
-        auto const appWindow = AppWindow();
+  auto const appWindow = AppWindow();
 
-        if (auto const presenter =
-            appWindow.Presenter().try_as<
-                winrt::Microsoft::UI::Windowing::OverlappedPresenter>())
-        {
-            presenter.PreferredMinimumWidth(
-                winrt::box_value(toPhysicalPixels(MinimumWindowWidthDips))
-                    .as<winrt::Windows::Foundation::IReference<std::int32_t>>());
+  if (auto const presenter =
+          appWindow.Presenter().try_as<winrt::Microsoft::UI::Windowing::OverlappedPresenter>()) {
+    presenter.PreferredMinimumWidth(
+        winrt::box_value(toPhysicalPixels(MinimumWindowWidthDips))
+            .as<winrt::Windows::Foundation::IReference<std::int32_t>>());
 
-            presenter.PreferredMinimumHeight(
-                winrt::box_value(toPhysicalPixels(MinimumWindowHeightDips))
-                    .as<winrt::Windows::Foundation::IReference<std::int32_t>>());
-        }
+    presenter.PreferredMinimumHeight(
+        winrt::box_value(toPhysicalPixels(MinimumWindowHeightDips))
+            .as<winrt::Windows::Foundation::IReference<std::int32_t>>());
+  }
 
-        appWindow.Resize(
-            winrt::Windows::Graphics::SizeInt32{
-                toPhysicalPixels(InitialWindowWidthDips),
-                toPhysicalPixels(InitialWindowHeightDips)
-            });
+  appWindow.Resize(winrt::Windows::Graphics::SizeInt32{toPhysicalPixels(InitialWindowWidthDips),
+                                                       toPhysicalPixels(InitialWindowHeightDips)});
 
-        m_navigationPaneController =
-            std::make_unique<::upx_killer::ui::NavigationPaneController>(
-                RootNavigationView(),
-                reinterpret_cast<std::uintptr_t>(windowHandle));
-    }
+  m_navigationPaneController = std::make_unique<::upx_killer::ui::NavigationPaneController>(
+      RootNavigationView(), reinterpret_cast<std::uintptr_t>(windowHandle));
+}
 
-    MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow() = default;
 
-    void MainWindow::InitializeShell(
-        std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
-        std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-        std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
-        std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
-        std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker)
-    {
-        if (m_navigationRouter)
-        {
-            return;
-        }
+void MainWindow::InitializeShell(
+    std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
+    std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
+    std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
+    std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
+    std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker) {
+  if (m_navigationRouter) {
+    return;
+  }
 
-        m_navigationRouter =
-            std::make_unique<::upx_killer::ui::NavigationRouter>(
-                ContentFrame(),
-                AppWindow().Id(),
-                m_windowHandle,
-                std::move(picker),
-                std::move(engineClient),
-                std::move(artifactExporter),
-                std::move(settingsStore),
-                std::move(folderPicker));
+  m_navigationRouter = std::make_unique<::upx_killer::ui::NavigationRouter>(
+      ContentFrame(), AppWindow().Id(), m_windowHandle, std::move(picker), std::move(engineClient),
+      std::move(artifactExporter), std::move(settingsStore), std::move(folderPicker));
 
-        RootNavigationView().SelectionChanged(
-            { this, &MainWindow::OnNavigationSelectionChanged });
+  RootNavigationView().SelectionChanged({this, &MainWindow::OnNavigationSelectionChanged});
 
-        RootNavigationView().SelectedItem(OverviewNavigationItem());
-        static_cast<void>(m_navigationRouter->Navigate(OverviewRoute));
-    }
+  RootNavigationView().SelectedItem(OverviewNavigationItem());
+  static_cast<void>(m_navigationRouter->Navigate(OverviewRoute));
+}
 
-    void MainWindow::OnNavigationSelectionChanged(
-        [[maybe_unused]]
-        winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender,
-        winrt::Microsoft::UI::Xaml::Controls::NavigationViewSelectionChangedEventArgs const& args)
-    {
-        if (!m_navigationRouter || args.IsSettingsSelected())
-        {
-            return;
-        }
+void MainWindow::OnNavigationSelectionChanged(
+    [[maybe_unused]] winrt::Microsoft::UI::Xaml::Controls::NavigationView const& sender,
+    winrt::Microsoft::UI::Xaml::Controls::NavigationViewSelectionChangedEventArgs const& args) {
+  if (!m_navigationRouter || args.IsSettingsSelected()) {
+    return;
+  }
 
-        auto const selectedItem =
-            args.SelectedItem().try_as<
-                winrt::Microsoft::UI::Xaml::Controls::NavigationViewItem>();
+  auto const selectedItem =
+      args.SelectedItem().try_as<winrt::Microsoft::UI::Xaml::Controls::NavigationViewItem>();
 
-        if (!selectedItem)
-        {
-            return;
-        }
+  if (!selectedItem) {
+    return;
+  }
 
-        auto const routeTag =
-            winrt::unbox_value_or<winrt::hstring>(selectedItem.Tag(), L"");
+  auto const routeTag = winrt::unbox_value_or<winrt::hstring>(selectedItem.Tag(), L"");
 
-        if (!routeTag.empty())
-        {
-            static_cast<void>(m_navigationRouter->Navigate(routeTag));
-        }
-    }
+  if (!routeTag.empty()) {
+    static_cast<void>(m_navigationRouter->Navigate(routeTag));
+  }
+}
 }
