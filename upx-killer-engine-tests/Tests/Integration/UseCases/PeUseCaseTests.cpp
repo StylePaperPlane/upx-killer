@@ -89,11 +89,20 @@ class MemoryArtifactStore final
 };
 
 class AcceptingValidator final
-    : public application::artifacts::IRepairedImageValidator {
+    : public application::artifacts::IArtifactValidator {
  public:
-  application::artifacts::RepairedImageValidationResult Validate(
-      application::artifacts::RepairedImageValidationRequest const&) const noexcept override {
+  application::artifacts::ArtifactValidationResult Validate(
+      application::artifacts::ArtifactValidationRequest const&) const noexcept override {
     return {true, true, true, false, 0, 0};
+  }
+};
+
+class RejectingValidator final
+    : public application::artifacts::IArtifactValidator {
+ public:
+  application::artifacts::ArtifactValidationResult Validate(
+      application::artifacts::ArtifactValidationRequest const&) const noexcept override {
+    return {true, true, true, false, ERROR_BAD_EXE_FORMAT, 0};
   }
 };
 }
@@ -107,7 +116,14 @@ int RunPeUseCaseTests() {
   if (!parsed.layout) return failures + 1;
 
   MemorySourceReader source{bytes};
-  application::pe_preparation::PeTargetPreparationUseCase preparation{source};
+  application::PeBackendCapabilities capabilities{{
+      {upx_killer::contracts::BinaryFamily::Pe,
+       upx_killer::contracts::BinaryClass::Bits64,
+       upx_killer::contracts::CpuArchitecture::X64,
+       upx_killer::contracts::ImageKind::Executable},
+  }};
+  application::pe_preparation::PeTargetPreparationUseCase preparation{
+      source, capabilities};
   UnpackRequest request{};
   request.targetPath = FixturePath();
   request.outputPath = L"fixture.use-case.dumped.exe";
@@ -135,13 +151,48 @@ int RunPeUseCaseTests() {
   pe::FixedPeImage fixed{};
   fixed.bytes = {std::byte{0x4d}, std::byte{0x5a}};
   fixed.quality = ArtifactQuality::Complete;
-  application::pe_reconstruction::ReconstructedPeImage image{
-      std::move(fixed), prepared.target->layout};
   auto publicationResult = publication.Execute(
-      request, *prepared.target, std::move(image));
+      {request.outputPath, std::move(fixed.bytes),
+      {upx_killer::contracts::BinaryFamily::Pe,
+       upx_killer::contracts::BinaryClass::Bits64,
+       upx_killer::contracts::CpuArchitecture::X64,
+       upx_killer::contracts::ImageKind::Executable},
+       prepared.target->dependencyDirectory, 3000, fixed.quality,
+       std::move(fixed.warnings), request.retainFailedOutput});
   Expect(publicationResult.Succeeded() &&
              publicationResult.outcome == EngineOutcome::Completed &&
              store.promoted && !store.removed,
          "publication use case stages, validates, and promotes an artifact", failures);
+
+  MemoryArtifactStore rejectedStore;
+  RejectingValidator rejectingValidator;
+  application::artifacts::ArtifactPublicationUseCase rejectedPublication{
+      rejectedStore, rejectingValidator};
+  auto rejected = rejectedPublication.Execute(
+      {request.outputPath, {std::byte{0x4d}, std::byte{0x5a}},
+       {upx_killer::contracts::BinaryFamily::Elf,
+        upx_killer::contracts::BinaryClass::Bits64,
+        upx_killer::contracts::CpuArchitecture::X64,
+        upx_killer::contracts::ImageKind::Executable},
+       {}, 3000, ArtifactQuality::Complete, {}, false});
+  Expect(!rejected.Succeeded() && rejectedStore.removed &&
+             !rejectedStore.promoted,
+         "publication removes a failed staged artifact regardless of format",
+         failures);
+
+  MemoryArtifactStore retainedStore;
+  application::artifacts::ArtifactPublicationUseCase retainedPublication{
+      retainedStore, rejectingValidator};
+  auto retained = retainedPublication.Execute(
+      {request.outputPath, {std::byte{0x7f}, std::byte{0x45}},
+       {upx_killer::contracts::BinaryFamily::Elf,
+        upx_killer::contracts::BinaryClass::Bits32,
+        upx_killer::contracts::CpuArchitecture::X86,
+        upx_killer::contracts::ImageKind::SharedLibrary},
+       {}, 3000, ArtifactQuality::Partial, {}, true});
+  Expect(!retained.Succeeded() && !retainedStore.removed &&
+             !retainedStore.promoted,
+         "publication retains an explicitly requested failed diagnostic artifact",
+         failures);
   return failures;
 }

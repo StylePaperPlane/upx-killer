@@ -3,6 +3,7 @@
 #include "Application/Backends/IUnpackBackend.h"
 #include "Application/Artifacts/ArtifactPublicationUseCase.h"
 #include "Application/PE/Capture/PeRuntimeCaptureUseCase.h"
+#include "Application/PE/Capabilities/PeBackendCapabilities.h"
 #include "Application/PE/Preparation/PeTargetProbe.h"
 #include "Application/PE/Reconstruction/PeImageReconstructionUseCase.h"
 
@@ -11,11 +12,13 @@ class PeUnpackBackend final : public contracts::IUnpackBackend {
  public:
   PeUnpackBackend(
       pe_preparation::PeTargetProbe const& probe,
+      PeBackendCapabilities const& capabilities,
       pe_preparation::PeTargetPreparationUseCase const& preparation,
       pe_capture::PeRuntimeCaptureUseCase const& capture,
       pe_reconstruction::PeImageReconstructionUseCase const& reconstruction,
       artifacts::ArtifactPublicationUseCase const& publication)
       : probe_(probe),
+        capabilities_(capabilities),
         preparation_(preparation),
         capture_(capture),
         reconstruction_(reconstruction),
@@ -31,6 +34,7 @@ class PeUnpackBackend final : public contracts::IUnpackBackend {
 
  private:
   pe_preparation::PeTargetProbe const& probe_;
+  PeBackendCapabilities const& capabilities_;
   pe_preparation::PeTargetPreparationUseCase const& preparation_;
   pe_capture::PeRuntimeCaptureUseCase const& capture_;
   pe_reconstruction::PeImageReconstructionUseCase const& reconstruction_;

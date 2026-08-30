@@ -155,14 +155,7 @@ contracts::JobResult MapResult(engine::EngineResult result) {
 
 namespace upx_killer::engine::application {
 contracts::BackendManifest PeUnpackBackend::Manifest() const {
-  using namespace contracts;
-  return {"pe.windows.upx",
-          {{BinaryFamily::Pe, BinaryClass::Bits32, CpuArchitecture::X86,
-            ImageKind::Executable},
-           {BinaryFamily::Pe, BinaryClass::Bits64, CpuArchitecture::X64,
-            ImageKind::Executable},
-           {BinaryFamily::Pe, BinaryClass::Bits32, CpuArchitecture::X86,
-            ImageKind::SharedLibrary}}};
+  return capabilities_.Manifest("pe.windows.upx");
 }
 
 contracts::BackendProbeResult PeUnpackBackend::Probe(
@@ -196,8 +189,14 @@ contracts::JobResult PeUnpackBackend::Execute(
       engineRequest, prepared, *capture.evidence, engineProgress);
   if (!reconstruction.image)
     return MapResult({EngineOutcome::Failed, reconstruction.error});
+  auto reconstructed = std::move(*reconstruction.image);
+  auto fixed = std::move(reconstructed.image);
   auto publication = publication_.Execute(
-      engineRequest, prepared, std::move(*reconstruction.image), engineProgress);
+      {engineRequest.outputPath, std::move(fixed.bytes),
+       PeBackendCapabilities::Describe(prepared.layout),
+       prepared.dependencyDirectory, 3000, fixed.quality,
+       std::move(fixed.warnings), engineRequest.retainFailedOutput},
+      engineProgress);
   return MapResult({publication.outcome, publication.error,
                     std::move(publication.artifact), publication.nativeError});
 }

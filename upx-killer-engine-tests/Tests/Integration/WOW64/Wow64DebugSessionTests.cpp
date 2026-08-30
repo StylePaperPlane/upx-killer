@@ -1,7 +1,7 @@
-#include "Infrastructure/Windows/Composition/WindowsPeUnpackEngine.h"
 #include "Core/PE/Parsing/PeParser.h"
 #include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Infrastructure/Windows/Debugging/WindowsDebugSession.h"
+#include "Tests/Support/EngineHostTestClient.h"
 
 #include <Windows.h>
 
@@ -24,6 +24,12 @@ std::optional<pe::PeImageLayout> ParseFile(std::filesystem::path const& path) {
   stream.read(reinterpret_cast<char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
   if (!stream) return std::nullopt;
   return pe::PeParser::Parse(bytes).layout;
+}
+
+std::filesystem::path HostPath(std::filesystem::path const& testDirectory) {
+  auto const repository = testDirectory.parent_path().parent_path().parent_path();
+  return repository / L"upx-killer" / L"x64" / L"Release" /
+         L"upx-killer" / L"upx_killer_engine_host.exe";
 }
 }
 
@@ -64,17 +70,24 @@ int RunWow64DebugSessionTests() {
          "x64 debug host captures a Win32 target at EIP through WOW64");
 
   auto const output = directory / L"upx-killer-engine-fixture-x86.dumped.exe";
-  UnpackRequest request{};
+  upx_killer::contracts::UnpackJobRequest request{};
   request.targetPath = fixture;
   request.outputPath = output;
-  request.oep = layout->entryPoint;
+  request.entryPoint = upx_killer::contracts::EntryPointHint{
+      upx_killer::contracts::EntryPointAddressKind::RelativeVirtualAddress,
+      layout->entryPoint.value};
   request.timeoutMilliseconds = 15'000;
-  auto const unpacked = composition::WindowsPeUnpackEngine::Execute(request, {});
-  if (unpacked.outcome != EngineOutcome::Completed)
-    std::cerr << "PE32 engine outcome=" << static_cast<unsigned>(unpacked.outcome)
-              << " error=" << static_cast<unsigned>(unpacked.error)
-              << " native=" << unpacked.nativeError << '\n';
-  expect(unpacked.outcome == EngineOutcome::Completed && unpacked.artifact,
+  auto const unpacked =
+      upx_killer::tests::ExecuteThroughEngineHost(HostPath(directory), request);
+  if (unpacked.result.outcome != upx_killer::contracts::JobOutcome::Completed)
+    std::cerr << "PE32 engine outcome="
+              << static_cast<unsigned>(unpacked.result.outcome)
+              << " detail=" << unpacked.result.detailCode
+              << " native=" << unpacked.result.nativeCode << '\n';
+  expect(unpacked.protocolSucceeded &&
+             unpacked.result.outcome ==
+                 upx_killer::contracts::JobOutcome::Completed &&
+             unpacked.result.artifact,
          "PE32 fixture completes the full unpacking pipeline");
 
   auto const repaired = ParseFile(output);

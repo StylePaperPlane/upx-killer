@@ -124,7 +124,8 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
                                     ? request.targetPath.parent_path()
                                     : request.workingDirectory;
   auto launch = loading::DebugTargetLoader::CreateCommand(
-      request.imageKind, launchPath, workingDirectory, launchError);
+      request.imageKind, launchPath, workingDirectory, request.dllLoader,
+      launchError);
   if (!launch) return {EngineError::LoadingTargetLibraryFailed, launchError};
   auto process = DebugProcess::Launch(launch->application, std::move(launch->commandLine),
                                       workingDirectory, launchError);

@@ -16,12 +16,22 @@ application::pe_capture::PeSnapshotCaptureResult WindowsPeSnapshotCapture::Captu
                  ? EngineStage::LoadingTargetLibrary
                  : EngineStage::Launching);
   }
+  std::filesystem::path dllLoader;
+  if (request.imageKind == pe::PeImageKind::DynamicLibrary) {
+    std::uint32_t loaderError{};
+    auto resolved = loaders_.Resolve(request.format, loaderError);
+    if (!resolved) {
+      return {std::nullopt, EngineOutcome::Failed,
+              EngineError::LoadingTargetLibraryFailed, loaderError};
+    }
+    dllLoader = std::move(*resolved);
+  }
   std::optional<PeCapturedRun> captured;
   auto debugResult = debugging::WindowsDebugSession::Capture(
       {request.targetPath, request.format, request.imageKind,
        request.entryPointTarget, request.layout->sizeOfImage, request.timeout,
        request.collectRuntimeImports, request.stagedImage, request.requiredBase,
-       request.dependencyDirectory},
+       request.dependencyDirectory, std::move(dllLoader)},
       [&](dumping::IRemoteMemoryReader const& reader,
           dumping::LoadedImage const& loaded,
           RelativeVirtualAddress resolvedEntryPoint,

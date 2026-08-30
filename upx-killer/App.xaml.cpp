@@ -5,6 +5,7 @@
 #include "Infrastructure/Storage/ArtifactFileExporter.h"
 #include "Infrastructure/Settings/LocalTemporaryFileSettingsStore.h"
 #include "Infrastructure/Storage/TemporaryFolderPicker.h"
+#include "Infrastructure/Storage/LocalTemporaryArtifactWorkspace.h"
 #include "UI/Windows/MainWindow/MainWindow.xaml.h"
 
 #include <memory>
@@ -42,11 +43,14 @@ void App::OnLaunched([[maybe_unused]] LaunchActivatedEventArgs const& e) {
   auto const temporaryFileSettings =
       std::make_shared<::upx_killer::infrastructure::LocalTemporaryFileSettingsStore>();
   auto const mainWindow = make<MainWindow>();
+  auto const workspace =
+      std::make_shared<::upx_killer::infrastructure::LocalTemporaryArtifactWorkspace>(
+          temporaryFileSettings);
   get_self<MainWindow>(mainWindow)
       ->InitializeShell(std::make_shared<::upx_killer::infrastructure::TargetFilePicker>(),
                         std::make_shared<::upx_killer::infrastructure::EngineHostClient>(
-                            ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath(),
-                            temporaryFileSettings),
+                            ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath()),
+                        workspace,
                         std::make_shared<::upx_killer::infrastructure::ArtifactFileExporter>(
                             temporaryFileSettings),
                         temporaryFileSettings,

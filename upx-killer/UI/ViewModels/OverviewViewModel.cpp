@@ -66,13 +66,15 @@ void OverviewViewModel::Initialize(
     winrt::Microsoft::UI::WindowId const& windowId,
     std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
     std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
+    std::shared_ptr<::upx_killer::application::ITemporaryArtifactWorkspace> workspace,
     std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
     std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore) {
   m_windowId = windowId;
   m_targetSelectionWorkflow =
       std::make_unique<::upx_killer::application::TargetSelectionWorkflow>(std::move(picker));
   m_unpackWorkflow =
-      std::make_unique<::upx_killer::application::UnpackWorkflow>(std::move(engineClient));
+      std::make_unique<::upx_killer::application::UnpackWorkflow>(
+          std::move(engineClient), std::move(workspace));
   m_artifactExporter = std::move(artifactExporter);
   m_settingsStore = std::move(settingsStore);
   RaiseCommandStates();
@@ -165,92 +167,21 @@ winrt::fire_and_forget OverviewViewModel::StartUnpackAsync() {
   auto const result = m_unpackWorkflow->Start(targetPath, std::nullopt, progress);
   co_await uiContext;
   m_busy = false;
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::NeedsOep) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Unavailable, L"StatusOepRequired");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::UnsupportedPacker) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusUnsupportedPacker");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::OepNotFound) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusOepNotFound");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::ImportsNotFound ||
-      result.outcome == ::upx_killer::application::UnpackOutcome::ImportsAmbiguous) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusImportsNotRebuilt");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::RelocationEvidenceFailed) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusRelocationEvidenceFailed");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::RelocationValidationFailed) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusRelocationValidationFailed");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::Wow64Unavailable) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusWow64Unavailable");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::UnsupportedPe32Relocation) {
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Error,
-              L"StatusUnsupportedPe32Relocation");
-    RaisePropertyChanged(L"CanStart");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
-  }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::Partial) {
-    m_outputPath = result.outputPath;
+  auto const presentation =
+      ::upx_killer::ui::presentation::UnpackStatusPresentation::Result(result);
+  if (presentation.exposesArtifact && result.artifact) {
+    m_outputPath = result.artifact->path;
     m_hasOutput = true;
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Unavailable,
-              L"StatusPartialImportsNotRebuilt");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
   }
-
-  if (result.outcome == ::upx_killer::application::UnpackOutcome::Succeeded) {
-    m_outputPath = result.outputPath;
-    m_hasOutput = true;
-    SetStatus(winrt::upx_killer::OverviewStatusKind::Succeeded, L"StatusUnpackSucceeded");
-    RaisePropertyChanged(L"CanExport");
-    RaiseCommandStates();
-    co_return;
+  auto kind = winrt::upx_killer::OverviewStatusKind::Error;
+  if (presentation.tone ==
+      ::upx_killer::ui::presentation::UnpackStatusTone::Succeeded) {
+    kind = winrt::upx_killer::OverviewStatusKind::Succeeded;
+  } else if (presentation.tone ==
+             ::upx_killer::ui::presentation::UnpackStatusTone::Unavailable) {
+    kind = winrt::upx_killer::OverviewStatusKind::Unavailable;
   }
-
-  SetStatus(winrt::upx_killer::OverviewStatusKind::Error, L"StatusUnpackFailed");
+  SetStatus(kind, presentation.resourceKey);
   RaisePropertyChanged(L"CanStart");
   RaisePropertyChanged(L"CanExport");
   RaiseCommandStates();

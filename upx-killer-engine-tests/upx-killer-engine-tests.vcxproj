@@ -36,7 +36,13 @@
     <Link><GenerateDebugInformation>false</GenerateDebugInformation><IgnoreImportLibrary>true</IgnoreImportLibrary><ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile><ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary></Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Tests\EngineModuleTests.cpp" />
+    <ClCompile Include="Tests\TestMain.cpp" />
+    <ClCompile Include="Tests\Unit\Parsing\PeParserTests.cpp" />
+    <ClCompile Include="Tests\Unit\Dumping\ProcessImageDumperTests.cpp" />
+    <ClCompile Include="Tests\Unit\Fixing\PeImageFixerTests.cpp" />
+    <ClCompile Include="Tests\Unit\Loading\DllLoaderCatalogTests.cpp" />
+    <ClCompile Include="Tests\Unit\PE\Capabilities\PeBackendCapabilitiesTests.cpp" />
+    <ClCompile Include="Tests\Integration\Host\EngineHostIntegrationTests.cpp" />
     <ClCompile Include="Tests\Unit\OepDiscoveryTests.cpp" />
     <ClCompile Include="Tests\Unit\Imports\ImportDiscoveryTests.cpp" />
     <ClCompile Include="Tests\Unit\Sections\SectionLayoutRebuilderTests.cpp" />

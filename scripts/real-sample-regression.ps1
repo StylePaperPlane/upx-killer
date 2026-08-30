@@ -50,7 +50,8 @@ function Invoke-HostValidation {
     if ($exitCode -ne 0 -or
         $values['protocol_succeeded'] -ne '1' -or
         $values['outcome'] -ne '0' -or
-        $values['error'] -ne '0' -or
+        $values['category'] -ne '0' -or
+        $values['detail_code'] -ne '' -or
         $values['native_error'] -ne '0' -or
         $values['loader_mappable'] -ne '1' -or
         -not $values.ContainsKey('artifact')) {

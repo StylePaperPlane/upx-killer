@@ -1,4 +1,4 @@
-#include "Application/Unpacking/TargetExecutionPolicy.h"
+#include "Application/PE/Preparation/PeExecutionPlanFactory.h"
 #include "Core/PE/Fixing/PeImageFixer.h"
 #include "Core/PE/OepDiscovery/UpxOepLocator.h"
 #include "Core/PE/Parsing/PeParser.h"
@@ -123,15 +123,25 @@ int RunPe32FormatTests() {
              !dll.layout->sourceLoadPolicy.highEntropyVa,
          "PE32 DLL parses and exposes its source load policy");
   if (dll.layout) {
+    application::PeBackendCapabilities capabilities{{
+        {upx_killer::contracts::BinaryFamily::Pe,
+         upx_killer::contracts::BinaryClass::Bits32,
+         upx_killer::contracts::CpuArchitecture::X86,
+         upx_killer::contracts::ImageKind::SharedLibrary},
+    }};
     dll.layout->sourceLoadPolicy.hasRelocations = true;
     dll.layout->sourceLoadPolicy.dynamicBase = false;
     dll.layout->preferredImageBase = 0x67380000;
-    auto fixedPolicy = application::TargetExecutionPolicy::Resolve(*dll.layout);
+    auto fixedPolicy =
+        application::pe_preparation::PeExecutionPlanFactory::Create(
+            *dll.layout, capabilities);
     expect(fixedPolicy && fixedPolicy->outputBase.value == 0x67380000 &&
                !fixedPolicy->enableDynamicBase && fixedPolicy->rebuildRelocations,
            "PE32 DLL with relocations but no source ASLR keeps its preferred base and ASLR intent");
     dll.layout->sourceLoadPolicy.dynamicBase = true;
-    auto dynamicPolicy = application::TargetExecutionPolicy::Resolve(*dll.layout);
+    auto dynamicPolicy =
+        application::pe_preparation::PeExecutionPlanFactory::Create(
+            *dll.layout, capabilities);
     expect(dynamicPolicy && dynamicPolicy->outputBase.value == 0x00400000 &&
                dynamicPolicy->enableDynamicBase && dynamicPolicy->captureBases[0].value != 0x00400000,
            "ASLR-enabled PE32 DLL separates stable evidence bases from its canonical output base");

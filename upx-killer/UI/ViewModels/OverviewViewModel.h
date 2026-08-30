@@ -6,6 +6,7 @@
 #include "Application/Unpacking/UnpackWorkflow.h"
 #include "Application/Unpacking/IArtifactExporter.h"
 #include "Application/TemporaryFiles/TemporaryFileSettings.h"
+#include "Application/TemporaryFiles/ITemporaryArtifactWorkspace.h"
 #include "Core/BinaryInspection/TargetBinaryInspector.h"
 #include "UI/ViewModels/RelayCommand.h"
 
@@ -43,6 +44,7 @@ struct OverviewViewModel : OverviewViewModelT<OverviewViewModel> {
       winrt::Microsoft::UI::WindowId const& windowId,
       std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
       std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
+      std::shared_ptr<::upx_killer::application::ITemporaryArtifactWorkspace> workspace,
       std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
       std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore);
   void LoadTargetPath(winrt::hstring const& path);

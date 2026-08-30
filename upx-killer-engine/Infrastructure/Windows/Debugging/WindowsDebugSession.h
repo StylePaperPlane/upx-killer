@@ -24,6 +24,8 @@ struct DebugLaunchRequest {
   std::optional<LoadedAddress> requiredImageBase;
   // Directory used by the debuggee for relative paths and DLL resolution.
   std::filesystem::path workingDirectory;
+  // Resolved by the platform loading catalog; empty for executables.
+  std::filesystem::path dllLoader;
 };
 
 struct DebugCaptureResult {

@@ -61,14 +61,14 @@
     <Filter Include="Infrastructure\EngineHost\Pipes">
       <UniqueIdentifier>{880D2598-255B-4F18-9FD3-38C7D7E061B8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Infrastructure\EngineHost\Process">
+      <UniqueIdentifier>{7B958FB8-38ED-4C40-9FF6-C402F84C0E24}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Infrastructure\Settings">
       <UniqueIdentifier>{610A6D4F-04B0-4DB5-B48D-A735F822B56A}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{A5F8FA93-581E-4182-83A1-1A6815CC0418}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resources\Assets">
-      <UniqueIdentifier>{1DCD4901-03AB-4843-B2B9-9E7AC3CB561F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resources\Localization">
       <UniqueIdentifier>{ECF27339-C3A7-4526-8A00-10B2599FF8F8}</UniqueIdentifier>
@@ -90,6 +90,9 @@
     </Filter>
     <Filter Include="Build\Verification">
       <UniqueIdentifier>{463B5BB4-4B5B-40F1-84C7-F1345626AA79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Build\Packaging">
+      <UniqueIdentifier>{443B6823-398A-41FD-9A32-B4A831835EEA}</UniqueIdentifier>
     </Filter>
     <Filter Include="Dependencies">
       <UniqueIdentifier>{E0E16715-9A13-40BE-B227-342132977DB5}</UniqueIdentifier>
@@ -137,6 +140,12 @@
       <Filter>UI\Navigation</Filter>
     </ClInclude>
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp">
+      <Filter>UI\Navigation</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\Navigation\NavigationRouteCatalog.h">
+      <Filter>UI\Navigation</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Navigation\NavigationRouteCatalog.cpp">
       <Filter>UI\Navigation</Filter>
     </ClCompile>
   </ItemGroup>
@@ -197,6 +206,9 @@
     <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettings.h">
       <Filter>Application\TemporaryFiles</Filter>
     </ClInclude>
+    <ClInclude Include="Application\TemporaryFiles\ITemporaryArtifactWorkspace.h">
+      <Filter>Application\TemporaryFiles</Filter>
+    </ClInclude>
     <ClInclude Include="Application\TemporaryFiles\ITemporaryFolderPicker.h">
       <Filter>Application\TemporaryFiles</Filter>
     </ClInclude>
@@ -217,6 +229,12 @@
     </ClInclude>
     <ClCompile Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.cpp">
       <Filter>Infrastructure\EngineHost\Pipes</Filter>
+    </ClCompile>
+    <ClInclude Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.h">
+      <Filter>Infrastructure\EngineHost\Process</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.cpp">
+      <Filter>Infrastructure\EngineHost\Process</Filter>
     </ClCompile>
     <ClInclude Include="UI\Presentation\UnpackStatusPresentation.h">
       <Filter>UI\Presentation</Filter>
@@ -254,6 +272,12 @@
     <ClCompile Include="Infrastructure\Storage\TemporaryFolderPicker.cpp">
       <Filter>Infrastructure\Storage</Filter>
     </ClCompile>
+    <ClInclude Include="Infrastructure\Storage\LocalTemporaryArtifactWorkspace.h">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\Storage\LocalTemporaryArtifactWorkspace.cpp">
+      <Filter>Infrastructure\Storage</Filter>
+    </ClCompile>
     <ClInclude Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.h">
       <Filter>Infrastructure\Settings</Filter>
     </ClInclude>
@@ -262,27 +286,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\LockScreenLogo.scale-200.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
-    <Image Include="Assets\SplashScreen.scale-200.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
-    <Image Include="Assets\Square150x150Logo.scale-200.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
-    <Image Include="Assets\Square44x44Logo.scale-200.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
-    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
-    <Image Include="Assets\StoreLogo.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
-    <Image Include="Assets\Wide310x150Logo.scale-200.png">
-      <Filter>Resources\Assets</Filter>
-    </Image>
     <PRIResource Include="Strings\en-US\Resources.resw">
       <Filter>Resources\Localization\en-US</Filter>
     </PRIResource>
@@ -294,9 +297,6 @@
     <Manifest Include="app.manifest">
       <Filter>Build\Manifests</Filter>
     </Manifest>
-    <AppxManifest Include="Package.appxmanifest">
-      <Filter>Build\Manifests</Filter>
-    </AppxManifest>
     <ClInclude Include="pch.h">
       <Filter>Build\Precompiled Headers</Filter>
     </ClInclude>
@@ -311,6 +311,12 @@
     </None>
     <None Include="..\scripts\real-sample-regression.ps1">
       <Filter>Build\Verification</Filter>
+    </None>
+    <None Include="..\scripts\audit-project-filters.ps1">
+      <Filter>Build\Verification</Filter>
+    </None>
+    <None Include="..\scripts\package-dist.ps1">
+      <Filter>Build\Packaging</Filter>
     </None>
     <None Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.AI.MachineLearning.2.1.74\build\native\..\..\runtimes\win-$(Platform.ToLower())\native\DirectML.dll">
       <Filter>Dependencies</Filter>
@@ -327,9 +333,6 @@
     <Natvis Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.ImplementationLibrary.1.0.260126.7\build\native\..\..\natvis\wil.natvis">
       <Filter>Dependencies</Filter>
     </Natvis>
-    <Text Include="readme.txt">
-      <Filter>Documentation</Filter>
-    </Text>
     <Text Include="..\CONTEXT.md">
       <Filter>Documentation</Filter>
     </Text>

@@ -62,9 +62,9 @@
     <ClInclude Include="Infrastructure\Windows\Debugging\Imports\AppCompatImportAliasResolver.h" />
     <ClInclude Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.h" />
     <ClInclude Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.h" />
-    <ClInclude Include="Infrastructure\Windows\Verification\WindowsImageVerifier.h" />
-    <ClInclude Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.h" />
-    <ClInclude Include="Application\Unpacking\TargetExecutionPolicy.h" />
+    <ClInclude Include="Infrastructure\Windows\Loading\DllLoaderCatalog.h" />
+    <ClInclude Include="Application\PE\Capabilities\PeBackendCapabilities.h" />
+    <ClInclude Include="Application\PE\Preparation\PeExecutionPlanFactory.h" />
     <ClInclude Include="Application\PE\Preparation\PeTargetPreparationUseCase.h" />
     <ClInclude Include="Application\PE\Preparation\PeTargetProbe.h" />
     <ClInclude Include="Application\PE\PeUnpackBackend.h" />
@@ -99,9 +99,9 @@
     <ClCompile Include="Infrastructure\Windows\Debugging\Imports\AppCompatImportAliasResolver.cpp" />
     <ClCompile Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.cpp" />
     <ClCompile Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.cpp" />
-    <ClCompile Include="Infrastructure\Windows\Verification\WindowsImageVerifier.cpp" />
-    <ClCompile Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.cpp" />
-    <ClCompile Include="Application\Unpacking\TargetExecutionPolicy.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Loading\DllLoaderCatalog.cpp" />
+    <ClCompile Include="Application\PE\Capabilities\PeBackendCapabilities.cpp" />
+    <ClCompile Include="Application\PE\Preparation\PeExecutionPlanFactory.cpp" />
     <ClCompile Include="Application\PE\Preparation\PeTargetPreparationUseCase.cpp" />
     <ClCompile Include="Application\PE\Preparation\PeTargetProbe.cpp" />
     <ClCompile Include="Application\PE\PeUnpackBackend.cpp" />

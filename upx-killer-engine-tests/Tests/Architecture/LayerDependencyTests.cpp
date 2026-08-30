@@ -82,5 +82,15 @@ int RunLayerDependencyTests() {
       {"PeParser::", "PeImageFixer", "RelocationReconstructor",
        "WindowsDebugSession", "ReadProcessMemory", "CreateFileW"},
       "PE backend must only coordinate use cases");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Application" / "Artifacts",
+      {"Core/PE/", "PreparedPeTarget", "ReconstructedPeImage", "PeImageKind"},
+      "Artifact publication must remain format-neutral");
+  failures += RequireAbsent(
+      *root / "upx-killer" / "Infrastructure" / "EngineHost" /
+          "EngineHostClient.cpp",
+      {"TemporaryFileSettings", "temp_directory_path", "remove_all",
+       "CreateProcessW", "CreatePipe"},
+      "Engine host client must delegate workspace and process concerns");
   return failures;
 }

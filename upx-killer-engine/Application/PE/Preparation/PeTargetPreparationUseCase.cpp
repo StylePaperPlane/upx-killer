@@ -49,7 +49,8 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
     if (request.oep && request.oep->value >= parsed.layout->sizeOfImage) {
       return {std::nullopt, EngineOutcome::Failed, EngineError::OepOutOfRange};
     }
-    auto executionPlan = TargetExecutionPolicy::Resolve(*parsed.layout);
+    auto executionPlan =
+        PeExecutionPlanFactory::Create(*parsed.layout, capabilities_);
     if (!executionPlan) {
       return {std::nullopt, EngineOutcome::UnsupportedTarget,
               EngineError::UnsupportedImageKind};

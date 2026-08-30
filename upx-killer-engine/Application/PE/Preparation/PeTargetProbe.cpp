@@ -5,21 +5,6 @@
 namespace {
 using namespace upx_killer;
 
-contracts::TargetDescriptor Describe(engine::pe::PeImageLayout const& layout) {
-  return {
-      contracts::BinaryFamily::Pe,
-      layout.format == engine::pe::PeFormat::Pe32
-          ? contracts::BinaryClass::Bits32
-          : contracts::BinaryClass::Bits64,
-      layout.format == engine::pe::PeFormat::Pe32
-          ? contracts::CpuArchitecture::X86
-          : contracts::CpuArchitecture::X64,
-      layout.imageKind == engine::pe::PeImageKind::Executable
-          ? contracts::ImageKind::Executable
-          : contracts::ImageKind::SharedLibrary,
-  };
-}
-
 std::string ParseDetail(engine::pe::PeError error) {
   switch (error) {
     case engine::pe::PeError::UnsupportedArchitecture:
@@ -43,8 +28,8 @@ contracts::BackendProbeResult PeTargetProbe::Execute(
   auto parsed = pe::PeParser::Parse(source.source->bytes);
   if (!parsed.layout)
     return {true, false, std::nullopt, ParseDetail(parsed.error)};
-  auto descriptor = Describe(*parsed.layout);
-  auto const supported = TargetExecutionPolicy::Resolve(*parsed.layout).has_value();
+  auto descriptor = PeBackendCapabilities::Describe(*parsed.layout);
+  auto const supported = capabilities_.Supports(descriptor);
   return {true, supported, descriptor,
           supported ? std::string{} : "pe.target.unsupported"};
 }

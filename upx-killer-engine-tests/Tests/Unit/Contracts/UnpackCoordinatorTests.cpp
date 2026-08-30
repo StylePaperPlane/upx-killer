@@ -101,5 +101,26 @@ int RunUnpackCoordinatorTests() {
   result = unknown.Execute(invalid);
   Expect(result.category == ErrorCategory::InvalidRequest,
          "invalid jobs are rejected before backend probing");
+
+  std::vector<TargetDescriptor> const elfTargets{
+      {BinaryFamily::Elf, BinaryClass::Bits32, CpuArchitecture::X86,
+       ImageKind::Executable},
+      {BinaryFamily::Elf, BinaryClass::Bits32, CpuArchitecture::X86,
+       ImageKind::SharedLibrary},
+      {BinaryFamily::Elf, BinaryClass::Bits64, CpuArchitecture::X64,
+       ImageKind::Executable},
+      {BinaryFamily::Elf, BinaryClass::Bits64, CpuArchitecture::X64,
+       ImageKind::SharedLibrary},
+  };
+  for (auto const& target : elfTargets) {
+    auto elf = std::make_shared<FakeBackend>(
+        "elf.test", BackendProbeResult{true, true, target, {}},
+        JobResult{JobOutcome::Completed, ErrorCategory::None, {}});
+    UnpackCoordinator extensible;
+    extensible.Register(elf);
+    auto elfResult = extensible.Execute(ValidRequest());
+    Expect(elfResult.outcome == JobOutcome::Completed && elf->executeCount == 1,
+           "ELF descriptor extension uses the unchanged coordinator contract");
+  }
   return failures;
 }

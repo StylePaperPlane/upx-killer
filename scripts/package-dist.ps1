@@ -58,7 +58,12 @@ New-Item -ItemType Directory -Path $payloadDirectory -Force | Out-Null
 
 $excludedExtensions = @('.pdb', '.ilk', '.lib', '.exp', '.recipe', '.tlog', '.log', '.lastbuildstate')
 Get-ChildItem -LiteralPath $sourceDirectory -Recurse -File |
-    Where-Object { $excludedExtensions -notcontains $_.Extension.ToLowerInvariant() } |
+    Where-Object {
+        $relative = $_.FullName.Substring($sourceDirectory.Length).TrimStart('\')
+        $excludedExtensions -notcontains $_.Extension.ToLowerInvariant() -and
+        -not $relative.StartsWith('AppX\', [System.StringComparison]::OrdinalIgnoreCase) -and
+        $_.Name -ine 'appxmanifest.xml'
+    } |
     ForEach-Object {
         $relativePath = $_.FullName.Substring($sourceDirectory.Length).TrimStart('\')
         $targetPath = Join-Path $payloadDirectory $relativePath
@@ -107,7 +112,11 @@ foreach ($language in $allowedSatelliteDirectories) {
 }
 
 $forbiddenArtifacts = Get-ChildItem -LiteralPath $destinationDirectory -Recurse -File |
-    Where-Object { $excludedExtensions -contains $_.Extension.ToLowerInvariant() }
+    Where-Object {
+        $excludedExtensions -contains $_.Extension.ToLowerInvariant() -or
+        $_.Extension -in @('.appx', '.msix', '.msixbundle') -or
+        $_.Name -ieq 'appxmanifest.xml'
+    }
 if ($forbiddenArtifacts) {
     throw "Development artifacts remain in distribution: $($forbiddenArtifacts.FullName -join ', ')"
 }

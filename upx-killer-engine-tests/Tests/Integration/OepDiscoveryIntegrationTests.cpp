@@ -1,4 +1,3 @@
-#include "Infrastructure/Windows/Composition/WindowsPeUnpackEngine.h"
 #include "Core/PE/OepDiscovery/UpxOepLocator.h"
 #include "Core/PE/Parsing/PeParser.h"
 #include "Tests/Support/EngineHostTestClient.h"
@@ -14,6 +13,7 @@
 
 namespace {
 using namespace upx_killer::engine;
+namespace contracts = upx_killer::contracts;
 
 int failures{};
 
@@ -35,18 +35,28 @@ std::optional<pe::PeImageLayout> ParseFile(std::filesystem::path const& path) {
   if (!stream) return std::nullopt;
   return pe::PeParser::Parse(bytes).layout;
 }
+
+std::filesystem::path HostPath(std::filesystem::path const& testDirectory) {
+  auto const repository = testDirectory.parent_path().parent_path().parent_path();
+  return repository / L"upx-killer" / L"x64" / L"Release" /
+         L"upx-killer" / L"upx_killer_engine_host.exe";
+}
 }
 
 int RunOepDiscoveryIntegrationTests() {
   wchar_t currentExecutable[MAX_PATH]{};
   GetModuleFileNameW(nullptr, currentExecutable, MAX_PATH);
   auto const currentDirectory = std::filesystem::path{currentExecutable}.parent_path();
-  UnpackRequest ordinaryRequest{};
+  contracts::UnpackJobRequest ordinaryRequest{};
   ordinaryRequest.targetPath = currentDirectory / L"upx-killer-engine-fixture.exe";
   ordinaryRequest.outputPath = currentDirectory / L"ordinary.auto.dumped.exe";
-  auto const ordinaryResult = composition::WindowsPeUnpackEngine::Execute(ordinaryRequest, {});
-  Expect(ordinaryResult.outcome == EngineOutcome::UnsupportedTarget &&
-             ordinaryResult.error == EngineError::UnsupportedPacker,
+  auto const ordinaryExecution =
+      upx_killer::tests::ExecuteThroughEngineHost(HostPath(currentDirectory),
+                                                   ordinaryRequest);
+  Expect(ordinaryExecution.protocolSucceeded &&
+             ordinaryExecution.result.outcome ==
+                 contracts::JobOutcome::UnsupportedTarget &&
+             ordinaryExecution.result.detailCode == "pe.packer.unsupported",
          "ordinary x64 PE is rejected before automatic debugging starts");
   Expect(!std::filesystem::exists(ordinaryRequest.outputPath),
          "unsupported packer does not leave an artifact");
@@ -65,19 +75,23 @@ int RunOepDiscoveryIntegrationTests() {
   auto const originalLayout = ParseFile(original);
   Expect(originalLayout.has_value(), "original fixture parses for automatic OEP comparison");
 
-  UnpackRequest request{};
+  contracts::UnpackJobRequest request{};
   request.targetPath = packed;
   request.outputPath = output;
   request.timeoutMilliseconds = 15'000;
-  auto const result = composition::WindowsPeUnpackEngine::Execute(request, {});
-  if (result.outcome != EngineOutcome::Partial) {
-    std::cerr << "automatic integration outcome=" << static_cast<unsigned>(result.outcome)
-              << " error=" << static_cast<unsigned>(result.error)
-              << " native=" << result.nativeError << '\n';
+  auto const execution =
+      upx_killer::tests::ExecuteThroughEngineHost(HostPath(testDirectory), request);
+  auto const& result = execution.result;
+  if (result.outcome != contracts::JobOutcome::Partial) {
+    std::cerr << "automatic integration outcome="
+              << static_cast<unsigned>(result.outcome)
+              << " detail=" << result.detailCode
+              << " native=" << result.nativeCode << '\n';
   }
-  Expect(result.outcome == EngineOutcome::Partial,
+  Expect(execution.protocolSucceeded &&
+             result.outcome == contracts::JobOutcome::Partial,
          "official UPX fixture is captured automatically");
-  Expect(result.artifact && result.artifact->loaderMappable,
+  Expect(result.artifact && result.artifact->loaderVerified,
          "automatic artifact passes non-executing mapping");
   auto const repairedLayout = ParseFile(output);
   Expect(repairedLayout.has_value(), "automatic repaired image parses");
@@ -116,57 +130,35 @@ int AnalyzeAutomaticOepTarget(std::filesystem::path const& target) {
   return discovery.plan ? 0 : 4;
 }
 
-int ValidateAutomaticOepTarget(std::filesystem::path const& target) {
-  auto const outputDirectory = std::filesystem::temp_directory_path() / L"upx-killer-validation";
-  std::error_code error;
-  std::filesystem::create_directories(outputDirectory, error);
-  if (error) return 5;
-  auto const output = outputDirectory / (target.stem().wstring() + L".dumped.exe");
-  UnpackRequest request{};
-  request.targetPath = target;
-  request.outputPath = output;
-  request.timeoutMilliseconds = 60'000;
-  auto const result = composition::WindowsPeUnpackEngine::Execute(request, {});
-  std::wcout << L"outcome=" << static_cast<unsigned>(result.outcome) << L'\n';
-  std::wcout << L"error=" << static_cast<unsigned>(result.error) << L'\n';
-  std::wcout << L"native_error=" << result.nativeError << L'\n';
-  if (result.artifact) {
-    std::wcout << L"artifact=" << result.artifact->path.wstring() << L'\n';
-    std::wcout << L"loader_mappable=" << result.artifact->loaderMappable << L'\n';
-  }
-  return result.outcome == EngineOutcome::Partial || result.outcome == EngineOutcome::Completed ? 0
-                                                                                                : 6;
-}
-
 int ValidateAutomaticOepTargetThroughHost(std::filesystem::path const& target) {
   wchar_t executablePath[MAX_PATH]{};
   GetModuleFileNameW(nullptr, executablePath, MAX_PATH);
   auto const testDirectory = std::filesystem::path{executablePath}.parent_path();
-  auto const repository = testDirectory.parent_path().parent_path().parent_path();
-  auto const host = repository / L"upx-killer" / L"x64" / L"Release" / L"upx-killer" /
-                    L"upx_killer_engine_host.exe";
+  auto const host = HostPath(testDirectory);
   auto const outputDirectory = std::filesystem::temp_directory_path() / L"upx-killer-validation";
   std::error_code error;
   std::filesystem::create_directories(outputDirectory, error);
   if (error) return 5;
 
-  UnpackRequest request{};
+  contracts::UnpackJobRequest request{};
   request.targetPath = target;
   request.outputPath = outputDirectory /
                        (target.stem().wstring() + L".host.dumped" + target.extension().wstring());
   request.retainFailedOutput = true;
   request.timeoutMilliseconds = 60'000;
-  auto const execution = tests::ExecuteThroughEngineHost(host, request);
+  auto const execution = upx_killer::tests::ExecuteThroughEngineHost(host, request);
   std::wcout << L"protocol_succeeded=" << execution.protocolSucceeded << L'\n';
   std::wcout << L"outcome=" << static_cast<unsigned>(execution.result.outcome) << L'\n';
-  std::wcout << L"error=" << static_cast<unsigned>(execution.result.error) << L'\n';
-  std::wcout << L"native_error=" << execution.result.nativeError << L'\n';
+  std::wcout << L"category=" << static_cast<unsigned>(execution.result.category) << L'\n';
+  std::cout << "detail_code=" << execution.result.detailCode << '\n';
+  std::wcout << L"native_error=" << execution.result.nativeCode << L'\n';
   if (execution.result.artifact) {
     std::wcout << L"artifact=" << execution.result.artifact->path.wstring() << L'\n';
-    std::wcout << L"loader_mappable=" << execution.result.artifact->loaderMappable << L'\n';
+    std::wcout << L"loader_mappable=" << execution.result.artifact->loaderVerified << L'\n';
   }
-  return execution.protocolSucceeded && (execution.result.outcome == EngineOutcome::Partial ||
-                                         execution.result.outcome == EngineOutcome::Completed)
+  return execution.protocolSucceeded &&
+                 (execution.result.outcome == contracts::JobOutcome::Partial ||
+                  execution.result.outcome == contracts::JobOutcome::Completed)
              ? 0
              : 6;
 }

@@ -24,15 +24,15 @@
     <Filter Include="Infrastructure\Windows\Debugging\Loading"><UniqueIdentifier>{1B9475C7-4E60-43EE-A721-09941C35BC30}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Debugging\Imports"><UniqueIdentifier>{E6BD6372-F261-4C73-91CA-5B13D4C810BE}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Verification"><UniqueIdentifier>{D1C89F6C-6B26-4EE0-9B34-4D832E4C174A}</UniqueIdentifier></Filter>
-    <Filter Include="Application\Unpacking"><UniqueIdentifier>{D58453CE-2602-4076-9713-76D26D3A42CF}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Windows\Loading"><UniqueIdentifier>{D3437A95-87AE-4A3F-AD02-189179406DC8}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE"><UniqueIdentifier>{A82ECFBC-652B-46F4-B50F-444C4D18C90F}</UniqueIdentifier></Filter>
+    <Filter Include="Application\PE\Capabilities"><UniqueIdentifier>{F522FB2B-65C8-4287-B9AF-B88402BC9877}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Preparation"><UniqueIdentifier>{3630059B-EAC6-47CC-A124-464861511B30}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Capture"><UniqueIdentifier>{E0BB83BE-76C6-4091-B477-2F21B77E180E}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Reconstruction"><UniqueIdentifier>{8BA6702C-ADBF-4577-A82E-C3E60A5AB478}</UniqueIdentifier></Filter>
     <Filter Include="Application\Artifacts"><UniqueIdentifier>{32EDC60D-0F11-425F-B92D-60301218C07E}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Capture"><UniqueIdentifier>{0D01455A-07A5-438D-A5A0-DACF1DF4C763}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Storage"><UniqueIdentifier>{1DC02A44-70BF-445B-9A75-B26C60F41C2C}</UniqueIdentifier></Filter>
-    <Filter Include="Infrastructure\Windows\Composition"><UniqueIdentifier>{E8B5B1D5-9F40-43C0-B6B5-B874B5C57B59}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\PE\Format\PeFormat.h"><Filter>Core\PE\Format</Filter></ClInclude>
@@ -62,9 +62,9 @@
     <ClInclude Include="Infrastructure\Windows\Debugging\Imports\AppCompatImportAliasResolver.h"><Filter>Infrastructure\Windows\Debugging\Imports</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.h"><Filter>Infrastructure\Windows\Debugging\Staging</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.h"><Filter>Infrastructure\Windows\Debugging\Loading</Filter></ClInclude>
-    <ClInclude Include="Infrastructure\Windows\Verification\WindowsImageVerifier.h"><Filter>Infrastructure\Windows\Verification</Filter></ClInclude>
-    <ClInclude Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.h"><Filter>Infrastructure\Windows\Composition</Filter></ClInclude>
-    <ClInclude Include="Application\Unpacking\TargetExecutionPolicy.h"><Filter>Application\Unpacking</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Windows\Loading\DllLoaderCatalog.h"><Filter>Infrastructure\Windows\Loading</Filter></ClInclude>
+    <ClInclude Include="Application\PE\Capabilities\PeBackendCapabilities.h"><Filter>Application\PE\Capabilities</Filter></ClInclude>
+    <ClInclude Include="Application\PE\Preparation\PeExecutionPlanFactory.h"><Filter>Application\PE\Preparation</Filter></ClInclude>
     <ClInclude Include="Application\PE\Preparation\PeTargetPreparationUseCase.h"><Filter>Application\PE\Preparation</Filter></ClInclude>
     <ClInclude Include="Application\PE\Preparation\PeTargetProbe.h"><Filter>Application\PE\Preparation</Filter></ClInclude>
     <ClInclude Include="Application\PE\PeUnpackBackend.h"><Filter>Application\PE</Filter></ClInclude>
@@ -99,9 +99,9 @@
     <ClCompile Include="Infrastructure\Windows\Debugging\Imports\AppCompatImportAliasResolver.cpp"><Filter>Infrastructure\Windows\Debugging\Imports</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.cpp"><Filter>Infrastructure\Windows\Debugging\Staging</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.cpp"><Filter>Infrastructure\Windows\Debugging\Loading</Filter></ClCompile>
-    <ClCompile Include="Infrastructure\Windows\Verification\WindowsImageVerifier.cpp"><Filter>Infrastructure\Windows\Verification</Filter></ClCompile>
-    <ClCompile Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.cpp"><Filter>Infrastructure\Windows\Composition</Filter></ClCompile>
-    <ClCompile Include="Application\Unpacking\TargetExecutionPolicy.cpp"><Filter>Application\Unpacking</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Windows\Loading\DllLoaderCatalog.cpp"><Filter>Infrastructure\Windows\Loading</Filter></ClCompile>
+    <ClCompile Include="Application\PE\Capabilities\PeBackendCapabilities.cpp"><Filter>Application\PE\Capabilities</Filter></ClCompile>
+    <ClCompile Include="Application\PE\Preparation\PeExecutionPlanFactory.cpp"><Filter>Application\PE\Preparation</Filter></ClCompile>
     <ClCompile Include="Application\PE\Preparation\PeTargetPreparationUseCase.cpp"><Filter>Application\PE\Preparation</Filter></ClCompile>
     <ClCompile Include="Application\PE\Preparation\PeTargetProbe.cpp"><Filter>Application\PE\Preparation</Filter></ClCompile>
     <ClCompile Include="Application\PE\PeUnpackBackend.cpp"><Filter>Application\PE</Filter></ClCompile>

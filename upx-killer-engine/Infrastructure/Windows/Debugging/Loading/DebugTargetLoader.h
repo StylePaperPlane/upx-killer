@@ -20,7 +20,9 @@ class DebugTargetLoader final {
  public:
   [[nodiscard]] static std::optional<DebugLaunchCommand> CreateCommand(
       pe::PeImageKind imageKind, std::filesystem::path const& stagedImage,
-      std::filesystem::path const& dependencyDirectory, std::uint32_t& nativeError) noexcept;
+      std::filesystem::path const& dependencyDirectory,
+      std::filesystem::path const& dllLoader,
+      std::uint32_t& nativeError) noexcept;
 
   [[nodiscard]] static bool IsTargetDllEvent(HANDLE imageFile,
                                              std::filesystem::path const& stagedImage) noexcept;

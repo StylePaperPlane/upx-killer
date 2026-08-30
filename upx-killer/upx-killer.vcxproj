@@ -129,11 +129,6 @@
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup Condition="'$(WindowsPackageType)'!='None' and Exists('Package.appxmanifest')">
-    <AppxManifest Include="Package.appxmanifest">
-      <SubType>Designer</SubType>
-    </AppxManifest>
-  </ItemGroup>
   <ItemGroup>
     <Manifest Include="app.manifest" />
   </ItemGroup>
@@ -149,6 +144,7 @@
     <ClInclude Include="Application\Unpacking\IUnpackEngineClient.h" />
     <ClInclude Include="Application\Unpacking\IArtifactExporter.h" />
     <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettings.h" />
+    <ClInclude Include="Application\TemporaryFiles\ITemporaryArtifactWorkspace.h" />
     <ClInclude Include="Application\TemporaryFiles\ITemporaryFolderPicker.h" />
     <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.h" />
     <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h" />
@@ -156,11 +152,14 @@
     <ClInclude Include="Infrastructure\Storage\TargetFilePicker.h" />
     <ClInclude Include="Infrastructure\Storage\ArtifactFileExporter.h" />
     <ClInclude Include="Infrastructure\Storage\TemporaryFolderPicker.h" />
+    <ClInclude Include="Infrastructure\Storage\LocalTemporaryArtifactWorkspace.h" />
     <ClInclude Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.h" />
     <ClInclude Include="Infrastructure\EngineHost\EngineHostClient.h" />
     <ClInclude Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.h" />
+    <ClInclude Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.h" />
     <ClInclude Include="UI\Navigation\NavigationPaneController.h" />
     <ClInclude Include="UI\Navigation\NavigationRouter.h" />
+    <ClInclude Include="UI\Navigation\NavigationRouteCatalog.h" />
     <ClInclude Include="UI\Pages\Overview\OverviewPage.xaml.h">
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
     </ClInclude>
@@ -196,14 +195,17 @@
     <ClCompile Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.cpp" />
     <ClCompile Include="Infrastructure\EngineHost\EngineHostClient.cpp" />
     <ClCompile Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.cpp" />
+    <ClCompile Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.cpp" />
     <ClCompile Include="Application\TargetSelection\TargetSelectionWorkflow.cpp" />
     <ClCompile Include="Core\BinaryInspection\TargetBinaryInspector.cpp" />
     <ClCompile Include="Infrastructure\Storage\TargetFilePicker.cpp" />
     <ClCompile Include="Infrastructure\Storage\ArtifactFileExporter.cpp" />
     <ClCompile Include="Infrastructure\Storage\TemporaryFolderPicker.cpp" />
+    <ClCompile Include="Infrastructure\Storage\LocalTemporaryArtifactWorkspace.cpp" />
     <ClCompile Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.cpp" />
     <ClCompile Include="UI\Navigation\NavigationPaneController.cpp" />
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp" />
+    <ClCompile Include="UI\Navigation\NavigationRouteCatalog.cpp" />
     <ClCompile Include="UI\Pages\Overview\OverviewPage.xaml.cpp">
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
     </ClCompile>
@@ -239,9 +241,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="readme.txt">
-      <DeploymentContent>false</DeploymentContent>
-    </Text>
     <Text Include="..\CONTEXT.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0001-isolate-debugging-in-an-engine-host.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0002-runtime-import-observation-and-rebuild.md"><DeploymentContent>false</DeploymentContent></Text>
@@ -251,35 +250,12 @@
     <Text Include="..\docs\testing\real-sample-baseline.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Assets\LockScreenLogo.scale-200.png" />
-    <Image Include="Assets\SplashScreen.scale-200.png" />
-    <Image Include="Assets\Square150x150Logo.scale-200.png" />
-    <Image Include="Assets\Square44x44Logo.scale-200.png" />
-    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Image Include="Assets\StoreLogo.png" />
-    <Image Include="Assets\Wide310x150Logo.scale-200.png" />
-  </ItemGroup>
-  <!--
-    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
-    Tools extension to be activated for this project even if the Windows App SDK Nuget
-    package has not yet been restored.
-  -->
-  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-    <ProjectCapability Include="Msix" />
-  </ItemGroup>
-  <!--
-    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
-    Explorer "Package and Publish" context menu entry to be enabled for this project even if
-    the Windows App SDK Nuget package has not yet been restored.
-  -->
-  <ItemGroup>
     <None Include="packages.config" />
     <None Include="..\scripts\ui-tests.ps1" />
     <None Include="..\scripts\real-sample-regression.ps1" />
+    <None Include="..\scripts\audit-project-filters.ps1" />
+    <None Include="..\scripts\package-dist.ps1" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <!-- The self-contained Windows App SDK payload contains satellite MUI files
        for every supported locale. Keep only the two locales shipped by this app. -->

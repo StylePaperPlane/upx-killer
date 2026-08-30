@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Core/Unpacking/UnpackTypes.h"
+#include "Core/Jobs/UnpackJob.h"
 
 #include <filesystem>
 
-namespace upx_killer::engine::tests {
+namespace upx_killer::tests {
 struct HostExecutionResult {
   bool protocolSucceeded{};
-  EngineResult result;
+  contracts::JobResult result;
 };
 
 [[nodiscard]] HostExecutionResult ExecuteThroughEngineHost(std::filesystem::path const& hostPath,
-                                                           UnpackRequest const& request) noexcept;
+                                                           contracts::UnpackJobRequest const& request) noexcept;
 }

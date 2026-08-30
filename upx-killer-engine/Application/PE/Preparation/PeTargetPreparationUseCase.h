@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application/Unpacking/TargetExecutionPolicy.h"
+#include "Application/PE/Preparation/PeExecutionPlanFactory.h"
 #include "Core/PE/OepDiscovery/UpxOepLocator.h"
 #include "Core/Unpacking/UnpackTypes.h"
 
@@ -35,7 +35,7 @@ struct PreparedPeTarget {
   std::vector<std::byte> sourceBytes;
   pe::PeImageLayout layout;
   std::variant<RelativeVirtualAddress, pe::oep::OepDiscoveryPlan> entryPointTarget;
-  TargetExecutionPlan executionPlan;
+  PeExecutionPlan executionPlan;
   bool hasSourceRelocations{};
 };
 
@@ -50,8 +50,9 @@ struct PePreparationResult {
 
 class PeTargetPreparationUseCase final {
  public:
-  explicit PeTargetPreparationUseCase(ITargetSourceReader const& sourceReader)
-      : sourceReader_(sourceReader) {}
+  PeTargetPreparationUseCase(ITargetSourceReader const& sourceReader,
+                             PeBackendCapabilities const& capabilities)
+      : sourceReader_(sourceReader), capabilities_(capabilities) {}
 
   [[nodiscard]] PePreparationResult Execute(
       UnpackRequest const& request,
@@ -59,5 +60,6 @@ class PeTargetPreparationUseCase final {
 
  private:
   ITargetSourceReader const& sourceReader_;
+  PeBackendCapabilities const& capabilities_;
 };
 }

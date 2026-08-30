@@ -65,3 +65,21 @@ the end of the run.
 
 Post-refactor results must use these exact source hashes. A hash mismatch stops
 the comparison and requires a new baseline instead of being reported as a pass.
+
+## Backend extension seam cleanup comparison
+
+Revalidated on 2026-08-30 on branch
+`codex/backend-extensibility-cleanup`, starting from checkpoint
+`17d50fd4194d6e480feba5846dd3eaf5f16d1df7`. The protocol remained at version
+6 and the production support matrix remained PE32 x86 EXE, PE32+ x64 EXE, and
+PE32 x86 DLL.
+
+- All six jobs returned `Completed`, `ErrorCategory::None`, native code 0, and
+  a loader-verified artifact through the real Engine Host seam.
+- `Math.exe` retained byte-identical stdout and stderr plus the same exit code.
+- `TXHook.exe` retained its fixed-preferred-base behavior.
+- `xy_quiz.exe` completed its bounded launch without `0xC0000005`.
+- Replacing `main\Server.dll` in a complete temporary copy preserved bounded
+  `TXHook.exe` behavior while resolving the adjacent `main\zlib.dll`.
+- All source hashes were checked before execution; all copied inputs and output
+  artifacts were removed after the run.
