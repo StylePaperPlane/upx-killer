@@ -275,6 +275,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="..\scripts\ui-tests.ps1" />
+    <None Include="..\scripts\real-sample-regression.ps1" />
   </ItemGroup>
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>

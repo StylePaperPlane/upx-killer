@@ -309,6 +309,9 @@
     <None Include="..\scripts\ui-tests.ps1">
       <Filter>Build\Verification</Filter>
     </None>
+    <None Include="..\scripts\real-sample-regression.ps1">
+      <Filter>Build\Verification</Filter>
+    </None>
     <None Include="$(_FilterNuGetPackagesRoot)\Microsoft.Windows.AI.MachineLearning.2.1.74\build\native\..\..\runtimes\win-$(Platform.ToLower())\native\DirectML.dll">
       <Filter>Dependencies</Filter>
     </None>

@@ -44,5 +44,24 @@ Tested on 2026-08-30 with Engine Host protocol v6:
 All six post-refactor jobs used temporary copies and returned protocol category
 `None` with native code 0.
 
+## Backend extensibility cleanup checkpoint
+
+Revalidated on 2026-08-30 from source commit `8e3eac1` with
+`scripts/real-sample-regression.ps1`. The script verifies the six recorded
+hashes before execution, copies the complete `TXHook.Server` tree to a unique
+temporary directory, and removes all copied inputs and generated artifacts at
+the end of the run.
+
+- All six jobs returned `Completed`, engine error `None`, native code 0, and a
+  loader-mappable artifact.
+- `Math.exe` source and repaired image produced identical stdout, stderr, and
+  exit code.
+- `xy_quiz.exe` did not regress to native exit code `0xC0000005`.
+- Replacing `main\Server.dll` inside the temporary tree did not worsen the
+  bounded `TXHook.exe` process behavior, with `main\zlib.dll` retained beside
+  it.
+- Release x64 native tests passed, WinApp UI checks passed 7/7, and the
+  unpackaged release executable remained alive after direct launch.
+
 Post-refactor results must use these exact source hashes. A hash mismatch stops
 the comparison and requires a new baseline instead of being reported as a pass.
