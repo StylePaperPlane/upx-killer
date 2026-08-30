@@ -51,12 +51,13 @@ struct OverviewViewModel : OverviewViewModelT<OverviewViewModel> {
 
  private:
   winrt::fire_and_forget SelectTargetAsync();
+  winrt::fire_and_forget RefreshCapabilitiesAsync();
   winrt::fire_and_forget StartUnpackAsync();
   winrt::fire_and_forget ExportAsync();
   void ApplyInspectionResult(std::filesystem::path const& path,
                              ::upx_killer::core::InspectionResult const& result);
   void SetStatus(winrt::upx_killer::OverviewStatusKind kind, wchar_t const* resourceKey);
-  void SetProgress(::upx_killer::engine::EngineStage stage);
+  void SetProgress(::upx_killer::contracts::ProgressEvent const& event);
   void RaisePropertyChanged(wchar_t const* propertyName);
   void RaiseCommandStates();
   winrt::hstring Resource(wchar_t const* resourceKey) const;
@@ -75,6 +76,7 @@ struct OverviewViewModel : OverviewViewModelT<OverviewViewModel> {
   winrt::hstring m_statusText;
   winrt::upx_killer::OverviewStatusKind m_statusKind{winrt::upx_killer::OverviewStatusKind::Idle};
   bool m_hasValidTarget{};
+  std::optional<::upx_killer::contracts::TargetDescriptor> m_targetDescriptor;
   bool m_engineCompatible{};
   bool m_hasOutput{};
   bool m_busy{};

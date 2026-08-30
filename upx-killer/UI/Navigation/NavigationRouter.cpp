@@ -51,6 +51,8 @@ NavigationRouter::NavigationRouter(
   if (!m_folderPicker) {
     throw std::invalid_argument("folderPicker");
   }
+  m_routes.emplace(OverviewRoute, [this] { return NavigateToOverview(); });
+  m_routes.emplace(ConfigurationRoute, [this] { return NavigateToConfiguration(); });
 }
 
 bool NavigationRouter::Navigate(winrt::hstring const& routeTag) {
@@ -58,14 +60,8 @@ bool NavigationRouter::Navigate(winrt::hstring const& routeTag) {
     return true;
   }
 
-  if (routeTag == OverviewRoute) {
-    return NavigateToOverview();
-  }
-  if (routeTag == ConfigurationRoute) {
-    return NavigateToConfiguration();
-  }
-
-  return false;
+  auto const route = m_routes.find(std::wstring{routeTag});
+  return route != m_routes.end() && route->second();
 }
 
 bool NavigationRouter::NavigateToOverview() {

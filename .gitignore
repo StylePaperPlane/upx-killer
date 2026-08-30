@@ -33,6 +33,7 @@
 # Restored dependencies and local publish output
 packages/
 dist/
+dist-rebuilt/
 artifacts/
 upx-killer/verify-output/
 upx-killer/verify-no-uid/
@@ -51,5 +52,8 @@ upx-killer/*.xbf
 *.old
 *.dmp
 *.dumped.exe
+*.dumped.dll
+*.publishing.exe
+*.publishing.dll
 Thumbs.db
 Desktop.ini

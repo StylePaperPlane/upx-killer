@@ -1,4 +1,4 @@
-#include "Application/Unpacking/UnpackEngine.h"
+#include "Infrastructure/Windows/Composition/WindowsPeUnpackEngine.h"
 #include "Core/PE/OepDiscovery/UpxOepLocator.h"
 #include "Core/PE/Parsing/PeParser.h"
 #include "Tests/Support/EngineHostTestClient.h"
@@ -44,7 +44,7 @@ int RunOepDiscoveryIntegrationTests() {
   UnpackRequest ordinaryRequest{};
   ordinaryRequest.targetPath = currentDirectory / L"upx-killer-engine-fixture.exe";
   ordinaryRequest.outputPath = currentDirectory / L"ordinary.auto.dumped.exe";
-  auto const ordinaryResult = application::UnpackEngine::Execute(ordinaryRequest, {});
+  auto const ordinaryResult = composition::WindowsPeUnpackEngine::Execute(ordinaryRequest, {});
   Expect(ordinaryResult.outcome == EngineOutcome::UnsupportedTarget &&
              ordinaryResult.error == EngineError::UnsupportedPacker,
          "ordinary x64 PE is rejected before automatic debugging starts");
@@ -69,7 +69,7 @@ int RunOepDiscoveryIntegrationTests() {
   request.targetPath = packed;
   request.outputPath = output;
   request.timeoutMilliseconds = 15'000;
-  auto const result = application::UnpackEngine::Execute(request, {});
+  auto const result = composition::WindowsPeUnpackEngine::Execute(request, {});
   if (result.outcome != EngineOutcome::Partial) {
     std::cerr << "automatic integration outcome=" << static_cast<unsigned>(result.outcome)
               << " error=" << static_cast<unsigned>(result.error)
@@ -126,7 +126,7 @@ int ValidateAutomaticOepTarget(std::filesystem::path const& target) {
   request.targetPath = target;
   request.outputPath = output;
   request.timeoutMilliseconds = 60'000;
-  auto const result = application::UnpackEngine::Execute(request, {});
+  auto const result = composition::WindowsPeUnpackEngine::Execute(request, {});
   std::wcout << L"outcome=" << static_cast<unsigned>(result.outcome) << L'\n';
   std::wcout << L"error=" << static_cast<unsigned>(result.error) << L'\n';
   std::wcout << L"native_error=" << result.nativeError << L'\n';

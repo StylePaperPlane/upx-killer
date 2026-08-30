@@ -8,7 +8,6 @@
     <Filter Include="Infrastructure"><UniqueIdentifier>{5B0409C2-1980-42E8-A6D6-B3DF17F57E8D}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows"><UniqueIdentifier>{83D3F132-40C8-4D0F-AF19-47016931759C}</UniqueIdentifier></Filter>
     <Filter Include="Application"><UniqueIdentifier>{2F81F3C0-B8FC-417A-B82A-18C3CECB215B}</UniqueIdentifier></Filter>
-    <Filter Include="Protocol"><UniqueIdentifier>{0358DC45-AB13-4C43-986C-A6C5395B70C7}</UniqueIdentifier></Filter>
     <Filter Include="Core\Unpacking"><UniqueIdentifier>{797140F4-A639-4A9B-BA47-F34FEB69864C}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Parsing"><UniqueIdentifier>{4BC2DAAE-3569-4FAE-95C7-2FA38A8CC01B}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\OepDiscovery"><UniqueIdentifier>{3E3E8C87-A85C-43B8-A91D-A5F19D2ABF20}</UniqueIdentifier></Filter>
@@ -26,7 +25,14 @@
     <Filter Include="Infrastructure\Windows\Debugging\Imports"><UniqueIdentifier>{E6BD6372-F261-4C73-91CA-5B13D4C810BE}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Verification"><UniqueIdentifier>{D1C89F6C-6B26-4EE0-9B34-4D832E4C174A}</UniqueIdentifier></Filter>
     <Filter Include="Application\Unpacking"><UniqueIdentifier>{D58453CE-2602-4076-9713-76D26D3A42CF}</UniqueIdentifier></Filter>
-    <Filter Include="Protocol\EngineHost"><UniqueIdentifier>{CB9AF59A-A23B-4E37-B066-331DA4BD2C22}</UniqueIdentifier></Filter>
+    <Filter Include="Application\PE"><UniqueIdentifier>{A82ECFBC-652B-46F4-B50F-444C4D18C90F}</UniqueIdentifier></Filter>
+    <Filter Include="Application\PE\Preparation"><UniqueIdentifier>{3630059B-EAC6-47CC-A124-464861511B30}</UniqueIdentifier></Filter>
+    <Filter Include="Application\PE\Capture"><UniqueIdentifier>{E0BB83BE-76C6-4091-B477-2F21B77E180E}</UniqueIdentifier></Filter>
+    <Filter Include="Application\PE\Reconstruction"><UniqueIdentifier>{8BA6702C-ADBF-4577-A82E-C3E60A5AB478}</UniqueIdentifier></Filter>
+    <Filter Include="Application\Artifacts"><UniqueIdentifier>{32EDC60D-0F11-425F-B92D-60301218C07E}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Windows\Capture"><UniqueIdentifier>{0D01455A-07A5-438D-A5A0-DACF1DF4C763}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Windows\Storage"><UniqueIdentifier>{1DC02A44-70BF-445B-9A75-B26C60F41C2C}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Windows\Composition"><UniqueIdentifier>{E8B5B1D5-9F40-43C0-B6B5-B874B5C57B59}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\PE\Format\PeFormat.h"><Filter>Core\PE\Format</Filter></ClInclude>
@@ -57,9 +63,18 @@
     <ClInclude Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.h"><Filter>Infrastructure\Windows\Debugging\Staging</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.h"><Filter>Infrastructure\Windows\Debugging\Loading</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Windows\Verification\WindowsImageVerifier.h"><Filter>Infrastructure\Windows\Verification</Filter></ClInclude>
-    <ClInclude Include="Application\Unpacking\UnpackEngine.h"><Filter>Application\Unpacking</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.h"><Filter>Infrastructure\Windows\Composition</Filter></ClInclude>
     <ClInclude Include="Application\Unpacking\TargetExecutionPolicy.h"><Filter>Application\Unpacking</Filter></ClInclude>
-    <ClInclude Include="Protocol\EngineHost\EngineHostProtocol.h"><Filter>Protocol\EngineHost</Filter></ClInclude>
+    <ClInclude Include="Application\PE\Preparation\PeTargetPreparationUseCase.h"><Filter>Application\PE\Preparation</Filter></ClInclude>
+    <ClInclude Include="Application\PE\Preparation\PeTargetProbe.h"><Filter>Application\PE\Preparation</Filter></ClInclude>
+    <ClInclude Include="Application\PE\PeUnpackBackend.h"><Filter>Application\PE</Filter></ClInclude>
+    <ClInclude Include="Application\PE\Capture\PeRuntimeCaptureUseCase.h"><Filter>Application\PE\Capture</Filter></ClInclude>
+    <ClInclude Include="Application\PE\Reconstruction\PeImageReconstructionUseCase.h"><Filter>Application\PE\Reconstruction</Filter></ClInclude>
+    <ClInclude Include="Application\Artifacts\ArtifactPublicationUseCase.h"><Filter>Application\Artifacts</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Windows\Storage\WindowsArtifactStore.h"><Filter>Infrastructure\Windows\Storage</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Windows\Verification\WindowsPeImageValidator.h"><Filter>Infrastructure\Windows\Verification</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Windows\Capture\WindowsPeSnapshotCapture.h"><Filter>Infrastructure\Windows\Capture</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.h"><Filter>Infrastructure\Windows\Storage</Filter></ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp"><Filter>Core\PE\Parsing</Filter></ClCompile>
@@ -85,8 +100,17 @@
     <ClCompile Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.cpp"><Filter>Infrastructure\Windows\Debugging\Staging</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.cpp"><Filter>Infrastructure\Windows\Debugging\Loading</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Windows\Verification\WindowsImageVerifier.cpp"><Filter>Infrastructure\Windows\Verification</Filter></ClCompile>
-    <ClCompile Include="Application\Unpacking\UnpackEngine.cpp"><Filter>Application\Unpacking</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.cpp"><Filter>Infrastructure\Windows\Composition</Filter></ClCompile>
     <ClCompile Include="Application\Unpacking\TargetExecutionPolicy.cpp"><Filter>Application\Unpacking</Filter></ClCompile>
-    <ClCompile Include="Protocol\EngineHost\EngineHostProtocol.cpp"><Filter>Protocol\EngineHost</Filter></ClCompile>
+    <ClCompile Include="Application\PE\Preparation\PeTargetPreparationUseCase.cpp"><Filter>Application\PE\Preparation</Filter></ClCompile>
+    <ClCompile Include="Application\PE\Preparation\PeTargetProbe.cpp"><Filter>Application\PE\Preparation</Filter></ClCompile>
+    <ClCompile Include="Application\PE\PeUnpackBackend.cpp"><Filter>Application\PE</Filter></ClCompile>
+    <ClCompile Include="Application\PE\Capture\PeRuntimeCaptureUseCase.cpp"><Filter>Application\PE\Capture</Filter></ClCompile>
+    <ClCompile Include="Application\PE\Reconstruction\PeImageReconstructionUseCase.cpp"><Filter>Application\PE\Reconstruction</Filter></ClCompile>
+    <ClCompile Include="Application\Artifacts\ArtifactPublicationUseCase.cpp"><Filter>Application\Artifacts</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Windows\Storage\WindowsArtifactStore.cpp"><Filter>Infrastructure\Windows\Storage</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Windows\Verification\WindowsPeImageValidator.cpp"><Filter>Infrastructure\Windows\Verification</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Windows\Capture\WindowsPeSnapshotCapture.cpp"><Filter>Infrastructure\Windows\Capture</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.cpp"><Filter>Infrastructure\Windows\Storage</Filter></ClCompile>
   </ItemGroup>
 </Project>

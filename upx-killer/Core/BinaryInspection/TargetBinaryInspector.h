@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Targets/TargetDescriptor.h"
+
 #include <cstdint>
 #include <filesystem>
 #include <optional>
@@ -36,6 +38,7 @@ struct TargetBinaryInfo {
   std::uint64_t fileSize{};
   BinaryFormat format{};
   BinaryArchitecture architecture{};
+  contracts::TargetDescriptor descriptor{};
 };
 
 struct InspectionResult {

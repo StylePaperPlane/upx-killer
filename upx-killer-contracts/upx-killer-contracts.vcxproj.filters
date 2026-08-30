@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core"><UniqueIdentifier>{525D5E88-978D-4449-891B-1BD8923E0C8B}</UniqueIdentifier></Filter>
+    <Filter Include="Core\Targets"><UniqueIdentifier>{B36698ED-1D8D-4874-B800-811E23AE2E6A}</UniqueIdentifier></Filter>
+    <Filter Include="Core\Jobs"><UniqueIdentifier>{DA27D0C2-C223-48BF-8AE3-1519B11E68C4}</UniqueIdentifier></Filter>
+    <Filter Include="Core\Images"><UniqueIdentifier>{85D5F53D-5CB1-44C1-B113-3440D98E99E7}</UniqueIdentifier></Filter>
+    <Filter Include="Application"><UniqueIdentifier>{9521798D-4530-48D4-9913-98CD4807B612}</UniqueIdentifier></Filter>
+    <Filter Include="Application\Backends"><UniqueIdentifier>{8D168EEA-9D40-42A5-BEC3-2F2213364F72}</UniqueIdentifier></Filter>
+    <Filter Include="Application\Coordination"><UniqueIdentifier>{38F462BD-7030-4FEB-BA2C-04BA2427027F}</UniqueIdentifier></Filter>
+    <Filter Include="Protocol"><UniqueIdentifier>{CE303A04-F29E-4A8F-8489-3889D835943C}</UniqueIdentifier></Filter>
+    <Filter Include="Protocol\EngineHost"><UniqueIdentifier>{E0D92F41-D150-4768-964F-E443ED1E7864}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Targets\TargetDescriptor.h"><Filter>Core\Targets</Filter></ClInclude>
+    <ClInclude Include="Core\Jobs\UnpackJob.h"><Filter>Core\Jobs</Filter></ClInclude>
+    <ClInclude Include="Core\Images\Artifact.h"><Filter>Core\Images</Filter></ClInclude>
+    <ClInclude Include="Application\Backends\IUnpackBackend.h"><Filter>Application\Backends</Filter></ClInclude>
+    <ClInclude Include="Application\Coordination\UnpackCoordinator.h"><Filter>Application\Coordination</Filter></ClInclude>
+    <ClInclude Include="Protocol\EngineHost\EngineHostMessages.h"><Filter>Protocol\EngineHost</Filter></ClInclude>
+    <ClInclude Include="Protocol\EngineHost\EngineHostCodec.h"><Filter>Protocol\EngineHost</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\Coordination\UnpackCoordinator.cpp"><Filter>Application\Coordination</Filter></ClCompile>
+    <ClCompile Include="Protocol\EngineHost\EngineHostCodec.cpp"><Filter>Protocol\EngineHost</Filter></ClCompile>
+  </ItemGroup>
+</Project>

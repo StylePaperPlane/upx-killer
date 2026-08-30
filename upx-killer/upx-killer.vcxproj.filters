@@ -31,6 +31,9 @@
     <Filter Include="UI\Navigation">
       <UniqueIdentifier>{9D79CC89-4800-42EC-BA08-C40E522AFDF0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI\Presentation">
+      <UniqueIdentifier>{CE65C7E0-E670-4B5B-9E65-6319629273F0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Application\Unpacking">
       <UniqueIdentifier>{A089481B-5663-4E45-B56B-AFE2622F2518}</UniqueIdentifier>
     </Filter>
@@ -54,6 +57,9 @@
     </Filter>
     <Filter Include="Infrastructure\EngineHost">
       <UniqueIdentifier>{B115F19D-DCA2-4532-8116-CC1A647A3AA4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\EngineHost\Pipes">
+      <UniqueIdentifier>{880D2598-255B-4F18-9FD3-38C7D7E061B8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Infrastructure\Settings">
       <UniqueIdentifier>{610A6D4F-04B0-4DB5-B48D-A735F822B56A}</UniqueIdentifier>
@@ -206,6 +212,18 @@
     <ClCompile Include="Infrastructure\EngineHost\EngineHostClient.cpp">
       <Filter>Infrastructure\EngineHost</Filter>
     </ClCompile>
+    <ClInclude Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.h">
+      <Filter>Infrastructure\EngineHost\Pipes</Filter>
+    </ClInclude>
+    <ClCompile Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.cpp">
+      <Filter>Infrastructure\EngineHost\Pipes</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\Presentation\UnpackStatusPresentation.h">
+      <Filter>UI\Presentation</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Presentation\UnpackStatusPresentation.cpp">
+      <Filter>UI\Presentation</Filter>
+    </ClCompile>
     <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h">
       <Filter>Application\TargetSelection</Filter>
     </ClInclude>
@@ -322,6 +340,12 @@
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\adr\0004-isolated-pe32-dll-loading-and-source-aslr-intent.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\adr\0005-format-backends-and-portable-engine-contracts.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\testing\real-sample-baseline.md">
       <Filter>Documentation</Filter>
     </Text>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp">

@@ -8,6 +8,9 @@
 
 #include <memory>
 #include <cstdint>
+#include <functional>
+#include <string>
+#include <unordered_map>
 
 #include <winrt/Microsoft.UI.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
@@ -37,6 +40,7 @@ class NavigationRouter final {
   std::shared_ptr<application::IArtifactExporter> m_artifactExporter;
   std::shared_ptr<application::ITemporaryFileSettingsStore> m_settingsStore;
   std::shared_ptr<application::ITemporaryFolderPicker> m_folderPicker;
+  std::unordered_map<std::wstring, std::function<bool()>> m_routes;
   winrt::hstring m_currentRoute;
 };
 }

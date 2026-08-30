@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UI/ViewModels/OverviewViewModel.h"
+#include "UI/Presentation/UnpackStatusPresentation.h"
 #if __has_include("OverviewViewModel.g.cpp")
 #include "OverviewViewModel.g.cpp"
 #endif
@@ -75,6 +76,25 @@ void OverviewViewModel::Initialize(
   m_artifactExporter = std::move(artifactExporter);
   m_settingsStore = std::move(settingsStore);
   RaiseCommandStates();
+  RefreshCapabilitiesAsync();
+}
+
+winrt::fire_and_forget OverviewViewModel::RefreshCapabilitiesAsync() {
+  auto lifetime = get_strong();
+  winrt::apartment_context uiContext;
+  co_await winrt::resume_background();
+  auto const available = m_unpackWorkflow && m_unpackWorkflow->RefreshCapabilities();
+  co_await uiContext;
+  if (m_hasValidTarget && m_targetDescriptor) {
+    m_engineCompatible = available && m_unpackWorkflow->Supports(*m_targetDescriptor);
+    SetStatus(m_engineCompatible ? winrt::upx_killer::OverviewStatusKind::Ready
+                                 : winrt::upx_killer::OverviewStatusKind::Unavailable,
+              m_engineCompatible ? L"StatusTargetReady"
+                                 : (available ? L"StatusEnginePeOnly"
+                                              : L"StatusEngineUnavailable"));
+    RaisePropertyChanged(L"CanStart");
+    RaiseCommandStates();
+  }
 }
 
 void OverviewViewModel::LoadTargetPath(winrt::hstring const& pathText) {
@@ -137,9 +157,10 @@ winrt::fire_and_forget OverviewViewModel::StartUnpackAsync() {
   RaisePropertyChanged(L"CanExport");
   RaiseCommandStates();
   co_await winrt::resume_background();
-  auto const progress = [lifetime, dispatcher](::upx_killer::engine::EngineStage stage) {
+  auto const progress = [lifetime, dispatcher](
+                            ::upx_killer::contracts::ProgressEvent const& event) {
     if (!dispatcher) return;
-    dispatcher.TryEnqueue([lifetime, stage]() { lifetime->SetProgress(stage); });
+    dispatcher.TryEnqueue([lifetime, event]() { lifetime->SetProgress(event); });
   };
   auto const result = m_unpackWorkflow->Start(targetPath, std::nullopt, progress);
   co_await uiContext;
@@ -278,24 +299,23 @@ void OverviewViewModel::ApplyInspectionResult(std::filesystem::path const& path,
     m_fileTypeText = FormatBinaryType(info.format);
     m_architectureText = FormatArchitecture(info.architecture);
     m_hasValidTarget = true;
-    auto const pe32 =
-        info.format == ::upx_killer::core::BinaryFormat::Pe32Executable &&
-        info.architecture == ::upx_killer::core::BinaryArchitecture::X86;
-    auto const pe64 =
-        info.format == ::upx_killer::core::BinaryFormat::Pe32PlusExecutable &&
-        info.architecture == ::upx_killer::core::BinaryArchitecture::X64;
-    auto const pe32Dll =
-        info.format == ::upx_killer::core::BinaryFormat::Pe32Library &&
-        info.architecture == ::upx_killer::core::BinaryArchitecture::X86;
-    m_engineCompatible = pe32 || pe64 || pe32Dll;
+    m_targetDescriptor = info.descriptor;
+    m_engineCompatible = m_unpackWorkflow && m_unpackWorkflow->Supports(info.descriptor);
     SetStatus(m_engineCompatible ? winrt::upx_killer::OverviewStatusKind::Ready
                                  : winrt::upx_killer::OverviewStatusKind::Unavailable,
-              m_engineCompatible ? L"StatusTargetReady" : L"StatusEnginePeOnly");
+              m_engineCompatible
+                  ? L"StatusTargetReady"
+                  : (m_unpackWorkflow &&
+                             (!m_unpackWorkflow->CapabilitiesLoaded() ||
+                              !m_unpackWorkflow->HasCapabilities())
+                         ? L"StatusEngineUnavailable"
+                         : L"StatusEnginePeOnly"));
   } else {
     m_fileSizeText = L"\u2014";
     m_fileTypeText = L"\u2014";
     m_architectureText = L"\u2014";
     m_hasValidTarget = false;
+    m_targetDescriptor.reset();
     m_engineCompatible = false;
     m_statusKind = winrt::upx_killer::OverviewStatusKind::Error;
     m_statusText = FormatInspectionError(result.error);
@@ -320,31 +340,10 @@ void OverviewViewModel::SetStatus(winrt::upx_killer::OverviewStatusKind kind,
   RaisePropertyChanged(L"StatusText");
 }
 
-void OverviewViewModel::SetProgress(::upx_killer::engine::EngineStage stage) {
-  wchar_t const* resourceKey{};
-  switch (stage) {
-    case ::upx_killer::engine::EngineStage::DiscoveringOep:
-      resourceKey = L"StatusFindingOep";
-      break;
-    case ::upx_killer::engine::EngineStage::LoadingTargetLibrary:
-      resourceKey = L"StatusLoadingTargetLibrary";
-      break;
-    case ::upx_killer::engine::EngineStage::CapturingRelocations:
-      resourceKey = L"StatusCapturingRelocations";
-      break;
-    case ::upx_killer::engine::EngineStage::RebuildingRelocations:
-      resourceKey = L"StatusRebuildingRelocations";
-      break;
-    case ::upx_killer::engine::EngineStage::RebuildingImports:
-      resourceKey = L"StatusRebuildingImports";
-      break;
-    case ::upx_killer::engine::EngineStage::Dumping:
-      resourceKey = L"StatusDumping";
-      break;
-    default:
-      break;
-  }
-
+void OverviewViewModel::SetProgress(
+    ::upx_killer::contracts::ProgressEvent const& event) {
+  auto const resourceKey =
+      ::upx_killer::ui::presentation::UnpackStatusPresentation::ProgressResource(event.stage);
   if (resourceKey) SetStatus(winrt::upx_killer::OverviewStatusKind::Busy, resourceKey);
 }
 

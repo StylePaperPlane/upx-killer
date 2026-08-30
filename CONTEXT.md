@@ -76,6 +76,26 @@ _Avoid_: Export name list, dumpbin output
 A Repaired Image whose structural validation passed but whose imports have not been rebuilt.
 _Avoid_: Successful unpack, completed image
 
+**Target Descriptor**:
+A format-neutral tuple of binary family, bitness, CPU architecture, and image kind used for capability matching. It contains no PE headers, loader handles, or UI types.
+_Avoid_: PE support flag, file extension
+
+**Backend Manifest**:
+The stable backend identifier and Target Descriptors a backend currently executes in production.
+_Avoid_: UI support matrix, parser feature list
+
+**Unpack Job**:
+The format-neutral request, progress stream, and result exchanged by the UI, Engine Host, Coordinator, and selected backend.
+_Avoid_: PE request, debugger command
+
+**PE Capture Evidence**:
+One or more controlled-base PE memory captures, their resolved OEP, runtime import observation, and source relocation evidence. It is the complete input to PE image reconstruction.
+_Avoid_: Process state, temporary file
+
+**Artifact Publication**:
+The use case that stages a reconstructed image, performs structural and loader validation through an adapter, and atomically promotes the validated artifact.
+_Avoid_: Fixer write, direct output stream
+
 Automatic OEP captures are Completed only after Imports, IAT, semantic sections,
 and reconstructed relocations all validate. Ambiguous or insufficient evidence
 fails before writing an artifact.

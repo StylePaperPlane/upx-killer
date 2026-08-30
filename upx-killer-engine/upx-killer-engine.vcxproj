@@ -28,7 +28,7 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\upx-killer-contracts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
@@ -63,9 +63,18 @@
     <ClInclude Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.h" />
     <ClInclude Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.h" />
     <ClInclude Include="Infrastructure\Windows\Verification\WindowsImageVerifier.h" />
-    <ClInclude Include="Application\Unpacking\UnpackEngine.h" />
+    <ClInclude Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.h" />
     <ClInclude Include="Application\Unpacking\TargetExecutionPolicy.h" />
-    <ClInclude Include="Protocol\EngineHost\EngineHostProtocol.h" />
+    <ClInclude Include="Application\PE\Preparation\PeTargetPreparationUseCase.h" />
+    <ClInclude Include="Application\PE\Preparation\PeTargetProbe.h" />
+    <ClInclude Include="Application\PE\PeUnpackBackend.h" />
+    <ClInclude Include="Application\PE\Capture\PeRuntimeCaptureUseCase.h" />
+    <ClInclude Include="Application\PE\Reconstruction\PeImageReconstructionUseCase.h" />
+    <ClInclude Include="Application\Artifacts\ArtifactPublicationUseCase.h" />
+    <ClInclude Include="Infrastructure\Windows\Storage\WindowsArtifactStore.h" />
+    <ClInclude Include="Infrastructure\Windows\Verification\WindowsPeImageValidator.h" />
+    <ClInclude Include="Infrastructure\Windows\Capture\WindowsPeSnapshotCapture.h" />
+    <ClInclude Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp" />
@@ -91,9 +100,23 @@
     <ClCompile Include="Infrastructure\Windows\Debugging\Staging\StagedDebugTarget.cpp" />
     <ClCompile Include="Infrastructure\Windows\Debugging\Loading\DebugTargetLoader.cpp" />
     <ClCompile Include="Infrastructure\Windows\Verification\WindowsImageVerifier.cpp" />
-    <ClCompile Include="Application\Unpacking\UnpackEngine.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Composition\WindowsPeUnpackEngine.cpp" />
     <ClCompile Include="Application\Unpacking\TargetExecutionPolicy.cpp" />
-    <ClCompile Include="Protocol\EngineHost\EngineHostProtocol.cpp" />
+    <ClCompile Include="Application\PE\Preparation\PeTargetPreparationUseCase.cpp" />
+    <ClCompile Include="Application\PE\Preparation\PeTargetProbe.cpp" />
+    <ClCompile Include="Application\PE\PeUnpackBackend.cpp" />
+    <ClCompile Include="Application\PE\Capture\PeRuntimeCaptureUseCase.cpp" />
+    <ClCompile Include="Application\PE\Reconstruction\PeImageReconstructionUseCase.cpp" />
+    <ClCompile Include="Application\Artifacts\ArtifactPublicationUseCase.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Storage\WindowsArtifactStore.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Verification\WindowsPeImageValidator.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Capture\WindowsPeSnapshotCapture.cpp" />
+    <ClCompile Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\upx-killer-contracts\upx-killer-contracts.vcxproj">
+      <Project>{B36A63DA-B807-4D29-A538-5A1047B46542}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

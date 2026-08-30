@@ -6,6 +6,8 @@
 #include <system_error>
 
 namespace {
+namespace contracts = upx_killer::contracts;
+
 constexpr std::uint16_t PeMachineX86 = 0x014c;
 constexpr std::uint16_t PeMachineX64 = 0x8664;
 constexpr std::uint16_t PeOptionalMagic32 = 0x010b;
@@ -105,7 +107,16 @@ upx_killer::core::InspectionResult InspectPe(std::ifstream& stream,
     return {std::nullopt, InspectionError::UnsupportedFormat};
   }
 
-  return {TargetBinaryInfo{path, fileSize, format, architecture}, InspectionError::None};
+  auto const descriptor = contracts::TargetDescriptor{
+      contracts::BinaryFamily::Pe,
+      optionalMagic == PeOptionalMagic32 ? contracts::BinaryClass::Bits32
+                                         : contracts::BinaryClass::Bits64,
+      architecture == BinaryArchitecture::X86 ? contracts::CpuArchitecture::X86
+                                               : contracts::CpuArchitecture::X64,
+      isLibrary ? contracts::ImageKind::SharedLibrary
+                : contracts::ImageKind::Executable};
+  return {TargetBinaryInfo{path, fileSize, format, architecture, descriptor},
+          InspectionError::None};
 }
 
 upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
@@ -151,7 +162,16 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
     format = executable ? BinaryFormat::Elf64Executable : BinaryFormat::Elf64SharedObject;
   }
 
-  return {TargetBinaryInfo{path, fileSize, format, architecture}, InspectionError::None};
+  auto const descriptor = contracts::TargetDescriptor{
+      contracts::BinaryFamily::Elf,
+      elfClass == ElfClass32 ? contracts::BinaryClass::Bits32
+                             : contracts::BinaryClass::Bits64,
+      architecture == BinaryArchitecture::X86 ? contracts::CpuArchitecture::X86
+                                               : contracts::CpuArchitecture::X64,
+      executable ? contracts::ImageKind::Executable
+                 : contracts::ImageKind::SharedLibrary};
+  return {TargetBinaryInfo{path, fileSize, format, architecture, descriptor},
+          InspectionError::None};
 }
 }
 

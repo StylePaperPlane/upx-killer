@@ -15,7 +15,10 @@
     <Filter Include="Tests\Unit\Relocations"><UniqueIdentifier>{45F68E6B-5B10-47D4-B821-9D79512D5054}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\PE32"><UniqueIdentifier>{BB287075-E272-45B9-9CD5-384974FD4317}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\PE32\DLL"><UniqueIdentifier>{15B3467B-2F9F-43CF-88CC-B76A7A66015B}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\Contracts"><UniqueIdentifier>{14E5EC74-2B0C-4D2F-85AC-5F494E567D52}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\WOW64"><UniqueIdentifier>{21FA6867-DA1D-4E5E-B804-36A6C51D5814}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Architecture"><UniqueIdentifier>{75666DA9-B85E-4FCA-B59D-AC2977412235}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\UseCases"><UniqueIdentifier>{9BF08387-0D69-45B2-B1BA-1F8078F2CBE7}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests\EngineModuleTests.cpp"><Filter>Tests\Module</Filter></ClCompile>
@@ -27,6 +30,10 @@
     <ClCompile Include="Tests\Unit\Relocations\RelocationReconstructorTests.cpp"><Filter>Tests\Unit\Relocations</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\PE32\Pe32FormatTests.cpp"><Filter>Tests\Unit\PE32</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\PE32\DLL\Pe32DllExportTests.cpp"><Filter>Tests\Unit\PE32\DLL</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
+    <ClCompile Include="Tests\Architecture\LayerDependencyTests.cpp"><Filter>Tests\Architecture</Filter></ClCompile>
+    <ClCompile Include="Tests\Integration\UseCases\PeUseCaseTests.cpp"><Filter>Tests\Integration\UseCases</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\WOW64\Wow64DebugSessionTests.cpp"><Filter>Tests\Integration\WOW64</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp"><Filter>Tests\Integration\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp"><Filter>Tests\Integration\Sections</Filter></ClCompile>

@@ -1,8 +1,7 @@
 #include "Core/PE/Parsing/PeParser.h"
 #include "Core/Dumping/ProcessImageDumper.h"
 #include "Core/PE/Fixing/PeImageFixer.h"
-#include "Application/Unpacking/UnpackEngine.h"
-#include "Protocol/EngineHost/EngineHostProtocol.h"
+#include "Infrastructure/Windows/Composition/WindowsPeUnpackEngine.h"
 #include "Infrastructure/Windows/Debugging/WindowsDebugSession.h"
 #include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Tests/Support/EngineHostTestClient.h"
@@ -224,29 +223,6 @@ void FixerCreatesDynamicallyRelocatableImage() {
          "rebuilt image clears stale load-config metadata until it is reconstructed");
 }
 
-void ProtocolRoundTripsAnExplicitRequest() {
-  HANDLE readHandle{}, writeHandle{};
-  SECURITY_ATTRIBUTES security{sizeof(security), nullptr, FALSE};
-  Expect(CreatePipe(&readHandle, &writeHandle, &security, 0) != FALSE,
-         "protocol test pipe is created");
-  if (!readHandle || !writeHandle) return;
-  UnpackRequest sent{};
-  sent.targetPath = L"C:\\Samples\\packed.exe";
-  sent.outputPath = L"C:\\Temp\\packed.dumped.exe";
-  sent.oep = RelativeVirtualAddress{0x1234};
-  sent.timeoutMilliseconds = 4321;
-  sent.maximumImageSize = 0x12345678;
-  Expect(protocol::WriteRequest(writeHandle, sent), "request frame is written");
-  CloseHandle(writeHandle);
-  UnpackRequest received{};
-  Expect(protocol::ReadRequest(readHandle, received), "request frame is read");
-  CloseHandle(readHandle);
-  Expect(received.targetPath == sent.targetPath && received.outputPath == sent.outputPath,
-         "protocol preserves paths");
-  Expect(received.oep && received.oep->value == 0x1234 && received.timeoutMilliseconds == 4321,
-         "protocol preserves execution limits");
-}
-
 void EngineCapturesFixtureAtItsEntryPoint() {
   wchar_t executablePath[MAX_PATH]{};
   GetModuleFileNameW(nullptr, executablePath, MAX_PATH);
@@ -270,7 +246,7 @@ void EngineCapturesFixtureAtItsEntryPoint() {
   request.outputPath = output;
   request.oep = parsed.layout->entryPoint;
   request.timeoutMilliseconds = 10'000;
-  auto const result = application::UnpackEngine::Execute(request, {});
+  auto const result = composition::WindowsPeUnpackEngine::Execute(request, {});
   Expect(result.outcome == EngineOutcome::Completed,
          "fixture capture produces a completed artifact");
   Expect(result.artifact && result.artifact->loaderMappable,
@@ -376,6 +352,10 @@ int ProbeDllLoadBase(std::filesystem::path const& target) {
 int RunOepDiscoveryTests();
 int RunOepDiscoveryIntegrationTests();
 int RunImportDiscoveryTests();
+int RunUnpackCoordinatorTests();
+int RunEngineHostCodecTests();
+int RunLayerDependencyTests();
+int RunPeUseCaseTests();
 int RunSectionLayoutRebuilderTests();
 int RunSemanticSectionRebuildTests();
 int RunPeFileRebaserTests();
@@ -403,12 +383,15 @@ int wmain(int argc, wchar_t** argv) {
   FixerCreatesExportablePartialImage();
   FixerRebuildsImportsFromAPlan();
   FixerCreatesDynamicallyRelocatableImage();
-  ProtocolRoundTripsAnExplicitRequest();
   EngineCapturesFixtureAtItsEntryPoint();
   EngineHostRoundTripsARealCapture();
   failures += RunOepDiscoveryTests();
   failures += RunOepDiscoveryIntegrationTests();
   failures += RunImportDiscoveryTests();
+  failures += RunUnpackCoordinatorTests();
+  failures += RunEngineHostCodecTests();
+  failures += RunLayerDependencyTests();
+  failures += RunPeUseCaseTests();
   failures += RunSectionLayoutRebuilderTests();
   failures += RunSemanticSectionRebuildTests();
   failures += RunPeFileRebaserTests();

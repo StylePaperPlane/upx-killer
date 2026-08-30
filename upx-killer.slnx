@@ -4,12 +4,12 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="upx-killer-contracts/upx-killer-contracts.vcxproj" Id="b36a63da-b807-4d29-a538-5a1047b46542" />
+  <Project Path="upx-killer-engine-fixture/upx-killer-engine-fixture.vcxproj" Id="57ca9e3b-7be8-4b2a-b786-76b98663e6a6" />
+  <Project Path="upx-killer-engine-host/upx-killer-engine-host.vcxproj" Id="da9d947b-c14b-44cb-8dbd-ceba49b319a6" />
+  <Project Path="upx-killer-engine-tests/upx-killer-engine-tests.vcxproj" Id="36f8a9b1-7984-4b59-a47e-4d16fa965457" />
+  <Project Path="upx-killer-engine/upx-killer-engine.vcxproj" Id="911e077c-a45d-4468-a634-b1a8029a9dd1" />
   <Project Path="upx-killer/upx-killer.vcxproj" Id="1dcd4901-03ab-4843-b2b9-9e7ac3cb561f">
     <Deploy />
   </Project>
-  <Project Path="upx-killer-engine/upx-killer-engine.vcxproj" Id="911e077c-a45d-4468-a634-b1a8029a9dd1" />
-  <Project Path="upx-killer-engine-host/upx-killer-engine-host.vcxproj" Id="da9d947b-c14b-44cb-8dbd-ceba49b319a6" />
-  <Project Path="upx-killer-engine-tests/upx-killer-engine-tests.vcxproj" Id="36f8a9b1-7984-4b59-a47e-4d16fa965457" />
-  <Project Path="upx-killer-engine-fixture/upx-killer-engine-fixture.vcxproj" Id="57ca9e3b-7be8-4b2a-b786-76b98663e6a6" />
-  <Project Path="upx-killer-dll-loader/upx-killer-dll-loader.vcxproj" Id="4fe35f42-ce89-41a8-bb7e-60a450fa028a" />
 </Solution>

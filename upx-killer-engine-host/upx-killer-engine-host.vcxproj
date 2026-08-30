@@ -14,10 +14,11 @@
     <IntDir>$(ProjectDir)x64\$(Configuration)\Intermediate\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ItemDefinitionGroup><ClCompile><PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir)..\upx-killer-engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><WarningLevel>Level4</WarningLevel><TreatWarningAsError>true</TreatWarningAsError><LanguageStandard>stdcpp20</LanguageStandard></ClCompile><Link><SubSystem>Console</SubSystem></Link></ItemDefinitionGroup>
+  <ItemDefinitionGroup><ClCompile><PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\upx-killer-engine;$(ProjectDir)..\upx-killer-contracts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><WarningLevel>Level4</WarningLevel><TreatWarningAsError>true</TreatWarningAsError><LanguageStandard>stdcpp20</LanguageStandard></ClCompile><Link><SubSystem>Console</SubSystem></Link></ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'"><ClCompile><DebugInformationFormat>None</DebugInformationFormat></ClCompile><Link><GenerateDebugInformation>false</GenerateDebugInformation><IgnoreImportLibrary>true</IgnoreImportLibrary><ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile><ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary></Link></ItemDefinitionGroup>
-  <ItemGroup><ClCompile Include="Application\EngineHostMain.cpp" /></ItemGroup>
-  <ItemGroup><ProjectReference Include="..\upx-killer-engine\upx-killer-engine.vcxproj"><Project>{911E077C-A45D-4468-A634-B1A8029A9DD1}</Project></ProjectReference></ItemGroup>
+  <ItemGroup><ClCompile Include="Application\EngineHostMain.cpp" /><ClCompile Include="Infrastructure\Windows\Pipes\EngineHostPipeTransport.cpp" /></ItemGroup>
+  <ItemGroup><ClInclude Include="Infrastructure\Windows\Pipes\EngineHostPipeTransport.h" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\upx-killer-contracts\upx-killer-contracts.vcxproj"><Project>{B36A63DA-B807-4D29-A538-5A1047B46542}</Project></ProjectReference><ProjectReference Include="..\upx-killer-engine\upx-killer-engine.vcxproj"><Project>{911E077C-A45D-4468-A634-B1A8029A9DD1}</Project></ProjectReference></ItemGroup>
   <Target Name="BuildWin32DllLoader" BeforeTargets="ClCompile" Condition="'$(Platform)'=='x64'">
     <MSBuild Projects="..\upx-killer-dll-loader\upx-killer-dll-loader.vcxproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=Win32" />
   </Target>

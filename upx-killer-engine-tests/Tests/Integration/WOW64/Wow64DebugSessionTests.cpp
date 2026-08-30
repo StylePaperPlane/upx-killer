@@ -1,4 +1,4 @@
-#include "Application/Unpacking/UnpackEngine.h"
+#include "Infrastructure/Windows/Composition/WindowsPeUnpackEngine.h"
 #include "Core/PE/Parsing/PeParser.h"
 #include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Infrastructure/Windows/Debugging/WindowsDebugSession.h"
@@ -69,7 +69,7 @@ int RunWow64DebugSessionTests() {
   request.outputPath = output;
   request.oep = layout->entryPoint;
   request.timeoutMilliseconds = 15'000;
-  auto const unpacked = application::UnpackEngine::Execute(request, {});
+  auto const unpacked = composition::WindowsPeUnpackEngine::Execute(request, {});
   if (unpacked.outcome != EngineOutcome::Completed)
     std::cerr << "PE32 engine outcome=" << static_cast<unsigned>(unpacked.outcome)
               << " error=" << static_cast<unsigned>(unpacked.error)

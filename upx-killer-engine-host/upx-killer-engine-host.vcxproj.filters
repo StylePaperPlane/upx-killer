@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup><Filter Include="Application"><UniqueIdentifier>{BB086CB3-06B7-4CE4-990E-E06EA6C30985}</UniqueIdentifier></Filter></ItemGroup>
-  <ItemGroup><ClCompile Include="Application\EngineHostMain.cpp"><Filter>Application</Filter></ClCompile></ItemGroup>
+  <ItemGroup><Filter Include="Application"><UniqueIdentifier>{BB086CB3-06B7-4CE4-990E-E06EA6C30985}</UniqueIdentifier></Filter><Filter Include="Infrastructure"><UniqueIdentifier>{1311819B-A10B-418C-B18C-E1DC0990BF3C}</UniqueIdentifier></Filter><Filter Include="Infrastructure\Windows"><UniqueIdentifier>{BB6E9352-6A7F-4924-B0E8-2D57E59D30A8}</UniqueIdentifier></Filter><Filter Include="Infrastructure\Windows\Pipes"><UniqueIdentifier>{2D462F47-6103-47E8-AF87-DAA4EF67AC14}</UniqueIdentifier></Filter></ItemGroup>
+  <ItemGroup><ClCompile Include="Application\EngineHostMain.cpp"><Filter>Application</Filter></ClCompile><ClCompile Include="Infrastructure\Windows\Pipes\EngineHostPipeTransport.cpp"><Filter>Infrastructure\Windows\Pipes</Filter></ClCompile></ItemGroup>
+  <ItemGroup><ClInclude Include="Infrastructure\Windows\Pipes\EngineHostPipeTransport.h"><Filter>Infrastructure\Windows\Pipes</Filter></ClInclude></ItemGroup>
 </Project>

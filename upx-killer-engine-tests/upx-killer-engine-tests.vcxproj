@@ -28,7 +28,7 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\upx-killer-engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\upx-killer-engine;$(ProjectDir)..\upx-killer-contracts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
@@ -45,6 +45,10 @@
     <ClCompile Include="Tests\Unit\Relocations\RelocationReconstructorTests.cpp" />
     <ClCompile Include="Tests\Unit\PE32\Pe32FormatTests.cpp" />
     <ClCompile Include="Tests\Unit\PE32\DLL\Pe32DllExportTests.cpp" />
+    <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp" />
+    <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp" />
+    <ClCompile Include="Tests\Architecture\LayerDependencyTests.cpp" />
+    <ClCompile Include="Tests\Integration\UseCases\PeUseCaseTests.cpp" />
     <ClCompile Include="Tests\Integration\WOW64\Wow64DebugSessionTests.cpp" />
     <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp" />
     <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp" />
@@ -54,6 +58,9 @@
     <ClInclude Include="Tests\Support\EngineHostTestClient.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\upx-killer-contracts\upx-killer-contracts.vcxproj">
+      <Project>{B36A63DA-B807-4D29-A538-5A1047B46542}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\upx-killer-engine\upx-killer-engine.vcxproj">
       <Project>{911E077C-A45D-4468-A634-B1A8029A9DD1}</Project>
     </ProjectReference>
