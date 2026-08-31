@@ -11,6 +11,7 @@ Add Linux ELF32 x86 executable unpacking without changing Coordinator, Host prot
 - `ElfUnpackBackend` coordinates preparation, capture, reconstruction, and publication through their existing interfaces.
 - `IElfSnapshotCapture` keeps `ptrace` and `/proc` details outside Application and Core.
 - WSL discovery, file staging, pipes, and output promotion are independent of ELF class.
+- CMake target ownership mirrors the source layers: ELF32 Core sources extend `upx_killer::elf_core`, Application sources extend `upx_killer::elf_application`, and Linux adapters extend `upx_killer::elf_linux`; the Host target only links them.
 
 ## Required vertical slice
 

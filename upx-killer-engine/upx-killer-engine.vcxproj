@@ -143,6 +143,9 @@
     <ClCompile Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\upx-killer-contracts\upx-killer-contracts.vcxproj">
       <Project>{B36A63DA-B807-4D29-A538-5A1047B46542}</Project>
     </ProjectReference>

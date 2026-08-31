@@ -10,6 +10,7 @@
     <Filter Include="Application\Coordination"><UniqueIdentifier>{38F462BD-7030-4FEB-BA2C-04BA2427027F}</UniqueIdentifier></Filter>
     <Filter Include="Protocol"><UniqueIdentifier>{CE303A04-F29E-4A8F-8489-3889D835943C}</UniqueIdentifier></Filter>
     <Filter Include="Protocol\EngineHost"><UniqueIdentifier>{E0D92F41-D150-4768-964F-E443ED1E7864}</UniqueIdentifier></Filter>
+    <Filter Include="Build"><UniqueIdentifier>{E5B84985-251E-45A2-9139-544A5EED19E5}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Targets\TargetDescriptor.h"><Filter>Core\Targets</Filter></ClInclude>
@@ -23,5 +24,8 @@
   <ItemGroup>
     <ClCompile Include="Application\Coordination\UnpackCoordinator.cpp"><Filter>Application\Coordination</Filter></ClCompile>
     <ClCompile Include="Protocol\EngineHost\EngineHostCodec.cpp"><Filter>Protocol\EngineHost</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt"><Filter>Build</Filter></None>
   </ItemGroup>
 </Project>

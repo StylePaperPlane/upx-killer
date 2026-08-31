@@ -47,6 +47,10 @@
     <Filter Include="Application\Artifacts"><UniqueIdentifier>{32EDC60D-0F11-425F-B92D-60301218C07E}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Capture"><UniqueIdentifier>{0D01455A-07A5-438D-A5A0-DACF1DF4C763}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Storage"><UniqueIdentifier>{1DC02A44-70BF-445B-9A75-B26C60F41C2C}</UniqueIdentifier></Filter>
+    <Filter Include="Build"><UniqueIdentifier>{FCDAB66A-0631-4E7D-889E-120B6947DFE0}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt"><Filter>Build</Filter></None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\ELF\Format\ElfImage.h"><Filter>Core\ELF\Format</Filter></ClInclude>

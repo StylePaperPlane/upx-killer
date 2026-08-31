@@ -17,6 +17,7 @@ The application needs to unpack Linux x86-64 UPX executables without putting Lin
 - Stage each target, adjacent shared-library dependencies, Linux Host, and result in a unique WSL filesystem directory. The bridge owns cleanup and atomically copies a validated result back to the requested Windows path.
 - Keep PE registration independent. Missing WSL, no selected WSL2 distribution, or a missing Linux Host disables only the ELF64 capability.
 - Support only little-endian ELF64 x86-64 executables in this slice. Both `ET_EXEC` and executable `ET_DYN` are accepted; shared objects and ELF32 require separate vertical slices.
+- Give each portable module ownership of its Linux build target. Contracts defines `upx_killer::contracts`; Engine defines `upx_killer::elf_core` and `upx_killer::elf_application`; the Linux Host defines `upx_killer::elf_linux` and links the executable from those targets. The Host CMake file composes module targets and does not enumerate source files owned by Contracts or Engine.
 
 ## Consequences
 
@@ -25,3 +26,4 @@ The application needs to unpack Linux x86-64 UPX executables without putting Lin
 - A WSL2 distribution must be selected before ELF support is advertised. The packaged Linux Host must remain adjacent to the Windows Engine Host.
 - Cross-distribution ABI compatibility of the Linux Host remains a deployment risk; Release validation therefore runs the packaged Host inside the selected distribution.
 - Reconstructed images are semantically and loader equivalent, not byte-identical to the original pre-UPX file.
+- CMake dependency propagation now follows the same source dependency direction as the code. Adding an ELF32 implementation extends the Engine-owned targets rather than copying another external source list into the Host build.

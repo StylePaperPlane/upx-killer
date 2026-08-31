@@ -54,6 +54,20 @@ int RequireAbsent(std::filesystem::path const& root,
   }
   return failures;
 }
+
+int RequirePresent(std::filesystem::path const& path,
+                   std::vector<std::string_view> const& required,
+                   std::string_view rule) {
+  auto const text = ReadText(path);
+  int failures{};
+  for (auto const token : required) {
+    if (text.find(token) != std::string::npos) continue;
+    std::cerr << "FAIL: " << rule << " in " << path.string()
+              << " (missing " << token << ")\n";
+    ++failures;
+  }
+  return failures;
+}
 }
 
 int RunLayerDependencyTests() {
@@ -103,5 +117,23 @@ int RunLayerDependencyTests() {
           "WSL",
       {"Core/ELF/", "ElfParser::", "ElfImageRebuilder", "ptrace"},
       "Windows WSL adapters must use portable contracts, not ELF internals");
+  failures += RequireAbsent(
+      *root / "upx-killer-elf-host" / "CMakeLists.txt",
+      {"${CONTRACTS_ROOT}/", "${ENGINE_ROOT}/"},
+      "ELF Host CMake must consume module targets instead of external sources");
+  failures += RequirePresent(
+      *root / "upx-killer-contracts" / "CMakeLists.txt",
+      {"add_library(upx_killer_contracts", "upx_killer::contracts"},
+      "Contracts must own its portable CMake target");
+  failures += RequirePresent(
+      *root / "upx-killer-engine" / "CMakeLists.txt",
+      {"add_library(upx_killer_elf_core", "add_library(upx_killer_elf_application",
+       "target_link_libraries(upx_killer_elf_application"},
+      "ELF Core and Application must own separate CMake targets");
+  failures += RequirePresent(
+      *root / "upx-killer-elf-host" / "CMakeLists.txt",
+      {"add_subdirectory(", "add_library(upx_killer_elf_linux",
+       "target_link_libraries(upx_killer_elf_host"},
+      "ELF Host must compose owned module targets");
   return failures;
 }

@@ -47,5 +47,8 @@
     <ClCompile Include="Application\Coordination\UnpackCoordinator.cpp" />
     <ClCompile Include="Protocol\EngineHost\EngineHostCodec.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
