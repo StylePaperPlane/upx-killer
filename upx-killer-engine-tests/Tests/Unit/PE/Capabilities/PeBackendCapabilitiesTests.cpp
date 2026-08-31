@@ -26,15 +26,14 @@ int RunPeBackendCapabilitiesTests() {
       contracts::BinaryFamily::Pe, contracts::BinaryClass::Bits64,
       contracts::CpuArchitecture::X64, contracts::ImageKind::SharedLibrary};
   application::PeBackendCapabilities capabilities{
-      {pe32Dll, pe32Exe, pe64Exe, pe32Exe}};
+      {pe32Dll, pe64Dll, pe32Exe, pe64Exe, pe32Exe}};
   auto manifest = capabilities.Manifest("pe.test");
-  expect(manifest.capabilities.size() == 3 &&
+  expect(manifest.capabilities.size() == 4 &&
              capabilities.Supports(pe32Exe) &&
              capabilities.Supports(pe64Exe) &&
-             capabilities.Supports(pe32Dll),
+             capabilities.Supports(pe32Dll) &&
+             capabilities.Supports(pe64Dll),
          "manifest and runtime support share one deduplicated capability source");
-  expect(!capabilities.Supports(pe64Dll),
-         "PE64 DLL remains closed until its loader and capture strategy are registered");
 
   pe::PeImageLayout layout{};
   layout.format = pe::PeFormat::Pe32;

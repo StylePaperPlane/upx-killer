@@ -312,6 +312,9 @@
     <None Include="..\scripts\real-sample-regression.ps1">
       <Filter>Build\Verification</Filter>
     </None>
+    <None Include="..\scripts\test-pe64-dll.ps1">
+      <Filter>Build\Verification</Filter>
+    </None>
     <None Include="..\scripts\audit-project-filters.ps1">
       <Filter>Build\Verification</Filter>
     </None>
@@ -349,6 +352,9 @@
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\adr\0005-format-backends-and-portable-engine-contracts.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\adr\0006-pe64-dll-vertical-slice.md">
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\testing\real-sample-baseline.md">

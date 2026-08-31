@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted.
+Accepted; generalized to PE32 and PE64 by ADR 0006.
 
 ## Context
 
@@ -19,6 +19,6 @@ Export parsing is a Core deep module over an RVA-addressable mapped image. Runti
 ## Consequences
 
 - DLL loading, event identification, export validation, section inference, and output placement remain independently testable.
-- The Loader is a required adjacent Win32 deployment binary.
+- A same-bitness Loader is a required adjacent deployment binary.
 - A fixed-base DLL can fail if its source preferred base is unavailable; the engine does not invent relocations.
 - Ambiguous executable-and-writable memory is emitted explicitly as `.textw` to preserve behavior instead of pretending it is read-only code.

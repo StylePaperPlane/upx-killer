@@ -51,11 +51,13 @@
     <ClCompile Include="Tests\Unit\Relocations\RelocationReconstructorTests.cpp" />
     <ClCompile Include="Tests\Unit\PE32\Pe32FormatTests.cpp" />
     <ClCompile Include="Tests\Unit\PE32\DLL\Pe32DllExportTests.cpp" />
+    <ClCompile Include="Tests\Unit\PE64\DLL\Pe64DllOepTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp" />
     <ClCompile Include="Tests\Architecture\LayerDependencyTests.cpp" />
     <ClCompile Include="Tests\Integration\UseCases\PeUseCaseTests.cpp" />
     <ClCompile Include="Tests\Integration\WOW64\Wow64DebugSessionTests.cpp" />
+    <ClCompile Include="Tests\Integration\Native64\DLL\Pe64DllIntegrationTests.cpp" />
     <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp" />
     <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp" />
     <ClCompile Include="Tests\Support\EngineHostTestClient.cpp" />
@@ -74,6 +76,14 @@
       <Project>{57CA9E3B-7BE8-4B2A-B786-76B98663E6A6}</Project>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+    <ProjectReference Include="..\upx-killer-engine-dll-fixtures\upx-killer-engine-dll-fixture.vcxproj">
+      <Project>{2687C626-A151-432D-BECF-F55E997141A6}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+    <ProjectReference Include="..\upx-killer-engine-dll-fixtures\upx-killer-engine-noentry-dll-fixture.vcxproj">
+      <Project>{ABED4A38-B185-4527-B38D-44977850F1D3}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
     <ProjectReference Include="..\upx-killer-engine-host\upx-killer-engine-host.vcxproj">
       <Project>{DA9D947B-C14B-44CB-8DBD-CEBA49B319A6}</Project>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -84,11 +94,6 @@
     <MSBuild Projects="..\upx-killer-engine-fixture\upx-killer-engine-fixture.vcxproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);Platform=Win32" />
-  </Target>
-  <Target Name="BuildWin32DllLoader" BeforeTargets="ClCompile" Condition="'$(Platform)'=='x64'">
-    <MSBuild Projects="..\upx-killer-dll-loader\upx-killer-dll-loader.vcxproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=Win32" />
-    <Copy SourceFiles="..\upx-killer\x64\$(Configuration)\upx-killer\upx_killer_dll_loader_x86.exe"
-          DestinationFolder="$(OutDir)" />
   </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

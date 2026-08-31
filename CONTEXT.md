@@ -17,8 +17,12 @@ The Target Image's preferred base, `DYNAMIC_BASE`, `HIGH_ENTROPY_VA`, and valida
 _Avoid_: Output ASLR preference, fixer defaults
 
 **DLL Loader**:
-The isolated Win32 helper that maps and detaches a PE32 Dynamic Library without invoking unknown exports. The Engine Host identifies the Target Image from its `LOAD_DLL_DEBUG_EVENT` file handle.
+The isolated same-bitness helper that maps and detaches a PE Dynamic Library without invoking unknown exports. One width-neutral source builds adjacent x86 and x64 Loader processes; the Engine Host selects one through the Loader Catalog and identifies the Target Image from its `LOAD_DLL_DEBUG_EVENT` file handle.
 _Avoid_: DLL runner, export harness
+
+**DLL Entry Invocation**:
+The format-neutral view of a DLL entry call: module base, reason, and reserved value. Its Windows adapters read PE32 arguments from the stack and PE64 arguments from `RCX`, `RDX`, and `R8`; the debug state machine only consumes the view.
+_Avoid_: DllMain stack frame, x64 register check
 
 **Loaded Image**:
 The Target Image after the operating-system loader has mapped it into a process address space.
@@ -35,6 +39,10 @@ _Avoid_: Fixed EXE, output binary
 **Original Entry Point (OEP)**:
 The relative virtual address at which execution of the unpacked program is expected to begin.
 _Avoid_: Entry address, absolute entry point
+
+**DLL Return Transfer**:
+The validated UPX tail that completes a no-entry Dynamic Library after its decompression work. PE32 and PE64 have format-specific instruction patterns, but both resolve to OEP RVA zero and must satisfy the same initial-thread, process-attach, stack-restoration, and changed-image evidence.
+_Avoid_: guessed return, entry point zero shortcut
 
 **Import Rebuild Plan**:
 The known modules, imported symbols, and existing thunk locations needed to reconstruct the Repaired Image's imports.

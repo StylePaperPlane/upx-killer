@@ -76,7 +76,43 @@ struct TlsEvidence {
   PeDataDirectory directory;
   AddressRange writableIndexPage;
   std::vector<AddressRange> callbackCodePages;
+  std::uint32_t runtimeIndex{};
+  bool hasRawTemplate{};
+  bool hasExplicitAlignment{};
 };
+
+constexpr std::uint32_t MaximumPlausibleTlsIndex = 4096;
+
+std::uint32_t EvidenceScore(TlsEvidence const& evidence) noexcept {
+  return (evidence.runtimeIndex != 0 ? 4u : 0u) +
+         (evidence.hasExplicitAlignment ? 2u : 0u) +
+         (evidence.hasRawTemplate ? 1u : 0u);
+}
+
+template <typename Traits>
+std::optional<PeDataDirectory> ReadRuntimeTlsDirectory(
+    SectionLayoutInput const& input, PeImageLayout const& source) noexcept {
+  using NtHeaders = typename Traits::NtHeaders;
+  if (input.loadedImage.size() < sizeof(IMAGE_DOS_HEADER)) return std::nullopt;
+  IMAGE_DOS_HEADER dos{};
+  std::memcpy(&dos, input.loadedImage.data(), sizeof(dos));
+  if (dos.e_magic != IMAGE_DOS_SIGNATURE || dos.e_lfanew < 0) return std::nullopt;
+  auto const ntOffset = static_cast<std::size_t>(dos.e_lfanew);
+  if (ntOffset > input.loadedImage.size() ||
+      sizeof(NtHeaders) > input.loadedImage.size() - ntOffset)
+    return std::nullopt;
+  NtHeaders nt{};
+  std::memcpy(&nt, input.loadedImage.data() + ntOffset, sizeof(nt));
+  if (nt.Signature != IMAGE_NT_SIGNATURE ||
+      nt.OptionalHeader.Magic != Traits::OptionalHeaderMagic ||
+      nt.OptionalHeader.NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_TLS)
+    return std::nullopt;
+  auto const& tls = nt.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS];
+  PeDataDirectory result{RelativeVirtualAddress{tls.VirtualAddress}, tls.Size};
+  return ValidDirectory(result, source.sizeOfImage)
+             ? std::optional<PeDataDirectory>{result}
+             : std::nullopt;
+}
 
 bool InSourceEntrySection(PeImageLayout const& source, std::uint32_t rva) noexcept {
   auto const found =
@@ -127,9 +163,16 @@ std::optional<TlsEvidence> ValidateTlsDirectory(
       !TlsVaToRva(tls.AddressOfIndex, input, source, indexRva) ||
       sizeof(DWORD) > source.sizeOfImage - indexRva)
     return std::nullopt;
+  DWORD runtimeIndex{};
+  std::memcpy(&runtimeIndex, input.loadedImage.data() + indexRva,
+              sizeof(runtimeIndex));
+  if (runtimeIndex > MaximumPlausibleTlsIndex) return std::nullopt;
 
   TlsEvidence evidence{};
   evidence.directory = directory;
+  evidence.runtimeIndex = runtimeIndex;
+  evidence.hasRawTemplate = hasRawTemplate;
+  evidence.hasExplicitAlignment = tlsAlignment != 0;
   auto const indexPage = AlignDown(indexRva, source.sectionAlignment);
   evidence.writableIndexPage = {
       indexPage, std::min(indexPage + source.sectionAlignment, source.sizeOfImage)};
@@ -177,16 +220,36 @@ std::optional<PeDataDirectory> DiscoverTlsCodeRanges(
     evidence = ValidateTlsDirectory<Traits>(
         source, input, source.directories[IMAGE_DIRECTORY_ENTRY_TLS], false);
   } else {
-    for (std::uint32_t rva = 0;
-         rva <= source.sizeOfImage - sizeof(TlsDirectory);
-         rva += static_cast<std::uint32_t>(Traits::PointerSize)) {
-      if (InSourceEntrySection(source, rva)) continue;
-      auto candidate = ValidateTlsDirectory<Traits>(
-          source, input,
-          PeDataDirectory{RelativeVirtualAddress{rva}, sizeof(TlsDirectory)}, true);
-      if (!candidate) continue;
-      if (evidence) return std::nullopt;
-      evidence = std::move(candidate);
+    // UPX restores the original data directories in the mapped image before
+    // transferring control. That runtime header is stronger evidence than a
+    // broad scan, which can find multiple TLS-shaped byte sequences in x64
+    // read-only data.
+    if (auto runtimeDirectory = ReadRuntimeTlsDirectory<Traits>(input, source);
+        runtimeDirectory &&
+        !InSourceEntrySection(source, runtimeDirectory->address.value)) {
+      evidence = ValidateTlsDirectory<Traits>(source, input, *runtimeDirectory, false);
+    }
+    if (!evidence) {
+      std::uint32_t bestScore{};
+      bool tied{};
+      for (std::uint32_t rva = 0;
+           rva <= source.sizeOfImage - sizeof(TlsDirectory);
+           rva += static_cast<std::uint32_t>(Traits::PointerSize)) {
+        if (InSourceEntrySection(source, rva)) continue;
+        auto candidate = ValidateTlsDirectory<Traits>(
+            source, input,
+            PeDataDirectory{RelativeVirtualAddress{rva}, sizeof(TlsDirectory)}, true);
+        if (!candidate) continue;
+        auto const score = EvidenceScore(*candidate);
+        if (!evidence || score > bestScore) {
+          bestScore = score;
+          evidence = std::move(candidate);
+          tied = false;
+        } else if (score == bestScore) {
+          tied = true;
+        }
+      }
+      if (tied) return std::nullopt;
     }
   }
   if (!evidence) return std::nullopt;

@@ -52,15 +52,6 @@ bool ReadValidationBytes(HANDLE process, std::uint64_t address,
          read == bytes.size();
 }
 
-bool IsProcessAttach(HANDLE process, pe::PeFormat format, std::uint64_t stackPointer) noexcept {
-  auto const pointerSize = format == pe::PeFormat::Pe32 ? 4ull : 8ull;
-  DWORD reason{};
-  SIZE_T read{};
-  return ReadProcessMemory(process, reinterpret_cast<void const*>(stackPointer + pointerSize * 2),
-                           &reason, sizeof(reason), &read) &&
-         read == sizeof(reason) && reason == DLL_PROCESS_ATTACH;
-}
-
 bool HasMeaningfulChange(std::array<std::byte, ValidationByteCount> const& before,
                          std::array<std::byte, ValidationByteCount> const& after) noexcept {
   if (before == after) return false;
@@ -232,9 +223,11 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
           terminalNativeError = contextError;
         } else {
           if (*breakpointId == ExplicitBreakpointId) {
-            if (request.imageKind == pe::PeImageKind::DynamicLibrary)
-              processAttachValidated = IsProcessAttach(process->ProcessHandle(), request.format,
-                                                       context->Context().stackPointer);
+            if (request.imageKind == pe::PeImageKind::DynamicLibrary) {
+              auto const invocation = context->ReadDllEntryInvocation(
+                  process->ProcessHandle(), contextError);
+              processAttachValidated = invocation && invocation->reason == DLL_PROCESS_ATTACH;
+            }
             if (!processAttachValidated) {
               terminal = true;
               terminalError = EngineError::TargetLibraryAttachInvalid;
@@ -264,9 +257,11 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
           } else if (*breakpointId == PackedEntryBreakpointId) {
             entryThreadId = event.dwThreadId;
             entryStackPointer = context->Context().stackPointer;
-            if (request.imageKind == pe::PeImageKind::DynamicLibrary)
-              processAttachValidated = IsProcessAttach(process->ProcessHandle(), request.format,
-                                                       entryStackPointer);
+            if (request.imageKind == pe::PeImageKind::DynamicLibrary) {
+              auto const invocation = context->ReadDllEntryInvocation(
+                  process->ProcessHandle(), contextError);
+              processAttachValidated = invocation && invocation->reason == DLL_PROCESS_ATTACH;
+            }
             if (!context->Commit(contextError)) {
               terminal = true;
               terminalError = EngineError::DebugProtocolFailed;

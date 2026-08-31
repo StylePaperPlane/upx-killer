@@ -1,4 +1,5 @@
 #include "Core/PE/OepDiscovery/UpxOepLocator.h"
+#include "Core/PE/OepDiscovery/Internal/UpxTailTransferAnalyzer.h"
 
 #include <algorithm>
 #include <array>
@@ -11,10 +12,6 @@ using namespace upx_killer::engine::pe;
 using namespace upx_killer::engine::pe::oep;
 
 constexpr std::uint32_t ImageScnMemExecute = 0x20000000;
-constexpr std::size_t MaximumTailSearch = 128;
-constexpr std::array<std::byte, 1> Pe32RegisterRestore{std::byte{0x61}};
-constexpr std::array<std::byte, 4> Pe64RegisterRestore{
-    std::byte{0x5d}, std::byte{0x5f}, std::byte{0x5e}, std::byte{0x5b}};
 
 std::uint64_t SectionSpan(PeSection const& section) noexcept {
   return std::max<std::uint64_t>(section.virtualSize, section.rawSize);
@@ -45,23 +42,6 @@ PeSection const* FindSection(PeImageLayout const& layout, std::uint32_t rva) noe
   return iterator == layout.sections.end() ? nullptr : &*iterator;
 }
 
-std::optional<RelativeVirtualAddress> FindValidationTarget(PeImageLayout const& layout,
-                                                           PeSection const* stub) noexcept {
-  for (auto const& section : layout.sections) {
-    if (&section == stub || section.virtualSize == 0 ||
-        (section.characteristics & ImageScnMemExecute) == 0)
-      continue;
-    return RelativeVirtualAddress{section.virtualAddress.value};
-  }
-  return std::nullopt;
-}
-
-bool IsExecutableDestination(PeImageLayout const& layout, PeSection const* stub,
-                             std::uint32_t target) noexcept {
-  if (target >= layout.sizeOfImage) return false;
-  auto const* section = FindSection(layout, target);
-  return section && section != stub && (section->characteristics & ImageScnMemExecute) != 0;
-}
 }
 
 namespace upx_killer::engine::pe::oep {
@@ -101,64 +81,9 @@ OepDiscoveryResult UpxOepLocator::Analyze(std::span<std::byte const> sourceBytes
     plan.stubStart = stub->virtualAddress;
     plan.stubSize = static_cast<std::uint32_t>(
         std::min<std::uint64_t>(SectionSpan(*stub), std::numeric_limits<std::uint32_t>::max()));
-    auto const registerRestore =
-        layout.format == PeFormat::Pe32
-            ? std::span<std::byte const>{Pe32RegisterRestore}
-            : std::span<std::byte const>{Pe64RegisterRestore};
-
-    for (std::size_t offset = static_cast<std::size_t>(rawStart);
-         offset + registerRestore.size() + 5 <= rawEnd &&
-         plan.candidates.size() < MaximumOepCandidates;
-         ++offset) {
-      if (!std::equal(registerRestore.begin(), registerRestore.end(),
-                      sourceBytes.begin() + offset))
-        continue;
-
-      auto const searchEnd = std::min<std::size_t>(
-          static_cast<std::size_t>(rawEnd), offset + registerRestore.size() + MaximumTailSearch);
-      for (auto transferOffset = offset + registerRestore.size();
-           transferOffset + 5 <= searchEnd && plan.candidates.size() < MaximumOepCandidates;
-           ++transferOffset) {
-        if (layout.imageKind == PeImageKind::DynamicLibrary && layout.format == PeFormat::Pe32 &&
-            transferOffset + 6 <= searchEnd &&
-            sourceBytes[transferOffset] == std::byte{0x33} &&
-            sourceBytes[transferOffset + 1] == std::byte{0xc0} &&
-            sourceBytes[transferOffset + 2] == std::byte{0x40} &&
-            sourceBytes[transferOffset + 3] == std::byte{0xc2} &&
-            sourceBytes[transferOffset + 4] == std::byte{0x0c} &&
-            sourceBytes[transferOffset + 5] == std::byte{0x00}) {
-          auto validation = FindValidationTarget(layout, stub);
-          if (validation) {
-            auto const transferRva = static_cast<std::uint64_t>(stub->virtualAddress.value) +
-                                     (transferOffset + 3 - stub->rawOffset.value);
-            if (transferRva <= std::numeric_limits<std::uint32_t>::max())
-              plan.candidates.push_back({OepTransferKind::DllReturn,
-                                         {static_cast<std::uint32_t>(transferRva)}, {0},
-                                         *validation});
-          }
-          continue;
-        }
-        if (sourceBytes[transferOffset] != std::byte{0xe9}) continue;
-        std::int32_t displacement{};
-        std::memcpy(&displacement, sourceBytes.data() + transferOffset + 1, sizeof(displacement));
-        auto const transferRva64 = static_cast<std::uint64_t>(stub->virtualAddress.value) +
-                                   (transferOffset - stub->rawOffset.value);
-        if (transferRva64 > std::numeric_limits<std::uint32_t>::max()) continue;
-        auto const target64 = static_cast<std::int64_t>(transferRva64 + 5) + displacement;
-        if (target64 < 0 || target64 > std::numeric_limits<std::uint32_t>::max()) continue;
-        auto const target = static_cast<std::uint32_t>(target64);
-        if (!IsExecutableDestination(layout, stub, target)) continue;
-
-        auto const transfer = static_cast<std::uint32_t>(transferRva64);
-        auto const duplicate = std::any_of(plan.candidates.begin(), plan.candidates.end(),
-                                           [transfer](OepTransferCandidate const& candidate) {
-                                             return candidate.transfer.value == transfer;
-                                           });
-        if (!duplicate)
-          plan.candidates.push_back(
-              {OepTransferKind::DirectJump, {transfer}, {target}, {target}});
-      }
-    }
+    plan.candidates = internal::UpxTailTransferAnalyzer::Analyze(
+        sourceBytes, layout, *stub, static_cast<std::size_t>(rawStart),
+        static_cast<std::size_t>(rawEnd));
 
     if (plan.candidates.empty()) return {std::nullopt, OepDiscoveryError::OepNotFound};
     return {std::move(plan), OepDiscoveryError::None};

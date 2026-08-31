@@ -30,6 +30,15 @@ Test-Ui 'Start is initially disabled' { & $WinApp ui wait-for StartUnpackButton 
 Test-Ui 'Export is initially disabled' { & $WinApp ui wait-for ExportFileButton -a $AppPid -p IsEnabled --value False -t 3000 }
 Test-Ui 'Status bar is present' { & $WinApp ui wait-for StatusText -a $AppPid -t 3000 }
 
+Test-Ui 'Configuration navigation works' {
+    & $WinApp ui invoke ConfigurationNavigationItem -a $AppPid
+    if ($LASTEXITCODE -ne 0) { return }
+    & $WinApp ui wait-for TemporaryDirectoryTextBox -a $AppPid -t 3000
+}
+Test-Ui 'Temporary directory setting is present' { & $WinApp ui wait-for TemporaryDirectoryTextBox -a $AppPid -t 3000 }
+Test-Ui 'Automatic cleanup setting is present' { & $WinApp ui wait-for AutoDeleteComboBox -a $AppPid -t 3000 }
+Test-Ui 'Cleanup explanation is accessible' { & $WinApp ui wait-for AutoDeleteHelpButton -a $AppPid -t 3000 }
+
 $inspection = & $WinApp ui inspect -a $AppPid --interactive --json 2>$null | ConvertFrom-Json
 $elements = @($inspection.windows | ForEach-Object { $_.elements })
 $missing = @($elements | Where-Object {
@@ -48,6 +57,12 @@ else {
 
 $artifactDirectory = Join-Path $PSScriptRoot '..\artifacts\ui-tests'
 New-Item -ItemType Directory -Force -Path $artifactDirectory | Out-Null
+& $WinApp ui screenshot -a $AppPid -o (Join-Path $artifactDirectory 'configuration.png') | Out-Null
+Test-Ui 'Overview navigation remains reusable' {
+    & $WinApp ui invoke OverviewNavigationItem -a $AppPid
+    if ($LASTEXITCODE -ne 0) { return }
+    & $WinApp ui wait-for TargetPathTextBox -a $AppPid -t 3000
+}
 & $WinApp ui screenshot -a $AppPid -o (Join-Path $artifactDirectory 'overview-initial.png') | Out-Null
 $results | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $artifactDirectory 'results.json')
 Write-Host "Passed: $passed | Failed: $failed"

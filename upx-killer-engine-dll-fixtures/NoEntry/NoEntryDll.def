@@ -1,0 +1,3 @@
+LIBRARY upx_killer_engine_noentry_dll_fixture
+EXPORTS
+    NoEntryValue @1

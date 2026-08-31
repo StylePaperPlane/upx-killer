@@ -1,5 +1,6 @@
 #include "Infrastructure/Windows/Debugging/ThreadContext/ThreadContextController.h"
 
+#include <array>
 #include <utility>
 
 namespace {
@@ -118,7 +119,7 @@ std::optional<ThreadContextController> ThreadContextController::Open(
     }
     controller.m_control = {controller.m_wow64.Eip, controller.m_wow64.Esp};
   } else {
-    controller.m_native.ContextFlags = CONTEXT_CONTROL;
+    controller.m_native.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
     if (!GetThreadContext(thread, &controller.m_native)) {
       nativeError = GetLastError();
       return std::nullopt;
@@ -129,6 +130,33 @@ std::optional<ThreadContextController> ThreadContextController::Open(
 }
 
 ThreadControlContext const& ThreadContextController::Context() const noexcept { return m_control; }
+
+std::optional<DllEntryInvocation> ThreadContextController::ReadDllEntryInvocation(
+    HANDLE process, std::uint32_t& nativeError) const noexcept {
+  nativeError = ERROR_SUCCESS;
+  if (!process) {
+    nativeError = ERROR_INVALID_HANDLE;
+    return std::nullopt;
+  }
+
+  if (m_format == pe::PeFormat::Pe64) {
+    return DllEntryInvocation{m_native.Rcx, static_cast<std::uint32_t>(m_native.Rdx),
+                              m_native.R8};
+  }
+
+  // stdcall PE32 DLL entry arguments follow the return address on the stack.
+  std::array<std::uint32_t, 3> arguments{};
+  SIZE_T read{};
+  auto const address = static_cast<std::uint64_t>(m_wow64.Esp) + sizeof(std::uint32_t);
+  if (!ReadProcessMemory(process, reinterpret_cast<void const*>(address), arguments.data(),
+                         sizeof(arguments), &read) ||
+      read != sizeof(arguments)) {
+    nativeError = GetLastError();
+    if (nativeError == ERROR_SUCCESS) nativeError = ERROR_PARTIAL_COPY;
+    return std::nullopt;
+  }
+  return DllEntryInvocation{arguments[0], arguments[1], arguments[2]};
+}
 
 bool ThreadContextController::SetInstructionPointer(std::uint64_t value,
                                                     std::uint32_t& nativeError) noexcept {

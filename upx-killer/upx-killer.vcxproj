@@ -247,12 +247,14 @@
     <Text Include="..\docs\adr\0003-multi-base-relocation-reconstruction.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0004-isolated-pe32-dll-loading-and-source-aslr-intent.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0005-format-backends-and-portable-engine-contracts.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0006-pe64-dll-vertical-slice.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\real-sample-baseline.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="..\scripts\ui-tests.ps1" />
     <None Include="..\scripts\real-sample-regression.ps1" />
+    <None Include="..\scripts\test-pe64-dll.ps1" />
     <None Include="..\scripts\audit-project-filters.ps1" />
     <None Include="..\scripts\package-dist.ps1" />
   </ItemGroup>

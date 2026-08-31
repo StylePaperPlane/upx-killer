@@ -14,24 +14,24 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType Condition="'$(Platform)'=='Win32'">Application</ConfigurationType>
-    <ConfigurationType Condition="'$(Platform)'=='x64'">Utility</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
     <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
     <OutDir>$(ProjectDir)..\upx-killer\x64\$(Configuration)\upx-killer\</OutDir>
-    <IntDir>$(ProjectDir)Win32\$(Configuration)\Intermediate\</IntDir>
-    <TargetName>upx_killer_dll_loader_x86</TargetName>
+    <IntDir>$(ProjectDir)$(Platform)\$(Configuration)\Intermediate\</IntDir>
+    <TargetName Condition="'$(Platform)'=='Win32'">upx_killer_dll_loader_x86</TargetName>
+    <TargetName Condition="'$(Platform)'=='x64'">upx_killer_dll_loader_x64</TargetName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ItemDefinitionGroup>
     <ClCompile><PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions><WarningLevel>Level4</WarningLevel><TreatWarningAsError>true</TreatWarningAsError><LanguageStandard>stdcpp20</LanguageStandard></ClCompile>
-    <Link><SubSystem>Console</SubSystem><BaseAddress>0x00200000</BaseAddress><RandomizedBaseAddress>false</RandomizedBaseAddress><FixedBaseAddress>true</FixedBaseAddress></Link>
+    <Link><SubSystem>Console</SubSystem><BaseAddress Condition="'$(Platform)'=='Win32'">0x00200000</BaseAddress><BaseAddress Condition="'$(Platform)'=='x64'">0x100000000</BaseAddress><RandomizedBaseAddress>false</RandomizedBaseAddress><FixedBaseAddress>true</FixedBaseAddress></Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'"><ClCompile><DebugInformationFormat>None</DebugInformationFormat></ClCompile><Link><GenerateDebugInformation>false</GenerateDebugInformation><IgnoreImportLibrary>true</IgnoreImportLibrary><ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile><ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary></Link></ItemDefinitionGroup>
-  <ItemGroup><ClCompile Include="Application\Loading\Win32DllLoaderMain.cpp" Condition="'$(Platform)'=='Win32'" /></ItemGroup>
+  <ItemGroup><ClCompile Include="Application\Loading\DllLoaderMain.cpp" /></ItemGroup>
   <Target Name="BuildMappedWin32" BeforeTargets="Build" Condition="'$(Platform)'=='x64'">
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="Configuration=$(Configuration);Platform=Win32" />
   </Target>

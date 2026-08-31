@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Tests"><UniqueIdentifier>{D5EF252D-7A4B-4433-8640-BE08734667D2}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures"><UniqueIdentifier>{DD180637-3ECA-44B8-A71B-F44AD372E111}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures\DLL"><UniqueIdentifier>{19C02061-16C9-4FD1-A2D8-64A61966F79C}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures\DLL\x64"><UniqueIdentifier>{F89AAB78-FA14-4997-AB1D-711FA2EA8694}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures\DLL\x64\Dependency"><UniqueIdentifier>{50F91073-3945-4115-A5F9-206CA5582628}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup><ClCompile Include="Dependency\FixtureDependency.cpp"><Filter>Tests\Fixtures\DLL\x64\Dependency</Filter></ClCompile></ItemGroup>
+  <ItemGroup><None Include="Dependency\FixtureDependency.def"><Filter>Tests\Fixtures\DLL\x64\Dependency</Filter></None></ItemGroup>
+</Project>

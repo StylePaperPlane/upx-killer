@@ -1,0 +1,3 @@
+LIBRARY upx_killer_fixture_dependency
+EXPORTS
+    DependencyValue @1

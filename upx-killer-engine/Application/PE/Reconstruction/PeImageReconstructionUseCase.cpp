@@ -26,12 +26,22 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
           evidence.runs.front().image.bytes, target.layout,
           evidence.runs.front().runtimeImports);
       if (!discovered.plan) {
-        return {std::nullopt,
-                discovered.error == pe::imports::ImportDiscoveryError::ImportsAmbiguous
-                    ? EngineError::ImportsAmbiguous
-                    : EngineError::ImportsNotFound};
+        // A valid /NOENTRY DLL can have no imports at all. The packed source
+        // still contains the loader stub's import directory, so only the
+        // resolved zero entry point is authoritative after capture.
+        if (discovered.error == pe::imports::ImportDiscoveryError::ImportsNotFound &&
+            target.layout.imageKind == pe::PeImageKind::DynamicLibrary &&
+            evidence.runs.front().entryPoint.value == 0) {
+          imports = ImportRebuildPlan{};
+        } else {
+          return {std::nullopt,
+                  discovered.error == pe::imports::ImportDiscoveryError::ImportsAmbiguous
+                      ? EngineError::ImportsAmbiguous
+                      : EngineError::ImportsNotFound};
+        }
+      } else {
+        imports = std::move(discovered.plan);
       }
-      imports = std::move(discovered.plan);
     }
 
     pe::fixing::ImagePlacementPlan imagePlacement;

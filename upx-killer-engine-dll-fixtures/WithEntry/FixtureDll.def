@@ -1,0 +1,5 @@
+LIBRARY upx_killer_engine_dll_fixture
+EXPORTS
+    FixtureCompute @1
+    FixtureOrdinalValue @2 NONAME
+    ForwardedDependency=upx_killer_fixture_dependency.DependencyValue @3

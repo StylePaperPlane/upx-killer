@@ -34,7 +34,8 @@ Infrastructure adapters. The UI queries Host capabilities and does not contain
 a PE support matrix. Protocol wire values are explicit and are not serialized
 C++ enum ordinals.
 
-Future PE64 DLL support adds the appropriate loader and backend capability.
+PE64 DLL support adds its Loader Catalog entry and backend capability without
+changing the coordinator, contracts, protocol, or UI support logic.
 Future ELF32/ELF64 executable and shared-object support adds a separate backend;
 the intended execution boundary is a WSL2 host rather than Windows debugging
 types in the portable contracts.

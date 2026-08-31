@@ -41,6 +41,7 @@
     <ClInclude Include="Core\Unpacking\UnpackTypes.h" />
     <ClInclude Include="Core\PE\Parsing\PeParser.h" />
     <ClInclude Include="Core\PE\OepDiscovery\UpxOepLocator.h" />
+    <ClInclude Include="Core\PE\OepDiscovery\Internal\UpxTailTransferAnalyzer.h" />
     <ClInclude Include="Core\Dumping\ProcessImageDumper.h" />
     <ClInclude Include="Core\PE\Fixing\PeImageFixer.h" />
     <ClInclude Include="Core\PE\Fixing\ImagePlacementPlan.h" />
@@ -80,6 +81,7 @@
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp" />
     <ClCompile Include="Core\PE\Exports\ExportDirectoryAnalyzer.cpp" />
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp" />
+    <ClCompile Include="Core\PE\OepDiscovery\Internal\UpxTailTransferAnalyzer.cpp" />
     <ClCompile Include="Core\Dumping\ProcessImageDumper.cpp" />
     <ClCompile Include="Core\PE\Fixing\PeImageFixer.cpp" />
     <ClCompile Include="Core\PE\Sections\SectionLayoutRebuilder.cpp" />

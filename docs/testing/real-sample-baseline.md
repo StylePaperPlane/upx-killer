@@ -83,3 +83,31 @@ PE32 x86 DLL.
   `TXHook.exe` behavior while resolving the adjacent `main\zlib.dll`.
 - All source hashes were checked before execution; all copied inputs and output
   artifacts were removed after the run.
+
+## PE64 DLL vertical-slice validation
+
+Validated on 2026-08-31 on branch `codex/pe64-dll-support` with Engine Host
+protocol v6.
+
+- The repository PE64 DLL acceptance set passed through the real Engine Host:
+  explicit OEP, automatic OEP with UPX 5.2.0 default and LZMA compression,
+  renamed packed sections, and default/LZMA `/NOENTRY` DLLs.
+- Repaired DllMain fixtures preserved the original entry RVA, Imports/IAT,
+  Exports, TLS, DIR64 relocations, source ASLR intent, and named, ordinal, and
+  forwarded export behavior. Fixed `/NOENTRY` fixtures retained OEP RVA zero
+  and did not gain a relocation directory or `DYNAMIC_BASE`.
+- The user independently confirmed successful unpacking of the production
+  `bz2.dll` sample. Its path and SHA-256 were not supplied, so this is recorded
+  as user-confirmed behavior rather than a reproducible repository baseline.
+- `winapp` 0.6.1 was restored. The automated WinUI run passed 12/12 checks,
+  covering the overview route, disabled initial actions, status bar,
+  configuration route, temporary-directory and cleanup controls, AutomationId
+  coverage, and return navigation. Dark-theme screenshots were captured for
+  both pages without clipping or layout deformation.
+- The existing native test executable passed. Direct Host checks completed for
+  `Math.exe`, `nizhou.exe`, `xy_quiz.exe`, `main\Server.dll`, and
+  `main\zlib.dll`. A fresh `TXHook.exe` output validation was blocked by
+  Microsoft Defender with native error 225 (`Trojan:Win32/Phonzy.B!ml`), so the
+  engine did not treat that run as a successful artifact. Defender was not
+  disabled or bypassed; the previously recorded green TXHook baseline remains
+  the comparison reference.

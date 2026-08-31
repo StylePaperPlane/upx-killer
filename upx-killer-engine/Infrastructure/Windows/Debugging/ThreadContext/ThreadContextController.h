@@ -14,6 +14,15 @@ struct ThreadControlContext {
   std::uint64_t stackPointer{};
 };
 
+// Represents the platform-neutral arguments supplied to a DLL entry point.
+// The controller owns the PE32 stack and PE64 register calling-convention
+// details so the debug state machine does not branch on processor width.
+struct DllEntryInvocation {
+  std::uint64_t module{};
+  std::uint32_t reason{};
+  std::uint64_t reserved{};
+};
+
 class ThreadContextController final {
  public:
   ~ThreadContextController();
@@ -28,6 +37,8 @@ class ThreadContextController final {
       DWORD threadId, pe::PeFormat format, std::uint32_t& nativeError) noexcept;
 
   [[nodiscard]] ThreadControlContext const& Context() const noexcept;
+  [[nodiscard]] std::optional<DllEntryInvocation> ReadDllEntryInvocation(
+      HANDLE process, std::uint32_t& nativeError) const noexcept;
   [[nodiscard]] bool SetInstructionPointer(std::uint64_t value,
                                            std::uint32_t& nativeError) noexcept;
   [[nodiscard]] bool Commit(std::uint32_t& nativeError) noexcept;

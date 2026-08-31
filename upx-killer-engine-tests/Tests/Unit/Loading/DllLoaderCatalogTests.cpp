@@ -21,18 +21,24 @@ int RunDllLoaderCatalogTests() {
   std::error_code error;
   std::filesystem::create_directories(root, error);
   auto const x86Loader = root / L"loader-x86.exe";
+  auto const x64Loader = root / L"loader-x64.exe";
   {
     std::ofstream output(x86Loader, std::ios::binary | std::ios::trunc);
     output.put('M');
   }
-  loading::DllLoaderCatalog catalog{{{pe::PeFormat::Pe32, x86Loader}}};
+  {
+    std::ofstream output(x64Loader, std::ios::binary | std::ios::trunc);
+    output.put('M');
+  }
+  loading::DllLoaderCatalog catalog{{{pe::PeFormat::Pe32, x86Loader},
+                                      {pe::PeFormat::Pe64, x64Loader}}};
   std::uint32_t nativeError{};
   auto x86 = catalog.Resolve(pe::PeFormat::Pe32, nativeError);
   expect(x86 && *x86 == x86Loader && nativeError == ERROR_SUCCESS,
          "loader catalog resolves its registered x86 loader");
   auto x64 = catalog.Resolve(pe::PeFormat::Pe64, nativeError);
-  expect(!x64 && nativeError == ERROR_NOT_SUPPORTED,
-         "loader catalog reports an unregistered x64 loader");
+  expect(x64 && *x64 == x64Loader && nativeError == ERROR_SUCCESS,
+         "loader catalog resolves its registered x64 loader");
 
   loading::DllLoaderCatalog missing{{
       {pe::PeFormat::Pe32, root / L"missing.exe"},

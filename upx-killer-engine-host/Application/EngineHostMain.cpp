@@ -40,6 +40,8 @@ int wmain() {
        contracts::CpuArchitecture::X64, contracts::ImageKind::Executable},
       {contracts::BinaryFamily::Pe, contracts::BinaryClass::Bits32,
        contracts::CpuArchitecture::X86, contracts::ImageKind::SharedLibrary},
+      {contracts::BinaryFamily::Pe, contracts::BinaryClass::Bits64,
+       contracts::CpuArchitecture::X64, contracts::ImageKind::SharedLibrary},
   }};
   engine::application::pe_preparation::PeTargetProbe probe{sourceReader,
                                                             capabilities};
@@ -49,6 +51,8 @@ int wmain() {
   engine::loading::DllLoaderCatalog dllLoaders{{
       {engine::pe::PeFormat::Pe32,
        executableDirectory / L"upx_killer_dll_loader_x86.exe"},
+      {engine::pe::PeFormat::Pe64,
+       executableDirectory / L"upx_killer_dll_loader_x64.exe"},
   }};
   engine::capture::WindowsPeSnapshotCapture snapshotCapture{dllLoaders};
   engine::application::pe_capture::PeRuntimeCaptureUseCase capture{snapshotCapture};

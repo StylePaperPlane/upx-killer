@@ -11,6 +11,7 @@
     <Filter Include="Core\Unpacking"><UniqueIdentifier>{797140F4-A639-4A9B-BA47-F34FEB69864C}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Parsing"><UniqueIdentifier>{4BC2DAAE-3569-4FAE-95C7-2FA38A8CC01B}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\OepDiscovery"><UniqueIdentifier>{3E3E8C87-A85C-43B8-A91D-A5F19D2ABF20}</UniqueIdentifier></Filter>
+    <Filter Include="Core\PE\OepDiscovery\Internal"><UniqueIdentifier>{EA6BD257-A590-4945-8D94-B7961907A602}</UniqueIdentifier></Filter>
     <Filter Include="Core\Dumping"><UniqueIdentifier>{6108D29F-F5A8-44A8-9E19-8F159C48C8D5}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Fixing"><UniqueIdentifier>{9F516762-A12F-4D6A-B920-BBE9935EDE75}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Sections"><UniqueIdentifier>{70F24465-63DB-47B1-B718-20D973DCC91F}</UniqueIdentifier></Filter>
@@ -41,6 +42,7 @@
     <ClInclude Include="Core\Unpacking\UnpackTypes.h"><Filter>Core\Unpacking</Filter></ClInclude>
     <ClInclude Include="Core\PE\Parsing\PeParser.h"><Filter>Core\PE\Parsing</Filter></ClInclude>
     <ClInclude Include="Core\PE\OepDiscovery\UpxOepLocator.h"><Filter>Core\PE\OepDiscovery</Filter></ClInclude>
+    <ClInclude Include="Core\PE\OepDiscovery\Internal\UpxTailTransferAnalyzer.h"><Filter>Core\PE\OepDiscovery\Internal</Filter></ClInclude>
     <ClInclude Include="Core\Dumping\ProcessImageDumper.h"><Filter>Core\Dumping</Filter></ClInclude>
     <ClInclude Include="Core\PE\Fixing\PeImageFixer.h"><Filter>Core\PE\Fixing</Filter></ClInclude>
     <ClInclude Include="Core\PE\Fixing\ImagePlacementPlan.h"><Filter>Core\PE\Fixing</Filter></ClInclude>
@@ -80,6 +82,7 @@
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp"><Filter>Core\PE\Parsing</Filter></ClCompile>
     <ClCompile Include="Core\PE\Exports\ExportDirectoryAnalyzer.cpp"><Filter>Core\PE\Exports</Filter></ClCompile>
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp"><Filter>Core\PE\OepDiscovery</Filter></ClCompile>
+    <ClCompile Include="Core\PE\OepDiscovery\Internal\UpxTailTransferAnalyzer.cpp"><Filter>Core\PE\OepDiscovery\Internal</Filter></ClCompile>
     <ClCompile Include="Core\Dumping\ProcessImageDumper.cpp"><Filter>Core\Dumping</Filter></ClCompile>
     <ClCompile Include="Core\PE\Fixing\PeImageFixer.cpp"><Filter>Core\PE\Fixing</Filter></ClCompile>
     <ClCompile Include="Core\PE\Sections\SectionLayoutRebuilder.cpp"><Filter>Core\PE\Sections</Filter></ClCompile>
