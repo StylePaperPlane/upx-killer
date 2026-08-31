@@ -24,6 +24,9 @@ int RunRelocationReconstructorTests();
 int RunPe32FormatTests();
 int RunPe32DllExportTests();
 int RunWow64DebugSessionTests();
+int RunElfCoreTests();
+int ValidateElfTargetThroughHost(std::filesystem::path const& target,
+                                 std::filesystem::path const& output);
 int ValidatePe64DllFixtures(std::filesystem::path const& root);
 int AnalyzeAutomaticOepTarget(std::filesystem::path const& target);
 int ValidateAutomaticOepTargetThroughHost(std::filesystem::path const& target);
@@ -35,6 +38,8 @@ int wmain(int argc, wchar_t** argv) {
     return ValidateAutomaticOepTargetThroughHost(argv[2]);
   if (argc == 3 && std::wstring_view{argv[1]} == L"--validate-pe64-dll-fixtures")
     return ValidatePe64DllFixtures(argv[2]);
+  if (argc == 4 && std::wstring_view{argv[1]} == L"--validate-elf-host")
+    return ValidateElfTargetThroughHost(argv[2], argv[3]);
 
   int failures{};
   failures += RunParserTests();
@@ -59,6 +64,7 @@ int wmain(int argc, wchar_t** argv) {
   failures += RunPe32FormatTests();
   failures += RunPe32DllExportTests();
   failures += RunWow64DebugSessionTests();
+  failures += RunElfCoreTests();
   if (failures == 0) std::cout << "All engine module tests passed.\n";
   return failures == 0 ? 0 : 1;
 }

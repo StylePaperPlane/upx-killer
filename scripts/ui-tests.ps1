@@ -38,11 +38,23 @@ Test-Ui 'Configuration navigation works' {
 Test-Ui 'Temporary directory setting is present' { & $WinApp ui wait-for TemporaryDirectoryTextBox -a $AppPid -t 3000 }
 Test-Ui 'Automatic cleanup setting is present' { & $WinApp ui wait-for AutoDeleteComboBox -a $AppPid -t 3000 }
 Test-Ui 'Cleanup explanation is accessible' { & $WinApp ui wait-for AutoDeleteHelpButton -a $AppPid -t 3000 }
+Test-Ui 'WSL2 distribution setting is present' { & $WinApp ui wait-for WslDistributionComboBox -a $AppPid -t 3000 }
+Test-Ui 'WSL2 distribution refresh is available' { & $WinApp ui wait-for RefreshWslDistributionsButton -a $AppPid -t 3000 }
+Test-Ui 'WSL2 discovery selects an available distribution' {
+    & $WinApp ui wait-for WslDistributionComboBox -a $AppPid -t 10000 | Out-Null
+    $value = & $WinApp ui get-value WslDistributionComboBox -a $AppPid --json 2>$null |
+        ConvertFrom-Json
+    if ([string]::IsNullOrWhiteSpace([string]$value.text)) {
+        throw 'No WSL2 distribution was selected.'
+    }
+}
 
 $inspection = & $WinApp ui inspect -a $AppPid --interactive --json 2>$null | ConvertFrom-Json
-$elements = @($inspection.windows | ForEach-Object { $_.elements })
+$elements = @($inspection.windows |
+    Where-Object { @($_.elements.automationId) -contains 'RootNavigationView' } |
+    ForEach-Object { $_.elements })
 $missing = @($elements | Where-Object {
-    $_.type -match 'Button|TextBox|Edit|NavigationViewItem' -and
+    $_.type -match 'Button|TextBox|Edit|ComboBox|NavigationViewItem' -and
     $_.name -notmatch 'Minimize|Maximize|Close|System|最小化|最大化|关闭|系统' -and
     -not $_.automationId
 })

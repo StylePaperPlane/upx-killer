@@ -35,6 +35,21 @@
     <ClCompile><DebugInformationFormat>None</DebugInformationFormat></ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Core\ELF\Format\ElfImage.h" />
+    <ClInclude Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.h" />
+    <ClInclude Include="Core\ELF\Parsing\ElfParser.h" />
+    <ClInclude Include="Core\ELF\OepDiscovery\UpxElfOepLocator.h" />
+    <ClInclude Include="Core\ELF\Reconstruction\ElfImageRebuilder.h" />
+    <ClInclude Include="Core\ELF\Validation\ElfImageValidator.h" />
+    <ClInclude Include="Application\ELF\Capabilities\ElfBackendCapabilities.h" />
+    <ClInclude Include="Application\ELF\Preparation\ElfTargetPreparationUseCase.h" />
+    <ClInclude Include="Application\ELF\Preparation\ElfTargetProbe.h" />
+    <ClInclude Include="Application\ELF\Capture\ElfRuntimeCaptureUseCase.h" />
+    <ClInclude Include="Application\ELF\Hosting\IElfHostClient.h" />
+    <ClInclude Include="Application\ELF\Hosting\RemoteElfUnpackBackend.h" />
+    <ClInclude Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.h" />
+    <ClInclude Include="Application\ELF\ElfUnpackBackend.h" />
+    <ClInclude Include="Application\Artifacts\IArtifactPublisher.h" />
     <ClInclude Include="Core\PE\Format\PeFormat.h" />
     <ClInclude Include="Core\PE\Format\PeFormatTraits.h" />
     <ClInclude Include="Core\PE\Exports\ExportDirectoryAnalyzer.h" />
@@ -78,6 +93,18 @@
     <ClInclude Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\ELF\Parsing\ElfParser.cpp" />
+    <ClCompile Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.cpp" />
+    <ClCompile Include="Core\ELF\OepDiscovery\UpxElfOepLocator.cpp" />
+    <ClCompile Include="Core\ELF\Reconstruction\ElfImageRebuilder.cpp" />
+    <ClCompile Include="Core\ELF\Validation\ElfImageValidator.cpp" />
+    <ClCompile Include="Application\ELF\Capabilities\ElfBackendCapabilities.cpp" />
+    <ClCompile Include="Application\ELF\Preparation\ElfTargetPreparationUseCase.cpp" />
+    <ClCompile Include="Application\ELF\Preparation\ElfTargetProbe.cpp" />
+    <ClCompile Include="Application\ELF\Capture\ElfRuntimeCaptureUseCase.cpp" />
+    <ClCompile Include="Application\ELF\Hosting\RemoteElfUnpackBackend.cpp" />
+    <ClCompile Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.cpp" />
+    <ClCompile Include="Application\ELF\ElfUnpackBackend.cpp" />
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp" />
     <ClCompile Include="Core\PE\Exports\ExportDirectoryAnalyzer.cpp" />
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp" />

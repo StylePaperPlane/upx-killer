@@ -15,8 +15,6 @@ class LocalTemporaryFileSettingsStore final : public application::ITemporaryFile
 
  private:
   [[nodiscard]] static std::filesystem::path DefaultTemporaryDirectory() noexcept;
-  [[nodiscard]] static std::filesystem::path SettingsFilePath() noexcept;
-
   std::filesystem::path m_settingsFile;
   mutable std::mutex m_mutex;
 };

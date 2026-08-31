@@ -17,10 +17,12 @@ struct EngineHostCapabilityResult {
 class EngineHostProcessSession final {
  public:
   [[nodiscard]] static EngineHostCapabilityResult QueryCapabilities(
-      std::filesystem::path const& hostPath) noexcept;
+      std::filesystem::path const& hostPath,
+      std::wstring const& wslDistribution = {}) noexcept;
   [[nodiscard]] static contracts::JobResult Execute(
       std::filesystem::path const& hostPath,
       contracts::UnpackJobRequest const& request,
-      contracts::ProgressCallback const& progress = {}) noexcept;
+      contracts::ProgressCallback const& progress = {},
+      std::wstring const& wslDistribution = {}) noexcept;
 };
 }

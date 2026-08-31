@@ -13,6 +13,7 @@
     <Project Path="upx-killer-contracts/upx-killer-contracts.vcxproj" Id="b36a63da-b807-4d29-a538-5a1047b46542" />
     <Project Path="upx-killer-engine/upx-killer-engine.vcxproj" Id="911e077c-a45d-4468-a634-b1a8029a9dd1" />
     <Project Path="upx-killer-engine-host/upx-killer-engine-host.vcxproj" Id="da9d947b-c14b-44cb-8dbd-ceba49b319a6" />
+    <Project Path="upx-killer-elf-host/upx-killer-elf-host.vcxproj" Id="42b491c8-7c0b-48a2-a83d-b0e026563226" />
     <Project Path="upx-killer-dll-loader/upx-killer-dll-loader.vcxproj" Id="4fe35f42-ce89-41a8-bb7e-60a450fa028a" />
   </Folder>
   <Folder Name="/Tests/">

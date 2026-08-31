@@ -43,6 +43,7 @@
     <ClCompile Include="Tests\Unit\Loading\DllLoaderCatalogTests.cpp" />
     <ClCompile Include="Tests\Unit\PE\Capabilities\PeBackendCapabilitiesTests.cpp" />
     <ClCompile Include="Tests\Integration\Host\EngineHostIntegrationTests.cpp" />
+    <ClCompile Include="Tests\Integration\ELF64\ElfHostIntegrationValidation.cpp" />
     <ClCompile Include="Tests\Unit\OepDiscoveryTests.cpp" />
     <ClCompile Include="Tests\Unit\Imports\ImportDiscoveryTests.cpp" />
     <ClCompile Include="Tests\Unit\Sections\SectionLayoutRebuilderTests.cpp" />
@@ -52,6 +53,7 @@
     <ClCompile Include="Tests\Unit\PE32\Pe32FormatTests.cpp" />
     <ClCompile Include="Tests\Unit\PE32\DLL\Pe32DllExportTests.cpp" />
     <ClCompile Include="Tests\Unit\PE64\DLL\Pe64DllOepTests.cpp" />
+    <ClCompile Include="Tests\Unit\ELF64\ElfCoreTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp" />
     <ClCompile Include="Tests\Architecture\LayerDependencyTests.cpp" />

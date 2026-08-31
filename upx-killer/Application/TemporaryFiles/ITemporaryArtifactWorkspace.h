@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Targets/TargetDescriptor.h"
+
 #include <cstdint>
 #include <filesystem>
 #include <optional>
@@ -21,6 +23,7 @@ class ITemporaryArtifactWorkspace {
  public:
   virtual ~ITemporaryArtifactWorkspace() = default;
   [[nodiscard]] virtual TemporaryArtifactAllocationResult Allocate(
-      std::filesystem::path const& targetPath) const noexcept = 0;
+      std::filesystem::path const& targetPath,
+      contracts::TargetDescriptor const& target) const noexcept = 0;
 };
 }

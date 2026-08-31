@@ -43,6 +43,9 @@
     <Filter Include="Application\TemporaryFiles">
       <UniqueIdentifier>{FF76BFD9-5589-47E5-A6F0-672130EF1D5D}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Runtime">
+      <UniqueIdentifier>{9850553A-044A-497D-BB93-123549F34569}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{31C0682B-A03E-423B-89B1-7E055D4F1D73}</UniqueIdentifier>
     </Filter>
@@ -66,6 +69,12 @@
     </Filter>
     <Filter Include="Infrastructure\Settings">
       <UniqueIdentifier>{610A6D4F-04B0-4DB5-B48D-A735F822B56A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\WSL">
+      <UniqueIdentifier>{EAE04E7A-C0B2-4E4F-B764-48749319155B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\WSL\Discovery">
+      <UniqueIdentifier>{5534F77B-5DF1-4121-8E3B-0503188D5009}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{A5F8FA93-581E-4182-83A1-1A6815CC0418}</UniqueIdentifier>
@@ -357,11 +366,31 @@
     <Text Include="..\docs\adr\0006-pe64-dll-vertical-slice.md">
       <Filter>Documentation</Filter>
     </Text>
+    <Text Include="..\docs\adr\0007-wsl2-elf64-backend.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\testing\elf64-wsl-validation.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\planning\elf32-extension.md">
+      <Filter>Documentation</Filter>
+    </Text>
     <Text Include="..\docs\testing\real-sample-baseline.md">
       <Filter>Documentation</Filter>
     </Text>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp">
       <Filter>Generated</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application\Runtime\WslRuntimeSettings.h"><Filter>Application\Runtime</Filter></ClInclude>
+    <ClInclude Include="Application\Runtime\WslRuntimeSettingsWorkflow.h"><Filter>Application\Runtime</Filter></ClInclude>
+    <ClCompile Include="Application\Runtime\WslRuntimeSettingsWorkflow.cpp"><Filter>Application\Runtime</Filter></ClCompile>
+    <ClInclude Include="Infrastructure\Settings\LocalSettingsPath.h"><Filter>Infrastructure\Settings</Filter></ClInclude>
+    <ClCompile Include="Infrastructure\Settings\LocalSettingsPath.cpp"><Filter>Infrastructure\Settings</Filter></ClCompile>
+    <ClInclude Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.h"><Filter>Infrastructure\Settings</Filter></ClInclude>
+    <ClCompile Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.cpp"><Filter>Infrastructure\Settings</Filter></ClCompile>
+    <ClInclude Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.h"><Filter>Infrastructure\WSL\Discovery</Filter></ClInclude>
+    <ClCompile Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.cpp"><Filter>Infrastructure\WSL\Discovery</Filter></ClCompile>
   </ItemGroup>
 </Project>

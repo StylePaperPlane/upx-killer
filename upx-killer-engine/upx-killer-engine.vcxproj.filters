@@ -3,6 +3,13 @@
   <ItemGroup>
     <Filter Include="Core"><UniqueIdentifier>{2C013C75-11EC-470D-93C7-3A79616518AE}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE"><UniqueIdentifier>{8704338D-CB8D-4CC9-B578-6CFD4CA03A7F}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF"><UniqueIdentifier>{1B08BD8B-8547-4A47-A6E5-E5EA50F1E517}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\Format"><UniqueIdentifier>{24BF0616-5DE2-4EE5-A775-B0197FC2E82B}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\DynamicLinking"><UniqueIdentifier>{73E77884-42D3-42CA-AF71-C0541310B663}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\Parsing"><UniqueIdentifier>{AC783D38-20D3-4115-A815-E29A85107A88}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\OepDiscovery"><UniqueIdentifier>{6CA55FD7-4D17-43A6-8150-EFCA03BD9394}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\Reconstruction"><UniqueIdentifier>{AA07660F-1D14-4B18-AC9F-AE96B94C5523}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\Validation"><UniqueIdentifier>{F2D9485C-A447-42D3-A634-39FD77750514}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Format"><UniqueIdentifier>{6F7ED977-1C77-442A-8124-C9B8C8145165}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Exports"><UniqueIdentifier>{B689B309-8D1B-4630-884A-7736A1B7D9A2}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure"><UniqueIdentifier>{5B0409C2-1980-42E8-A6D6-B3DF17F57E8D}</UniqueIdentifier></Filter>
@@ -27,6 +34,12 @@
     <Filter Include="Infrastructure\Windows\Verification"><UniqueIdentifier>{D1C89F6C-6B26-4EE0-9B34-4D832E4C174A}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Loading"><UniqueIdentifier>{D3437A95-87AE-4A3F-AD02-189179406DC8}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE"><UniqueIdentifier>{A82ECFBC-652B-46F4-B50F-444C4D18C90F}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF"><UniqueIdentifier>{21C2BD8D-3892-4E4F-B553-38E2E3E53AA3}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF\Capabilities"><UniqueIdentifier>{3BCE3CE1-F8D5-455C-A4E3-6A99BF7EB1BB}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF\Preparation"><UniqueIdentifier>{304780DB-F37F-4428-9483-25737C4C570B}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF\Capture"><UniqueIdentifier>{7A71E0AA-C19A-4920-9DB3-E3E794884D7E}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF\Hosting"><UniqueIdentifier>{6E710B42-9003-4741-B939-F7571AD3EE74}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF\Reconstruction"><UniqueIdentifier>{CB3A3E01-21CC-467C-A608-73627C816098}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Capabilities"><UniqueIdentifier>{F522FB2B-65C8-4287-B9AF-B88402BC9877}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Preparation"><UniqueIdentifier>{3630059B-EAC6-47CC-A124-464861511B30}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Capture"><UniqueIdentifier>{E0BB83BE-76C6-4091-B477-2F21B77E180E}</UniqueIdentifier></Filter>
@@ -36,6 +49,21 @@
     <Filter Include="Infrastructure\Windows\Storage"><UniqueIdentifier>{1DC02A44-70BF-445B-9A75-B26C60F41C2C}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\ELF\Format\ElfImage.h"><Filter>Core\ELF\Format</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.h"><Filter>Core\ELF\DynamicLinking</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\Parsing\ElfParser.h"><Filter>Core\ELF\Parsing</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\OepDiscovery\UpxElfOepLocator.h"><Filter>Core\ELF\OepDiscovery</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\Reconstruction\ElfImageRebuilder.h"><Filter>Core\ELF\Reconstruction</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\Validation\ElfImageValidator.h"><Filter>Core\ELF\Validation</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Capabilities\ElfBackendCapabilities.h"><Filter>Application\ELF\Capabilities</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Preparation\ElfTargetPreparationUseCase.h"><Filter>Application\ELF\Preparation</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Preparation\ElfTargetProbe.h"><Filter>Application\ELF\Preparation</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Capture\ElfRuntimeCaptureUseCase.h"><Filter>Application\ELF\Capture</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Hosting\IElfHostClient.h"><Filter>Application\ELF\Hosting</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Hosting\RemoteElfUnpackBackend.h"><Filter>Application\ELF\Hosting</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.h"><Filter>Application\ELF\Reconstruction</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\ElfUnpackBackend.h"><Filter>Application\ELF</Filter></ClInclude>
+    <ClInclude Include="Application\Artifacts\IArtifactPublisher.h"><Filter>Application\Artifacts</Filter></ClInclude>
     <ClInclude Include="Core\PE\Format\PeFormat.h"><Filter>Core\PE\Format</Filter></ClInclude>
     <ClInclude Include="Core\PE\Format\PeFormatTraits.h"><Filter>Core\PE\Format</Filter></ClInclude>
     <ClInclude Include="Core\PE\Exports\ExportDirectoryAnalyzer.h"><Filter>Core\PE\Exports</Filter></ClInclude>
@@ -79,6 +107,18 @@
     <ClInclude Include="Infrastructure\Windows\Storage\WindowsTargetSourceReader.h"><Filter>Infrastructure\Windows\Storage</Filter></ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\ELF\Parsing\ElfParser.cpp"><Filter>Core\ELF\Parsing</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.cpp"><Filter>Core\ELF\DynamicLinking</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\OepDiscovery\UpxElfOepLocator.cpp"><Filter>Core\ELF\OepDiscovery</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\Reconstruction\ElfImageRebuilder.cpp"><Filter>Core\ELF\Reconstruction</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\Validation\ElfImageValidator.cpp"><Filter>Core\ELF\Validation</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Capabilities\ElfBackendCapabilities.cpp"><Filter>Application\ELF\Capabilities</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Preparation\ElfTargetPreparationUseCase.cpp"><Filter>Application\ELF\Preparation</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Preparation\ElfTargetProbe.cpp"><Filter>Application\ELF\Preparation</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Capture\ElfRuntimeCaptureUseCase.cpp"><Filter>Application\ELF\Capture</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Hosting\RemoteElfUnpackBackend.cpp"><Filter>Application\ELF\Hosting</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.cpp"><Filter>Application\ELF\Reconstruction</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\ElfUnpackBackend.cpp"><Filter>Application\ELF</Filter></ClCompile>
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp"><Filter>Core\PE\Parsing</Filter></ClCompile>
     <ClCompile Include="Core\PE\Exports\ExportDirectoryAnalyzer.cpp"><Filter>Core\PE\Exports</Filter></ClCompile>
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp"><Filter>Core\PE\OepDiscovery</Filter></ClCompile>

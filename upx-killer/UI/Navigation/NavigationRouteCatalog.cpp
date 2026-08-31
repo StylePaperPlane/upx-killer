@@ -14,7 +14,8 @@ std::vector<NavigationRouteRegistration> NavigationRouteCatalog::Create(
     NavigationRouteDependencies dependencies) {
   if (!dependencies.picker || !dependencies.engineClient ||
       !dependencies.workspace || !dependencies.artifactExporter ||
-      !dependencies.settingsStore || !dependencies.folderPicker) {
+      !dependencies.settingsStore || !dependencies.folderPicker ||
+      !dependencies.wslSettingsStore || !dependencies.wslDistributionCatalog) {
     throw std::invalid_argument("dependencies");
   }
   auto overview = [windowId = dependencies.windowId,
@@ -34,12 +35,16 @@ std::vector<NavigationRouteRegistration> NavigationRouteCatalog::Create(
   };
   auto configuration = [ownerWindowHandle = dependencies.ownerWindowHandle,
                         settingsStore = dependencies.settingsStore,
-                        folderPicker = dependencies.folderPicker](auto const& frame) {
+                        folderPicker = dependencies.folderPicker,
+                        wslSettingsStore = dependencies.wslSettingsStore,
+                        wslDistributionCatalog =
+                            dependencies.wslDistributionCatalog](auto const& frame) {
     auto viewModel = winrt::make<
         winrt::upx_killer::implementation::ConfigurationViewModel>();
     winrt::get_self<winrt::upx_killer::implementation::ConfigurationViewModel>(
         viewModel)
-        ->Initialize(ownerWindowHandle, settingsStore, folderPicker);
+        ->Initialize(ownerWindowHandle, settingsStore, folderPicker,
+                     wslSettingsStore, wslDistributionCatalog);
     return frame.Navigate(
         winrt::xaml_typename<winrt::upx_killer::ConfigurationPage>(),
         viewModel);

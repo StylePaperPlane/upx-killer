@@ -74,7 +74,9 @@ void MainWindow::InitializeShell(
     std::shared_ptr<::upx_killer::application::ITemporaryArtifactWorkspace> workspace,
     std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
     std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
-    std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker) {
+    std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker,
+    std::shared_ptr<::upx_killer::application::IWslRuntimeSettingsStore> wslSettingsStore,
+    std::shared_ptr<::upx_killer::application::IWslDistributionCatalog> wslDistributionCatalog) {
   if (m_navigationRouter) {
     return;
   }
@@ -84,7 +86,8 @@ void MainWindow::InitializeShell(
                           {AppWindow().Id(), m_windowHandle, std::move(picker),
                            std::move(engineClient), std::move(workspace),
                            std::move(artifactExporter), std::move(settingsStore),
-                           std::move(folderPicker)}));
+                           std::move(folderPicker), std::move(wslSettingsStore),
+                           std::move(wslDistributionCatalog)}));
 
   RootNavigationView().SelectionChanged({this, &MainWindow::OnNavigationSelectionChanged});
 

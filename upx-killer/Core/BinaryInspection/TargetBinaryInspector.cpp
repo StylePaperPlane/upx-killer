@@ -17,7 +17,6 @@ constexpr std::uint16_t PeCharacteristicDll = 0x2000;
 constexpr std::uint8_t ElfClass32 = 1;
 constexpr std::uint8_t ElfClass64 = 2;
 constexpr std::uint8_t ElfDataLittleEndian = 1;
-constexpr std::uint8_t ElfDataBigEndian = 2;
 constexpr std::uint16_t ElfTypeExecutable = 2;
 constexpr std::uint16_t ElfTypeSharedObject = 3;
 constexpr std::uint16_t ElfMachineX86 = 3;
@@ -51,6 +50,26 @@ std::uint32_t ReadUInt32LittleEndian(std::uint8_t const* bytes) noexcept {
   return static_cast<std::uint32_t>(bytes[0]) | (static_cast<std::uint32_t>(bytes[1]) << 8) |
          (static_cast<std::uint32_t>(bytes[2]) << 16) |
          (static_cast<std::uint32_t>(bytes[3]) << 24);
+}
+
+std::uint32_t ReadUInt32(std::uint8_t const* bytes,
+                         bool littleEndian) noexcept {
+  std::uint32_t result{};
+  for (std::size_t index = 0; index < 4; ++index) {
+    auto const source = littleEndian ? index : 3 - index;
+    result |= static_cast<std::uint32_t>(bytes[source]) << (index * 8);
+  }
+  return result;
+}
+
+std::uint64_t ReadUInt64(std::uint8_t const* bytes,
+                         bool littleEndian) noexcept {
+  std::uint64_t result{};
+  for (std::size_t index = 0; index < 8; ++index) {
+    auto const source = littleEndian ? index : 7 - index;
+    result |= static_cast<std::uint64_t>(bytes[source]) << (index * 8);
+  }
+  return result;
 }
 
 upx_killer::core::InspectionResult InspectPe(std::ifstream& stream,
@@ -124,7 +143,7 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
                                               std::uint64_t fileSize) noexcept {
   using namespace upx_killer::core;
 
-  std::array<std::uint8_t, 20> header{};
+  std::array<std::uint8_t, 32> header{};
   if (!ReadAt(stream, fileSize, 0, header.data(), header.size())) {
     return {std::nullopt, InspectionError::TruncatedFile};
   }
@@ -132,11 +151,11 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
   auto const elfClass = header[4];
   auto const dataEncoding = header[5];
   if ((elfClass != ElfClass32 && elfClass != ElfClass64) ||
-      (dataEncoding != ElfDataLittleEndian && dataEncoding != ElfDataBigEndian)) {
+      dataEncoding != ElfDataLittleEndian) {
     return {std::nullopt, InspectionError::UnsupportedFormat};
   }
 
-  auto const littleEndian = dataEncoding == ElfDataLittleEndian;
+  constexpr bool littleEndian = true;
   auto const objectType = ReadUInt16(header.data() + 16, littleEndian);
   auto const machine = ReadUInt16(header.data() + 18, littleEndian);
 
@@ -149,8 +168,12 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
     return {std::nullopt, InspectionError::UnsupportedArchitecture};
   }
 
-  auto const executable = objectType == ElfTypeExecutable;
-  auto const sharedObject = objectType == ElfTypeSharedObject;
+  auto const entryPoint = elfClass == ElfClass64
+                              ? ReadUInt64(header.data() + 24, littleEndian)
+                              : ReadUInt32(header.data() + 24, littleEndian);
+  auto const executable = objectType == ElfTypeExecutable ||
+                          (objectType == ElfTypeSharedObject && entryPoint != 0);
+  auto const sharedObject = objectType == ElfTypeSharedObject && entryPoint == 0;
   if (!executable && !sharedObject) {
     return {std::nullopt, InspectionError::UnsupportedFormat};
   }

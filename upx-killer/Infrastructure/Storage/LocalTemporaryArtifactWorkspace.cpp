@@ -27,20 +27,23 @@ void CleanupStaleArtifacts(std::filesystem::path const& root) noexcept {
   }
 }
 
-std::wstring ArtifactExtension(std::filesystem::path const& targetPath) {
-  auto extension = targetPath.extension().wstring();
-  std::transform(extension.begin(), extension.end(), extension.begin(),
-                 [](wchar_t value) {
-                   return static_cast<wchar_t>(std::towlower(value));
-                 });
-  return extension == L".dll" ? L".dll" : L".exe";
+std::wstring ArtifactExtension(
+    upx_killer::contracts::TargetDescriptor const& target) {
+  if (target.family == upx_killer::contracts::BinaryFamily::Elf)
+    return target.imageKind == upx_killer::contracts::ImageKind::SharedLibrary
+               ? L".so"
+               : L".elf";
+  return target.imageKind == upx_killer::contracts::ImageKind::SharedLibrary
+             ? L".dll"
+             : L".exe";
 }
 }
 
 namespace upx_killer::infrastructure {
 application::TemporaryArtifactAllocationResult
 LocalTemporaryArtifactWorkspace::Allocate(
-    std::filesystem::path const& targetPath) const noexcept {
+    std::filesystem::path const& targetPath,
+    contracts::TargetDescriptor const& target) const noexcept {
   try {
     if (!m_settingsStore || targetPath.empty()) {
       return {std::nullopt, "workspace.settings.unavailable"};
@@ -56,7 +59,7 @@ LocalTemporaryArtifactWorkspace::Allocate(
                          std::to_wstring(GetTickCount64()) + L"-" +
                          std::to_wstring(sequence);
     auto const outputPath = settings.directory / session /
-        (targetPath.stem().wstring() + L".dumped" + ArtifactExtension(targetPath));
+        (targetPath.stem().wstring() + L".dumped" + ArtifactExtension(target));
     return {application::TemporaryArtifactAllocation{
                 outputPath, !settings.deleteAfterExport},
             {}};

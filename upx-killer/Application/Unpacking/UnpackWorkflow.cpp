@@ -36,6 +36,7 @@ bool UnpackWorkflow::Supports(contracts::TargetDescriptor const& target) const n
 
 contracts::JobResult UnpackWorkflow::Start(
     std::filesystem::path const& targetPath,
+    contracts::TargetDescriptor const& target,
     std::optional<contracts::EntryPointHint> entryPoint,
     IUnpackEngineClient::ProgressCallback const& progress) const noexcept {
   if (!m_client || !m_workspace) {
@@ -43,7 +44,7 @@ contracts::JobResult UnpackWorkflow::Start(
             "workspace.unavailable"};
   }
 
-  auto allocation = m_workspace->Allocate(targetPath);
+  auto allocation = m_workspace->Allocate(targetPath, target);
   if (!allocation.allocation) {
     return {contracts::JobOutcome::Failed, contracts::ErrorCategory::Storage,
             std::move(allocation.detailCode), std::nullopt,

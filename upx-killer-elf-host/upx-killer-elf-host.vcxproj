@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{42B491C8-7C0B-48A2-A83D-B0E026563226}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <RootNamespace>upxkillerelfhost</RootNamespace>
+    <ProjectName>upx-killer-elf-host</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType><PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType><PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <NMakeBuildCommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)Build-ElfHost.ps1" -Configuration $(Configuration)</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>$(NMakeBuildCommandLine)</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>"$(SystemRoot)\System32\wsl.exe" -d kali-linux -- bash -lc "rm -rf /tmp/upx-killer-elf-host-$(Configuration)"</NMakeCleanCommandLine>
+    <NMakeOutput>$(SolutionDir)upx-killer\x64\$(Configuration)\upx-killer\upx_killer_elf_host</NMakeOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\ElfHostMain.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.cpp" />
+    <ClInclude Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.h" />
+    <ClInclude Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.h" />
+    <ClInclude Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.h" />
+    <ClInclude Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.h" />
+    <ClInclude Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.h" />
+    <ClInclude Include="Infrastructure\Linux\Pipes\PosixPipeTransport.h" />
+    <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h" />
+    <ClInclude Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.h" />
+    <ClInclude Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.h" />
+    <None Include="Build-ElfHost.ps1" />
+    <None Include="CMakeLists.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

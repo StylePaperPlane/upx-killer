@@ -9,6 +9,7 @@
 #include "Application/TemporaryFiles/ITemporaryFolderPicker.h"
 #include "Application/TemporaryFiles/TemporaryFileSettings.h"
 #include "Application/TemporaryFiles/ITemporaryArtifactWorkspace.h"
+#include "Application/Runtime/WslRuntimeSettings.h"
 
 #include <memory>
 #include <cstdint>
@@ -29,7 +30,9 @@ struct MainWindow : MainWindowT<MainWindow> {
       std::shared_ptr<::upx_killer::application::ITemporaryArtifactWorkspace> workspace,
       std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
       std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
-      std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker);
+      std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker,
+      std::shared_ptr<::upx_killer::application::IWslRuntimeSettingsStore> wslSettingsStore,
+      std::shared_ptr<::upx_killer::application::IWslDistributionCatalog> wslDistributionCatalog);
 
  private:
   void OnNavigationSelectionChanged(

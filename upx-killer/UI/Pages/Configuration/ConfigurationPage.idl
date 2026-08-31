@@ -7,6 +7,9 @@ namespace upx_killer
         Int32 AutoDeleteSelectedIndex;
         String AutoDeleteHelpText{ get; };
         Microsoft.UI.Xaml.Input.ICommand SelectTemporaryDirectoryCommand{ get; };
+        Windows.Foundation.Collections.IVector<String> WslDistributions{ get; };
+        Int32 SelectedWslDistributionIndex;
+        Microsoft.UI.Xaml.Input.ICommand RefreshWslDistributionsCommand{ get; };
     };
 
     runtimeclass ConfigurationPage : Microsoft.UI.Xaml.Controls.Page

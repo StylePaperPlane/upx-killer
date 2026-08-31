@@ -24,7 +24,8 @@ winrt::Windows::Foundation::IAsyncOperation<bool> ArtifactFileExporter::ExportAs
   auto extension = artifactPath.extension().wstring();
   std::transform(extension.begin(), extension.end(), extension.begin(),
                  [](wchar_t value) { return static_cast<wchar_t>(std::towlower(value)); });
-  if (extension != L".dll") extension = L".exe";
+  if (extension != L".dll" && extension != L".elf" && extension != L".so")
+    extension = L".exe";
   picker.DefaultFileExtension(winrt::hstring{extension});
   auto extensions = winrt::single_threaded_vector<winrt::hstring>();
   extensions.Append(winrt::hstring{extension});

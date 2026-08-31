@@ -21,7 +21,7 @@ JobResult UnpackCoordinator::Execute(UnpackJobRequest const& request,
     if (request.targetPath.empty() || request.outputPath.empty() ||
         request.timeoutMilliseconds == 0 || request.maximumImageSize == 0) {
       return {JobOutcome::Failed, ErrorCategory::InvalidRequest,
-              "job.request.invalid"};
+              "job.request.invalid", std::nullopt, 0};
     }
 
     std::shared_ptr<IUnpackBackend> selected;
@@ -31,7 +31,7 @@ JobResult UnpackCoordinator::Execute(UnpackJobRequest const& request,
       if (!probe.recognized) continue;
       if (selected) {
         return {JobOutcome::Failed, ErrorCategory::Configuration,
-                "coordinator.backend.multiple_matches"};
+                "coordinator.backend.multiple_matches", std::nullopt, 0};
       }
       selected = backend;
       selectedProbe = std::move(probe);
@@ -39,17 +39,18 @@ JobResult UnpackCoordinator::Execute(UnpackJobRequest const& request,
 
     if (!selected) {
       return {JobOutcome::UnsupportedTarget, ErrorCategory::UnsupportedTarget,
-              "target.unrecognized"};
+              "target.unrecognized", std::nullopt, 0};
     }
     if (!selectedProbe.supported) {
       return {JobOutcome::UnsupportedTarget, ErrorCategory::UnsupportedTarget,
               selectedProbe.detailCode.empty() ? "target.unsupported"
-                                               : std::move(selectedProbe.detailCode)};
+                                               : std::move(selectedProbe.detailCode),
+              std::nullopt, 0};
     }
     return selected->Execute(request, progress, stopToken);
   } catch (...) {
     return {JobOutcome::Failed, ErrorCategory::Internal,
-            "coordinator.unhandled_exception"};
+            "coordinator.unhandled_exception", std::nullopt, 0};
   }
 }
 }

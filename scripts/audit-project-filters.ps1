@@ -60,7 +60,19 @@ foreach ($project in $projects) {
     $namespace.AddNamespace('msb', 'http://schemas.microsoft.com/developer/msbuild/2003')
     $defined = @($filterXml.SelectNodes('//msb:Filter[@Include]', $namespace) |
         ForEach-Object { [string]$_.Include })
+    foreach ($item in $filterItems) {
+        if ($defined -notcontains $item.Filter) {
+            $failures.Add("Undefined Filter in $($project.Name): $($item.Filter) for $($item.Key)")
+        }
+    }
     foreach ($filter in $defined) {
+        $segments = $filter -split '\\'
+        for ($index = 1; $index -lt $segments.Count; $index++) {
+            $parent = ($segments[0..($index - 1)] -join '\')
+            if ($defined -notcontains $parent) {
+                $failures.Add("Missing parent Filter in $($project.Name): $parent (required by $filter)")
+            }
+        }
         if ($filter -eq 'Generated' -or $filter.StartsWith('Generated\', [StringComparison]::Ordinal)) {
             continue
         }

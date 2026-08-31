@@ -75,7 +75,33 @@ struct HostChannel {
   }
 };
 
-HostChannel LaunchHost(std::filesystem::path const& hostPath) {
+std::vector<wchar_t> BuildEnvironment(std::wstring const& distribution) {
+  std::vector<wchar_t> result;
+  auto const environment = GetEnvironmentStringsW();
+  if (!environment) return {L'\0', L'\0'};
+  constexpr std::wstring_view key = L"UPX_KILLER_WSL_DISTRIBUTION=";
+  for (auto current = environment; *current != L'\0';) {
+    auto const length = std::wcslen(current);
+    std::wstring_view entry{current, length};
+    if (entry.size() < key.size() ||
+        _wcsnicmp(entry.data(), key.data(), key.size()) != 0) {
+      result.insert(result.end(), entry.begin(), entry.end());
+      result.push_back(L'\0');
+    }
+    current += length + 1;
+  }
+  FreeEnvironmentStringsW(environment);
+  if (!distribution.empty()) {
+    result.insert(result.end(), key.begin(), key.end());
+    result.insert(result.end(), distribution.begin(), distribution.end());
+    result.push_back(L'\0');
+  }
+  result.push_back(L'\0');
+  return result;
+}
+
+HostChannel LaunchHost(std::filesystem::path const& hostPath,
+                       std::wstring const& wslDistribution) {
   HostChannel channel{};
   SECURITY_ATTRIBUTES security{sizeof(security), nullptr, TRUE};
   HANDLE requestReadRaw{}, requestWriteRaw{};
@@ -122,11 +148,12 @@ HostChannel LaunchHost(std::filesystem::path const& hostPath) {
   startup.lpAttributeList = attributes.get();
   PROCESS_INFORMATION processInformation{};
   auto commandLine = L"\"" + hostPath.wstring() + L"\"";
+  auto environment = BuildEnvironment(wslDistribution);
   if (!CreateProcessW(
           hostPath.c_str(), commandLine.data(), nullptr, nullptr, TRUE,
           EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW |
               CREATE_UNICODE_ENVIRONMENT,
-          nullptr, hostPath.parent_path().c_str(), &startup.StartupInfo,
+          environment.data(), hostPath.parent_path().c_str(), &startup.StartupInfo,
           &processInformation)) {
     channel.nativeCode = GetLastError();
     return channel;
@@ -158,12 +185,13 @@ void FinishHost(HostChannel& channel, DWORD timeout) noexcept {
 
 namespace upx_killer::infrastructure {
 EngineHostCapabilityResult EngineHostProcessSession::QueryCapabilities(
-    std::filesystem::path const& hostPath) noexcept {
+    std::filesystem::path const& hostPath,
+    std::wstring const& wslDistribution) noexcept {
   try {
     if (!std::filesystem::is_regular_file(hostPath)) {
       return {false, {}, "host.executable.not_found", ERROR_FILE_NOT_FOUND};
     }
-    auto channel = LaunchHost(hostPath);
+    auto channel = LaunchHost(hostPath, wslDistribution);
     if (!channel.valid()) {
       return {false, {}, "host.launch_failed", channel.nativeCode};
     }
@@ -195,7 +223,8 @@ EngineHostCapabilityResult EngineHostProcessSession::QueryCapabilities(
 contracts::JobResult EngineHostProcessSession::Execute(
     std::filesystem::path const& hostPath,
     contracts::UnpackJobRequest const& request,
-    contracts::ProgressCallback const& progress) noexcept {
+    contracts::ProgressCallback const& progress,
+    std::wstring const& wslDistribution) noexcept {
   try {
     if (!std::filesystem::is_regular_file(hostPath)) {
       return ClientFailure("host.executable.not_found", ERROR_FILE_NOT_FOUND);
@@ -203,7 +232,7 @@ contracts::JobResult EngineHostProcessSession::Execute(
     if (request.outputPath.empty()) {
       return ClientFailure("host.output_path.required", ERROR_INVALID_PARAMETER);
     }
-    auto channel = LaunchHost(hostPath);
+    auto channel = LaunchHost(hostPath, wslDistribution);
     if (!channel.valid()) {
       return ClientFailure("host.launch_failed", channel.nativeCode);
     }

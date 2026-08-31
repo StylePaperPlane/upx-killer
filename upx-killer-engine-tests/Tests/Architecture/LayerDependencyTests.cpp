@@ -83,6 +83,12 @@ int RunLayerDependencyTests() {
        "WindowsDebugSession", "ReadProcessMemory", "CreateFileW"},
       "PE backend must only coordinate use cases");
   failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Application" / "ELF" /
+          "ElfUnpackBackend.cpp",
+      {"ElfParser::", "ElfImageRebuilder", "ptrace", "/proc/", "WslLaunch",
+       "LinuxProcessMemory"},
+      "ELF backend must only coordinate use cases");
+  failures += RequireAbsent(
       *root / "upx-killer-engine" / "Application" / "Artifacts",
       {"Core/PE/", "PreparedPeTarget", "ReconstructedPeImage", "PeImageKind"},
       "Artifact publication must remain format-neutral");
@@ -92,5 +98,10 @@ int RunLayerDependencyTests() {
       {"TemporaryFileSettings", "temp_directory_path", "remove_all",
        "CreateProcessW", "CreatePipe"},
       "Engine host client must delegate workspace and process concerns");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine-host" / "Infrastructure" / "Windows" /
+          "WSL",
+      {"Core/ELF/", "ElfParser::", "ElfImageRebuilder", "ptrace"},
+      "Windows WSL adapters must use portable contracts, not ELF internals");
   return failures;
 }

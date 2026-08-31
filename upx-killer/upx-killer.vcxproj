@@ -154,6 +154,11 @@
     <ClInclude Include="Infrastructure\Storage\TemporaryFolderPicker.h" />
     <ClInclude Include="Infrastructure\Storage\LocalTemporaryArtifactWorkspace.h" />
     <ClInclude Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.h" />
+    <ClInclude Include="Infrastructure\Settings\LocalSettingsPath.h" />
+    <ClInclude Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.h" />
+    <ClInclude Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.h" />
+    <ClInclude Include="Application\Runtime\WslRuntimeSettings.h" />
+    <ClInclude Include="Application\Runtime\WslRuntimeSettingsWorkflow.h" />
     <ClInclude Include="Infrastructure\EngineHost\EngineHostClient.h" />
     <ClInclude Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.h" />
     <ClInclude Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.h" />
@@ -203,6 +208,10 @@
     <ClCompile Include="Infrastructure\Storage\TemporaryFolderPicker.cpp" />
     <ClCompile Include="Infrastructure\Storage\LocalTemporaryArtifactWorkspace.cpp" />
     <ClCompile Include="Infrastructure\Settings\LocalTemporaryFileSettingsStore.cpp" />
+    <ClCompile Include="Infrastructure\Settings\LocalSettingsPath.cpp" />
+    <ClCompile Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.cpp" />
+    <ClCompile Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.cpp" />
+    <ClCompile Include="Application\Runtime\WslRuntimeSettingsWorkflow.cpp" />
     <ClCompile Include="UI\Navigation\NavigationPaneController.cpp" />
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp" />
     <ClCompile Include="UI\Navigation\NavigationRouteCatalog.cpp" />
@@ -248,6 +257,9 @@
     <Text Include="..\docs\adr\0004-isolated-pe32-dll-loading-and-source-aslr-intent.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0005-format-backends-and-portable-engine-contracts.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0006-pe64-dll-vertical-slice.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0007-wsl2-elf64-backend.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\testing\elf64-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\planning\elf32-extension.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\real-sample-baseline.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>
   <ItemGroup>

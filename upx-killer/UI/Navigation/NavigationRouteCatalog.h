@@ -6,6 +6,7 @@
 #include "Application/TemporaryFiles/TemporaryFileSettings.h"
 #include "Application/Unpacking/IArtifactExporter.h"
 #include "Application/Unpacking/IUnpackEngineClient.h"
+#include "Application/Runtime/WslRuntimeSettings.h"
 #include "UI/Navigation/NavigationRouter.h"
 
 #include <cstdint>
@@ -24,6 +25,8 @@ struct NavigationRouteDependencies {
   std::shared_ptr<application::IArtifactExporter> artifactExporter;
   std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore;
   std::shared_ptr<application::ITemporaryFolderPicker> folderPicker;
+  std::shared_ptr<application::IWslRuntimeSettingsStore> wslSettingsStore;
+  std::shared_ptr<application::IWslDistributionCatalog> wslDistributionCatalog;
 };
 
 class NavigationRouteCatalog final {

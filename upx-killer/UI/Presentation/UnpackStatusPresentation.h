@@ -14,7 +14,7 @@ struct UnpackResultPresentation {
 class UnpackStatusPresentation final {
  public:
   [[nodiscard]] static wchar_t const* ProgressResource(
-      contracts::JobStage stage) noexcept;
+      contracts::ProgressEvent const& event) noexcept;
   [[nodiscard]] static UnpackResultPresentation Result(
       contracts::JobResult const& result) noexcept;
 };

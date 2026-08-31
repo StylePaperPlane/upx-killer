@@ -16,6 +16,7 @@ winrt::Windows::Foundation::IAsyncOperation<winrt::hstring> TargetFilePicker::Pi
   picker.FileTypeFilter().Append(L".dll");
   picker.FileTypeFilter().Append(L".elf");
   picker.FileTypeFilter().Append(L".so");
+  picker.FileTypeFilter().Append(L"*");
 
   auto const result = co_await picker.PickSingleFileAsync();
   co_return result ? result.Path() : winrt::hstring{};

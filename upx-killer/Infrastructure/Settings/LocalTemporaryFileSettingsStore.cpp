@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Infrastructure/Settings/LocalTemporaryFileSettingsStore.h"
-
-#include <ShlObj.h>
+#include "Infrastructure/Settings/LocalSettingsPath.h"
 
 #include <array>
 
@@ -15,7 +14,7 @@ constexpr wchar_t DeleteAfterExportKey[] = L"DeleteAfterExport";
 
 namespace upx_killer::infrastructure {
 LocalTemporaryFileSettingsStore::LocalTemporaryFileSettingsStore()
-    : m_settingsFile(SettingsFilePath()) {}
+    : m_settingsFile(LocalSettingsPath::Resolve()) {}
 
 application::TemporaryFileSettings LocalTemporaryFileSettingsStore::Load() const noexcept {
   std::scoped_lock lock{m_mutex};
@@ -63,15 +62,4 @@ std::filesystem::path LocalTemporaryFileSettingsStore::DefaultTemporaryDirectory
   }
 }
 
-std::filesystem::path LocalTemporaryFileSettingsStore::SettingsFilePath() noexcept {
-  PWSTR localAppDataRaw{};
-  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, nullptr,
-                                     &localAppDataRaw))) {
-    std::filesystem::path const localAppData{localAppDataRaw};
-    CoTaskMemFree(localAppDataRaw);
-    return localAppData / L"upx-killer" / L"settings.ini";
-  }
-
-  return DefaultTemporaryDirectory() / L"settings.ini";
-}
 }

@@ -3,8 +3,12 @@
 
 namespace upx_killer::ui::presentation {
 wchar_t const* UnpackStatusPresentation::ProgressResource(
-    contracts::JobStage stage) noexcept {
-  switch (stage) {
+    contracts::ProgressEvent const& event) noexcept {
+  if (event.detailCode == "elf.progress.rebuilding_image")
+    return L"StatusRebuildingElf";
+  if (event.detailCode == "elf.progress.validating_artifact")
+    return L"StatusValidatingElf";
+  switch (event.stage) {
     case contracts::JobStage::DiscoveringEntryPoint:
       return L"StatusFindingOep";
     case contracts::JobStage::LoadingTarget:
@@ -57,6 +61,22 @@ UnpackResultPresentation UnpackStatusPresentation::Result(
   }
   if (result.detailCode == "pe.relocations.pe32_type_unsupported") {
     return {UnpackStatusTone::Error, L"StatusUnsupportedPe32Relocation", false};
+  }
+  if (result.detailCode == "elf.packer.unsupported") {
+    return {UnpackStatusTone::Error, L"StatusUnsupportedElfPacker", false};
+  }
+  if (result.detailCode == "elf.oep.not_found") {
+    return {UnpackStatusTone::Error, L"StatusElfOepNotFound", false};
+  }
+  if (result.detailCode == "elf.wsl.not_configured") {
+    return {UnpackStatusTone::Unavailable, L"StatusWslNotConfigured", false};
+  }
+  if (result.detailCode.starts_with("elf.wsl.")) {
+    return {UnpackStatusTone::Error, L"StatusWslUnavailable", false};
+  }
+  if (result.detailCode == "elf.artifact.validation_failed" ||
+      result.detailCode.starts_with("elf.validation.")) {
+    return {UnpackStatusTone::Error, L"StatusElfValidationFailed", false};
   }
   return {UnpackStatusTone::Error, L"StatusUnpackFailed", false};
 }

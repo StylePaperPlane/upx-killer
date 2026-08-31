@@ -137,6 +137,43 @@
                         <ComboBoxItem x:Uid="AutoDeleteNoOption" />
                     </ComboBox>
                 </Grid>
+
+                <Border
+                    Height="1"
+                    Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                <StackPanel Spacing="16">
+                    <TextBlock
+                        x:Uid="WslRuntimeTitle"
+                        Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            x:Uid="WslDistributionLabel"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <Button
+                            x:Name="RefreshWslDistributionsButton"
+                            x:Uid="RefreshWslDistributionsButton"
+                            AutomationProperties.AutomationId="RefreshWslDistributionsButton"
+                            Grid.Column="1"
+                            MinHeight="32"
+                            Command="{x:Bind ViewModel.RefreshWslDistributionsCommand, Mode=OneWay}"
+                            TabIndex="3" />
+                        <ComboBox
+                            x:Name="WslDistributionComboBox"
+                            AutomationProperties.AutomationId="WslDistributionComboBox"
+                            Grid.Column="2"
+                            MinWidth="144"
+                            ItemsSource="{x:Bind ViewModel.WslDistributions, Mode=OneWay}"
+                            SelectedIndex="{x:Bind ViewModel.SelectedWslDistributionIndex, Mode=TwoWay}"
+                            TabIndex="4" />
+                    </Grid>
+                </StackPanel>
             </StackPanel>
         </Border>
     </Grid>

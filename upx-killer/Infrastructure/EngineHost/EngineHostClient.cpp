@@ -8,8 +8,11 @@
 #include <vector>
 
 namespace upx_killer::infrastructure {
-EngineHostClient::EngineHostClient(std::filesystem::path hostPath)
-    : m_hostPath(std::move(hostPath)) {}
+EngineHostClient::EngineHostClient(
+    std::filesystem::path hostPath,
+    std::shared_ptr<application::IWslRuntimeSettingsStore> wslSettings)
+    : m_hostPath(std::move(hostPath)),
+      m_wslSettings(std::move(wslSettings)) {}
 
 std::filesystem::path EngineHostClient::AdjacentHostPath() {
   std::vector<wchar_t> buffer(32768);
@@ -25,8 +28,15 @@ std::filesystem::path EngineHostClient::AdjacentHostPath() {
 std::vector<contracts::BackendManifest>
 EngineHostClient::QueryCapabilities() noexcept {
   std::scoped_lock lock{m_capabilitiesMutex};
+  auto const distribution = m_wslSettings ? m_wslSettings->Load().distribution
+                                          : std::wstring{};
+  if (distribution != m_cachedDistribution) {
+    m_cachedDistribution = distribution;
+    m_capabilities.reset();
+  }
   if (m_capabilities) return *m_capabilities;
-  auto result = EngineHostProcessSession::QueryCapabilities(m_hostPath);
+  auto result = EngineHostProcessSession::QueryCapabilities(
+      m_hostPath, distribution);
   if (!result.succeeded) return {};
   m_capabilities = std::move(result.manifests);
   return *m_capabilities;
@@ -35,6 +45,9 @@ EngineHostClient::QueryCapabilities() noexcept {
 contracts::JobResult EngineHostClient::Execute(
     contracts::UnpackJobRequest const& request,
     ProgressCallback const& progress) noexcept {
-  return EngineHostProcessSession::Execute(m_hostPath, request, progress);
+  auto const distribution = m_wslSettings ? m_wslSettings->Load().distribution
+                                          : std::wstring{};
+  return EngineHostProcessSession::Execute(m_hostPath, request, progress,
+                                           distribution);
 }
 }

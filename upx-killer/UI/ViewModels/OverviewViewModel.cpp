@@ -164,7 +164,8 @@ winrt::fire_and_forget OverviewViewModel::StartUnpackAsync() {
     if (!dispatcher) return;
     dispatcher.TryEnqueue([lifetime, event]() { lifetime->SetProgress(event); });
   };
-  auto const result = m_unpackWorkflow->Start(targetPath, std::nullopt, progress);
+  auto const result = m_unpackWorkflow->Start(
+      targetPath, *m_targetDescriptor, std::nullopt, progress);
   co_await uiContext;
   m_busy = false;
   auto const presentation =
@@ -274,7 +275,7 @@ void OverviewViewModel::SetStatus(winrt::upx_killer::OverviewStatusKind kind,
 void OverviewViewModel::SetProgress(
     ::upx_killer::contracts::ProgressEvent const& event) {
   auto const resourceKey =
-      ::upx_killer::ui::presentation::UnpackStatusPresentation::ProgressResource(event.stage);
+      ::upx_killer::ui::presentation::UnpackStatusPresentation::ProgressResource(event);
   if (resourceKey) SetStatus(winrt::upx_killer::OverviewStatusKind::Busy, resourceKey);
 }
 

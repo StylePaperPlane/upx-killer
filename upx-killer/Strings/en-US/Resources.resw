@@ -114,7 +114,6 @@
   <data name="StatusOepNotFound" xml:space="preserve"><value>No reliable original entry point was found</value></data>
   <data name="StatusImportsNotRebuilt" xml:space="preserve"><value>Imports could not be resolved; no output was created</value></data>
   <data name="StatusProcessing" xml:space="preserve"><value>Processing</value></data>
-  <data name="StatusEnginePeOnly" xml:space="preserve"><value>The unpacking engine supports x86/x64 PE executables and x86 PE libraries</value></data>
   <data name="StatusWow64Unavailable" xml:space="preserve"><value>WOW64 debugging is unavailable on this system</value></data>
   <data name="StatusUnsupportedPe32Relocation" xml:space="preserve"><value>This PE32 file uses unsupported legacy relocations</value></data>
   <data name="StatusPartialImportsNotRebuilt" xml:space="preserve">
@@ -182,4 +181,17 @@
   <data name="BinaryUnknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
+  <data name="WslRuntimeTitle.Text" xml:space="preserve"><value>Linux runtime</value></data>
+  <data name="WslDistributionLabel.Text" xml:space="preserve"><value>WSL2 distribution</value></data>
+  <data name="RefreshWslDistributionsButton.Content" xml:space="preserve"><value>Refresh</value></data>
+  <data name="WslDistributionAutomationName" xml:space="preserve"><value>WSL2 distribution</value></data>
+  <data name="RefreshWslDistributionsAutomationName" xml:space="preserve"><value>Refresh WSL2 distributions</value></data>
+  <data name="StatusEnginePeOnly" xml:space="preserve"><value>The unpacking engine does not support this target configuration</value></data>
+  <data name="StatusRebuildingElf" xml:space="preserve"><value>Rebuilding ELF image</value></data>
+  <data name="StatusValidatingElf" xml:space="preserve"><value>Validating ELF image</value></data>
+  <data name="StatusUnsupportedElfPacker" xml:space="preserve"><value>The file is not a supported UPX x64 ELF executable</value></data>
+  <data name="StatusElfOepNotFound" xml:space="preserve"><value>A reliable ELF entry point was not found</value></data>
+  <data name="StatusWslNotConfigured" xml:space="preserve"><value>Select an available WSL2 distribution in Configuration</value></data>
+  <data name="StatusWslUnavailable" xml:space="preserve"><value>The selected WSL2 runtime is unavailable</value></data>
+  <data name="StatusElfValidationFailed" xml:space="preserve"><value>The rebuilt ELF image failed validation</value></data>
 </root>

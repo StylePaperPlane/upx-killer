@@ -24,6 +24,12 @@ ConfigurationPage::ConfigurationPage()
                                 resources.GetString(L"AutoDeleteHelpAutomationName"));
   AutomationProperties::SetName(AutoDeleteComboBox(),
                                 resources.GetString(L"AutoDeleteAutomationName"));
+  AutomationProperties::SetName(
+      WslDistributionComboBox(),
+      resources.GetString(L"WslDistributionAutomationName"));
+  AutomationProperties::SetName(
+      RefreshWslDistributionsButton(),
+      resources.GetString(L"RefreshWslDistributionsAutomationName"));
 }
 
 winrt::upx_killer::ConfigurationViewModel ConfigurationPage::ViewModel() const {

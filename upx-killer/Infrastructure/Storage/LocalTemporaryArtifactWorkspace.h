@@ -14,7 +14,8 @@ class LocalTemporaryArtifactWorkspace final
       : m_settingsStore(std::move(settingsStore)) {}
 
   [[nodiscard]] application::TemporaryArtifactAllocationResult Allocate(
-      std::filesystem::path const& targetPath) const noexcept override;
+      std::filesystem::path const& targetPath,
+      contracts::TargetDescriptor const& target) const noexcept override;
 
  private:
   std::shared_ptr<application::ITemporaryFileSettingsStore> m_settingsStore;

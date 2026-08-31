@@ -4,6 +4,8 @@
 #include "Infrastructure/EngineHost/EngineHostClient.h"
 #include "Infrastructure/Storage/ArtifactFileExporter.h"
 #include "Infrastructure/Settings/LocalTemporaryFileSettingsStore.h"
+#include "Infrastructure/Settings/LocalWslRuntimeSettingsStore.h"
+#include "Infrastructure/WSL/Discovery/WslDistributionCatalog.h"
 #include "Infrastructure/Storage/TemporaryFolderPicker.h"
 #include "Infrastructure/Storage/LocalTemporaryArtifactWorkspace.h"
 #include "UI/Windows/MainWindow/MainWindow.xaml.h"
@@ -43,18 +45,23 @@ void App::OnLaunched([[maybe_unused]] LaunchActivatedEventArgs const& e) {
   auto const temporaryFileSettings =
       std::make_shared<::upx_killer::infrastructure::LocalTemporaryFileSettingsStore>();
   auto const mainWindow = make<MainWindow>();
+  auto const wslSettings =
+      std::make_shared<::upx_killer::infrastructure::LocalWslRuntimeSettingsStore>();
   auto const workspace =
       std::make_shared<::upx_killer::infrastructure::LocalTemporaryArtifactWorkspace>(
           temporaryFileSettings);
   get_self<MainWindow>(mainWindow)
       ->InitializeShell(std::make_shared<::upx_killer::infrastructure::TargetFilePicker>(),
                         std::make_shared<::upx_killer::infrastructure::EngineHostClient>(
-                            ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath()),
+                            ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath(),
+                            wslSettings),
                         workspace,
                         std::make_shared<::upx_killer::infrastructure::ArtifactFileExporter>(
                             temporaryFileSettings),
                         temporaryFileSettings,
-                        std::make_shared<::upx_killer::infrastructure::TemporaryFolderPicker>());
+                        std::make_shared<::upx_killer::infrastructure::TemporaryFolderPicker>(),
+                        wslSettings,
+                        std::make_shared<::upx_killer::infrastructure::WslDistributionCatalog>());
 
   window = mainWindow;
   window.Activate();

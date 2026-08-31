@@ -14,6 +14,7 @@
     <Filter Include="Tests\Unit\PE"><UniqueIdentifier>{F100F147-6F38-4433-9235-EE5DA94255EB}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\PE\Capabilities"><UniqueIdentifier>{8E2A4436-5607-4D6D-B2CD-C14AC44E3827}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\Host"><UniqueIdentifier>{70D61C47-D151-4E40-B5C1-B28192D4E6AB}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\ELF64"><UniqueIdentifier>{28F79D62-9B53-4779-85AB-C03E8CD4B6F5}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\OepDiscovery"><UniqueIdentifier>{1B6E794A-B976-4B65-92DA-9C0E82019E29}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Imports"><UniqueIdentifier>{D2F7AE1C-1D14-4F2E-A3D5-16B7B3F0A91E}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Sections"><UniqueIdentifier>{8EBE54C3-F14C-4B3A-AE05-C4C25D20AE31}</UniqueIdentifier></Filter>
@@ -23,6 +24,7 @@
     <Filter Include="Tests\Unit\PE32\DLL"><UniqueIdentifier>{15B3467B-2F9F-43CF-88CC-B76A7A66015B}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\PE64"><UniqueIdentifier>{02763D9A-63D1-4C5F-A3B0-A8A7F40730D4}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\PE64\DLL"><UniqueIdentifier>{3D93B275-8247-42AA-8544-074900883D55}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\ELF64"><UniqueIdentifier>{21725285-1E4F-4C44-A8A5-61BA33393D75}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Contracts"><UniqueIdentifier>{14E5EC74-2B0C-4D2F-85AC-5F494E567D52}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\WOW64"><UniqueIdentifier>{21FA6867-DA1D-4E5E-B804-36A6C51D5814}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\Native64"><UniqueIdentifier>{DAD4E822-5C15-43E0-A333-9C350C54AA33}</UniqueIdentifier></Filter>
@@ -38,6 +40,7 @@
     <ClCompile Include="Tests\Unit\Loading\DllLoaderCatalogTests.cpp"><Filter>Tests\Unit\Loading</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\PE\Capabilities\PeBackendCapabilitiesTests.cpp"><Filter>Tests\Unit\PE\Capabilities</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Host\EngineHostIntegrationTests.cpp"><Filter>Tests\Integration\Host</Filter></ClCompile>
+    <ClCompile Include="Tests\Integration\ELF64\ElfHostIntegrationValidation.cpp"><Filter>Tests\Integration\ELF64</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\OepDiscoveryTests.cpp"><Filter>Tests\Unit\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Imports\ImportDiscoveryTests.cpp"><Filter>Tests\Unit\Imports</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Sections\SectionLayoutRebuilderTests.cpp"><Filter>Tests\Unit\Sections</Filter></ClCompile>
@@ -47,6 +50,7 @@
     <ClCompile Include="Tests\Unit\PE32\Pe32FormatTests.cpp"><Filter>Tests\Unit\PE32</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\PE32\DLL\Pe32DllExportTests.cpp"><Filter>Tests\Unit\PE32\DLL</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\PE64\DLL\Pe64DllOepTests.cpp"><Filter>Tests\Unit\PE64\DLL</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\ELF64\ElfCoreTests.cpp"><Filter>Tests\Unit\ELF64</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
     <ClCompile Include="Tests\Architecture\LayerDependencyTests.cpp"><Filter>Tests\Architecture</Filter></ClCompile>

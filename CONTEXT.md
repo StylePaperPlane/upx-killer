@@ -104,6 +104,26 @@ _Avoid_: Process state, temporary file
 The use case that stages a reconstructed image, performs structural and loader validation through an adapter, and atomically promotes the validated artifact.
 _Avoid_: Fixer write, direct output stream
 
+**ELF Target Image**:
+An ELF64 little-endian x86-64 executable selected for unpacking. Both fixed-address `ET_EXEC` and position-independent `ET_DYN` executables are valid; shared objects remain outside the current production capability.
+_Avoid_: Linux file, extensionless executable
+
+**ELF Load Bias**:
+The runtime displacement between an ELF image's program-header virtual addresses and the addresses observed in `/proc/<pid>/maps`. The capture adapter resolves it from every `PT_LOAD` mapping before interpreting the runtime entry point.
+_Avoid_: PIE base guess, first mapping address
+
+**Captured ELF Image**:
+The bounded bytes read from the target's validated `PT_LOAD` mappings after UPX has restored the original ELF header and dynamic metadata and immediately before control reaches the recovered entry point.
+_Avoid_: `/proc` dump, packed file copy
+
+**Reconstructed ELF Image**:
+A loader-valid ELF disk image rebuilt from the Captured ELF Image. Program headers preserve runtime loading semantics while synthesized section headers expose semantic regions and recovered dynamic-linking tables to static-analysis tools.
+_Avoid_: original ELF, byte-identical output
+
+**WSL Runtime Distribution**:
+The user-selected WSL2 distribution in which the Linux ELF Host runs. `wsl.exe` is used only for discovery and build tooling; production jobs launch through the public WSL API and communicate over bounded protocol pipes.
+_Avoid_: default shell, command-line backend
+
 Automatic OEP captures are Completed only after Imports, IAT, semantic sections,
 and reconstructed relocations all validate. Ambiguous or insufficient evidence
 fails before writing an artifact.

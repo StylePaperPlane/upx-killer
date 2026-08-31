@@ -21,6 +21,7 @@ class UnpackWorkflow final {
   [[nodiscard]] bool Supports(contracts::TargetDescriptor const& target) const noexcept;
   [[nodiscard]] contracts::JobResult Start(
       std::filesystem::path const& targetPath,
+      contracts::TargetDescriptor const& target,
       std::optional<contracts::EntryPointHint> entryPoint = std::nullopt,
       IUnpackEngineClient::ProgressCallback const& progress = {}) const noexcept;
 

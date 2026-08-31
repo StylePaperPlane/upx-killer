@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application"><UniqueIdentifier>{4541AA45-6811-436B-A353-3AB4FDB95C24}</UniqueIdentifier></Filter>
+    <Filter Include="Application\Host"><UniqueIdentifier>{97C686A8-C34E-4C51-9BA1-C918BF1A66AD}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure"><UniqueIdentifier>{C32709A9-766C-47D2-BB16-1EBC623351DD}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux"><UniqueIdentifier>{CB8B17A9-4489-4132-B249-85B9904D5480}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Debugging"><UniqueIdentifier>{D713BDF4-F3CC-410D-A374-47435251ED46}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Debugging\Breakpoints"><UniqueIdentifier>{E9BB2DDD-486D-45E4-AAD4-FAEE421A24BA}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Debugging\Memory"><UniqueIdentifier>{DF9EF312-BF7D-48C0-AE66-FC9E72E6D40A}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Debugging\Process"><UniqueIdentifier>{9AD6F41F-A169-442C-BA31-74EC02B09F7B}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Debugging\Recovery"><UniqueIdentifier>{BEA9F28F-B53C-47BE-BE68-2A28E9F86F33}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Pipes"><UniqueIdentifier>{F6722E1D-BB79-4E02-B477-C73E7989D65C}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Storage"><UniqueIdentifier>{0C67ED63-0DAB-4E7F-A82C-70FBCB7889E6}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Verification"><UniqueIdentifier>{FAEACD4F-7CB9-4525-BEDA-05E613FF502A}</UniqueIdentifier></Filter>
+    <Filter Include="Build"><UniqueIdentifier>{A3E009B6-D7BB-4A1E-9853-F69B7EC75191}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\ElfHostMain.cpp"><Filter>Application\Host</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.cpp"><Filter>Infrastructure\Linux\Debugging</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.cpp"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.cpp"><Filter>Infrastructure\Linux\Debugging\Memory</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.cpp"><Filter>Infrastructure\Linux\Debugging\Process</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.cpp"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp"><Filter>Infrastructure\Linux\Pipes</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.cpp"><Filter>Infrastructure\Linux\Verification</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.h"><Filter>Infrastructure\Linux\Debugging</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.h"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.h"><Filter>Infrastructure\Linux\Debugging\Memory</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.h"><Filter>Infrastructure\Linux\Debugging\Process</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.h"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Pipes\PosixPipeTransport.h"><Filter>Infrastructure\Linux\Pipes</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.h"><Filter>Infrastructure\Linux\Verification</Filter></ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Build-ElfHost.ps1"><Filter>Build</Filter></None>
+    <None Include="CMakeLists.txt"><Filter>Build</Filter></None>
+  </ItemGroup>
+</Project>

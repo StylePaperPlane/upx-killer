@@ -1,5 +1,7 @@
 #include "Application/Coordination/UnpackCoordinator.h"
 #include "Application/Artifacts/ArtifactPublicationUseCase.h"
+#include "Application/ELF/Hosting/RemoteElfUnpackBackend.h"
+#include "Application/ELF/Preparation/ElfTargetProbe.h"
 #include "Application/PE/Capture/PeRuntimeCaptureUseCase.h"
 #include "Application/PE/Capabilities/PeBackendCapabilities.h"
 #include "Application/PE/PeUnpackBackend.h"
@@ -12,6 +14,9 @@
 #include "Infrastructure/Windows/Storage/WindowsArtifactStore.h"
 #include "Infrastructure/Windows/Storage/WindowsTargetSourceReader.h"
 #include "Infrastructure/Windows/Verification/WindowsPeImageValidator.h"
+#include "Infrastructure/Windows/WSL/Hosting/WslApi.h"
+#include "Infrastructure/Windows/WSL/Storage/WindowsElfSourceReader.h"
+#include "Infrastructure/Windows/WSL/WslElfHostClient.h"
 
 #include <Windows.h>
 
@@ -27,6 +32,15 @@ std::filesystem::path ExecutableDirectory() {
   return std::filesystem::path{
              std::wstring_view{buffer.data(), static_cast<std::size_t>(length)}}
       .parent_path();
+}
+
+std::wstring ReadEnvironment(wchar_t const* name) {
+  auto const required = GetEnvironmentVariableW(name, nullptr, 0);
+  if (required <= 1) return {};
+  std::wstring value(required - 1, L'\0');
+  if (GetEnvironmentVariableW(name, value.data(), required) != required - 1)
+    return {};
+  return value;
 }
 }
 
@@ -65,6 +79,26 @@ int wmain() {
       probe, capabilities, preparation, capture, reconstruction, publication);
   contracts::UnpackCoordinator coordinator;
   coordinator.Register(std::move(backend));
+  auto const wslDistribution =
+      ReadEnvironment(L"UPX_KILLER_WSL_DISTRIBUTION");
+  engine_host::wsl::WslApi wslApi;
+  auto const elfHostPath = executableDirectory / L"upx_killer_elf_host";
+  std::unique_ptr<engine_host::wsl::WslElfHostClient> elfClient;
+  std::unique_ptr<engine_host::wsl::WindowsElfSourceReader> elfSourceReader;
+  std::unique_ptr<engine::application::elf_preparation::ElfTargetProbe>
+      elfProbe;
+  if (wslApi.Available() && !wslDistribution.empty() &&
+      std::filesystem::is_regular_file(elfHostPath)) {
+    elfClient = std::make_unique<engine_host::wsl::WslElfHostClient>(
+        wslApi, wslDistribution, elfHostPath);
+    elfSourceReader =
+        std::make_unique<engine_host::wsl::WindowsElfSourceReader>();
+    elfProbe = std::make_unique<
+        engine::application::elf_preparation::ElfTargetProbe>(*elfSourceReader);
+    coordinator.Register(
+        std::make_shared<engine::application::RemoteElfUnpackBackend>(
+            *elfProbe, *elfClient));
+  }
 
   engine_host::EngineHostPipeTransport transport{GetStdHandle(STD_INPUT_HANDLE),
                                                  GetStdHandle(STD_OUTPUT_HANDLE)};
