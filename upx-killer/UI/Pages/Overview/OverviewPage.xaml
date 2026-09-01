@@ -60,6 +60,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock
@@ -130,6 +131,18 @@
                                     Text="{x:Bind ViewModel.ArchitectureText, Mode=OneWay}" />
                             </StackPanel>
                         </Grid>
+
+                        <StackPanel
+                            Grid.Row="3"
+                            Spacing="4">
+                            <TextBlock
+                                x:Uid="PackerInformationLabel"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock
+                                AutomationProperties.AutomationId="PackerInformationValue"
+                                Text="{x:Bind ViewModel.PackerInformationText, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
                 </Grid>
 
                 <StackPanel

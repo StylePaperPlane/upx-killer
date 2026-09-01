@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UI/ViewModels/OverviewViewModel.h"
+#include "UI/Presentation/PackerInformationPresentation.h"
 #include "UI/Presentation/UnpackStatusPresentation.h"
 #if __has_include("OverviewViewModel.g.cpp")
 #include "OverviewViewModel.g.cpp"
@@ -28,6 +29,10 @@ winrt::hstring OverviewViewModel::FileSizeText() const { return m_fileSizeText; 
 winrt::hstring OverviewViewModel::FileTypeText() const { return m_fileTypeText; }
 
 winrt::hstring OverviewViewModel::ArchitectureText() const { return m_architectureText; }
+
+winrt::hstring OverviewViewModel::PackerInformationText() const {
+  return m_packerInformationText;
+}
 
 winrt::hstring OverviewViewModel::StatusText() const { return m_statusText; }
 
@@ -230,6 +235,9 @@ void OverviewViewModel::ApplyInspectionResult(std::filesystem::path const& path,
     m_fileSizeText = FormatFileSize(info.fileSize);
     m_fileTypeText = FormatBinaryType(info.format);
     m_architectureText = FormatArchitecture(info.architecture);
+    m_packerInformationText =
+        ::upx_killer::ui::presentation::PackerInformationPresentation::Format(
+            info.packerInformation, m_resources);
     m_hasValidTarget = true;
     m_targetDescriptor = info.descriptor;
     m_engineCompatible = m_unpackWorkflow && m_unpackWorkflow->Supports(info.descriptor);
@@ -246,6 +254,7 @@ void OverviewViewModel::ApplyInspectionResult(std::filesystem::path const& path,
     m_fileSizeText = L"\u2014";
     m_fileTypeText = L"\u2014";
     m_architectureText = L"\u2014";
+    m_packerInformationText = L"\u2014";
     m_hasValidTarget = false;
     m_targetDescriptor.reset();
     m_engineCompatible = false;
@@ -259,6 +268,7 @@ void OverviewViewModel::ApplyInspectionResult(std::filesystem::path const& path,
   RaisePropertyChanged(L"FileSizeText");
   RaisePropertyChanged(L"FileTypeText");
   RaisePropertyChanged(L"ArchitectureText");
+  RaisePropertyChanged(L"PackerInformationText");
   RaisePropertyChanged(L"CanStart");
   RaisePropertyChanged(L"CanExport");
   RaiseCommandStates();

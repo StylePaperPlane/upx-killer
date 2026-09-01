@@ -17,6 +17,7 @@ namespace upx_killer
         String FileSizeText{ get; };
         String FileTypeText{ get; };
         String ArchitectureText{ get; };
+        String PackerInformationText{ get; };
         String StatusText{ get; };
         OverviewStatusKind StatusKind{ get; };
         Boolean CanStart{ get; };

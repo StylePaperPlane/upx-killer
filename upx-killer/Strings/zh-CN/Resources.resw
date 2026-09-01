@@ -78,6 +78,9 @@
   <data name="ArchitectureLabel.Text" xml:space="preserve">
     <value>架构</value>
   </data>
+  <data name="PackerInformationLabel.Text" xml:space="preserve">
+    <value>加壳信息</value>
+  </data>
   <data name="StartUnpackButton.Content" xml:space="preserve">
     <value>开始脱壳</value>
   </data>
@@ -181,6 +184,12 @@
   <data name="BinaryUnknown" xml:space="preserve">
     <value>未知</value>
   </data>
+  <data name="PackerUpxNotDetected" xml:space="preserve"><value>未发现 UPX 特征</value></data>
+  <data name="PackerLikelyUpx" xml:space="preserve"><value>可能为 UPX</value></data>
+  <data name="PackerStandardCharacteristics" xml:space="preserve"><value>标准特征</value></data>
+  <data name="PackerPossiblyModified" xml:space="preserve"><value>可能魔改</value></data>
+  <data name="PackerPackHeaderVersionPrefix" xml:space="preserve"><value>UPX PackHeader v</value></data>
+  <data name="PackerVersionUnavailable" xml:space="preserve"><value>版本未知</value></data>
   <data name="WslRuntimeTitle.Text" xml:space="preserve"><value>Linux 运行环境</value></data>
   <data name="WslDistributionLabel.Text" xml:space="preserve"><value>WSL2 发行版</value></data>
   <data name="RefreshWslDistributionsButton.Content" xml:space="preserve"><value>刷新</value></data>

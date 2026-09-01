@@ -27,6 +27,7 @@ struct OverviewViewModel : OverviewViewModelT<OverviewViewModel> {
   winrt::hstring FileSizeText() const;
   winrt::hstring FileTypeText() const;
   winrt::hstring ArchitectureText() const;
+  winrt::hstring PackerInformationText() const;
   winrt::hstring StatusText() const;
   winrt::upx_killer::OverviewStatusKind StatusKind() const noexcept;
   bool CanStart() const noexcept;
@@ -75,6 +76,7 @@ struct OverviewViewModel : OverviewViewModelT<OverviewViewModel> {
   winrt::hstring m_fileSizeText{L"\u2014"};
   winrt::hstring m_fileTypeText{L"\u2014"};
   winrt::hstring m_architectureText{L"\u2014"};
+  winrt::hstring m_packerInformationText{L"\u2014"};
   winrt::hstring m_statusText;
   winrt::upx_killer::OverviewStatusKind m_statusKind{winrt::upx_killer::OverviewStatusKind::Idle};
   bool m_hasValidTarget{};

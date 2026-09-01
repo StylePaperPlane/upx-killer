@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <optional>
+#include <string>
 
 namespace upx_killer::core {
 enum class BinaryFormat {
@@ -23,6 +24,18 @@ enum class BinaryArchitecture {
   X64,
 };
 
+enum class UpxPackingAssessment {
+  NotDetected,
+  LikelyStandard,
+  LikelyModified,
+};
+
+struct UpxPackerInformation {
+  UpxPackingAssessment assessment{UpxPackingAssessment::NotDetected};
+  std::optional<std::string> releaseVersion;
+  std::optional<std::uint8_t> packHeaderVersion;
+};
+
 enum class InspectionError {
   None,
   FileNotFound,
@@ -39,6 +52,7 @@ struct TargetBinaryInfo {
   BinaryFormat format{};
   BinaryArchitecture architecture{};
   contracts::TargetDescriptor descriptor{};
+  UpxPackerInformation packerInformation{};
 };
 
 struct InspectionResult {
@@ -48,8 +62,9 @@ struct InspectionResult {
   [[nodiscard]] bool Succeeded() const noexcept { return info.has_value(); }
 };
 
+// Performs bounded, read-only inspection. It never executes or maps the target.
 class TargetBinaryInspector final {
  public:
   [[nodiscard]] static InspectionResult Inspect(std::filesystem::path const& path) noexcept;
 };
-}
+}  // namespace upx_killer::core

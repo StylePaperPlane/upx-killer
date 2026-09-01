@@ -28,7 +28,7 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\upx-killer-engine;$(ProjectDir)..\upx-killer-contracts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..\upx-killer-engine;$(ProjectDir)..\upx-killer-contracts;$(ProjectDir)..\upx-killer-inspection;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
@@ -56,6 +56,7 @@
     <ClCompile Include="Tests\Unit\PE64\DLL\Pe64DllOepTests.cpp" />
     <ClCompile Include="Tests\Unit\ELF64\ElfCoreTests.cpp" />
     <ClCompile Include="Tests\Unit\ELF32\Elf32ParsingTests.cpp" />
+    <ClCompile Include="Tests\Unit\BinaryInspection\TargetBinaryInspectorTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp" />
     <ClCompile Include="Tests\Architecture\LayerDependencyTests.cpp" />
@@ -75,6 +76,9 @@
     </ProjectReference>
     <ProjectReference Include="..\upx-killer-engine\upx-killer-engine.vcxproj">
       <Project>{911E077C-A45D-4468-A634-B1A8029A9DD1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\upx-killer-inspection\upx-killer-inspection.vcxproj">
+      <Project>{6F2C9A41-7448-4CEB-A0DE-239C5F14B62E}</Project>
     </ProjectReference>
     <ProjectReference Include="..\upx-killer-engine-fixture\upx-killer-engine-fixture.vcxproj">
       <Project>{57CA9E3B-7BE8-4B2A-B786-76B98663E6A6}</Project>

@@ -46,12 +46,6 @@
     <Filter Include="Application\Runtime">
       <UniqueIdentifier>{9850553A-044A-497D-BB93-123549F34569}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{31C0682B-A03E-423B-89B1-7E055D4F1D73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\BinaryInspection">
-      <UniqueIdentifier>{02842DA4-0AF9-45E0-B467-2532E699D995}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Infrastructure">
       <UniqueIdentifier>{95C68E4B-E342-45DE-B674-8A2312F3B86E}</UniqueIdentifier>
     </Filter>
@@ -251,17 +245,17 @@
     <ClCompile Include="UI\Presentation\UnpackStatusPresentation.cpp">
       <Filter>UI\Presentation</Filter>
     </ClCompile>
+    <ClInclude Include="UI\Presentation\PackerInformationPresentation.h">
+      <Filter>UI\Presentation</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Presentation\PackerInformationPresentation.cpp">
+      <Filter>UI\Presentation</Filter>
+    </ClCompile>
     <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h">
       <Filter>Application\TargetSelection</Filter>
     </ClInclude>
     <ClCompile Include="Application\TargetSelection\TargetSelectionWorkflow.cpp">
       <Filter>Application\TargetSelection</Filter>
-    </ClCompile>
-    <ClInclude Include="Core\BinaryInspection\TargetBinaryInspector.h">
-      <Filter>Core\BinaryInspection</Filter>
-    </ClInclude>
-    <ClCompile Include="Core\BinaryInspection\TargetBinaryInspector.cpp">
-      <Filter>Core\BinaryInspection</Filter>
     </ClCompile>
     <ClInclude Include="Infrastructure\Storage\TargetFilePicker.h">
       <Filter>Infrastructure\Storage</Filter>

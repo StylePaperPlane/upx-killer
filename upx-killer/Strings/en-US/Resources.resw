@@ -78,6 +78,9 @@
   <data name="ArchitectureLabel.Text" xml:space="preserve">
     <value>Architecture</value>
   </data>
+  <data name="PackerInformationLabel.Text" xml:space="preserve">
+    <value>Packer information</value>
+  </data>
   <data name="StartUnpackButton.Content" xml:space="preserve">
     <value>Start unpacking</value>
   </data>
@@ -181,6 +184,12 @@
   <data name="BinaryUnknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
+  <data name="PackerUpxNotDetected" xml:space="preserve"><value>No UPX characteristics detected</value></data>
+  <data name="PackerLikelyUpx" xml:space="preserve"><value>Likely UPX</value></data>
+  <data name="PackerStandardCharacteristics" xml:space="preserve"><value>Standard characteristics</value></data>
+  <data name="PackerPossiblyModified" xml:space="preserve"><value>Possibly modified</value></data>
+  <data name="PackerPackHeaderVersionPrefix" xml:space="preserve"><value>UPX PackHeader v</value></data>
+  <data name="PackerVersionUnavailable" xml:space="preserve"><value>Version unavailable</value></data>
   <data name="WslRuntimeTitle.Text" xml:space="preserve"><value>Linux runtime</value></data>
   <data name="WslDistributionLabel.Text" xml:space="preserve"><value>WSL2 distribution</value></data>
   <data name="RefreshWslDistributionsButton.Content" xml:space="preserve"><value>Refresh</value></data>

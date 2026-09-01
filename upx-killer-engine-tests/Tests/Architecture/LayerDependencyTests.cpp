@@ -84,6 +84,11 @@ int RunLayerDependencyTests() {
        "IMAGE_NT_HEADERS", "HANDLE"},
       "Contracts must remain portable and format-neutral");
   failures += RequireAbsent(
+      *root / "upx-killer-inspection",
+      {"#include <Windows", "#include \"Windows", "winrt/", "Infrastructure/",
+       "Core/PE/", "Core/ELF/", "IMAGE_NT_HEADERS", "Elf64_", "Elf32_"},
+      "Binary inspection must remain portable and expose no native PE/ELF structures");
+  failures += RequireAbsent(
       *root / "upx-killer-engine" / "Application",
       {"#include \"Infrastructure/", "#include <Windows",
        "#include \"Windows", "winrt/", "IMAGE_DIRECTORY_ENTRY_",

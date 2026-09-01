@@ -26,6 +26,8 @@ function Test-Ui {
 Test-Ui 'Navigation shell exists' { & $WinApp ui wait-for RootNavigationView -a $AppPid -t 3000 }
 Test-Ui 'Overview navigation item exists' { & $WinApp ui wait-for OverviewNavigationItem -a $AppPid -t 3000 }
 Test-Ui 'Overview route is loaded' { & $WinApp ui wait-for TargetPathTextBox -a $AppPid -t 3000 }
+Test-Ui 'Packer information row is present' { & $WinApp ui wait-for PackerInformationValue -a $AppPid -t 3000 }
+Test-Ui 'Packer information is initially empty' { & $WinApp ui wait-for PackerInformationValue -a $AppPid --value '—' -t 3000 }
 Test-Ui 'Start is initially disabled' { & $WinApp ui wait-for StartUnpackButton -a $AppPid -p IsEnabled --value False -t 3000 }
 Test-Ui 'Export is initially disabled' { & $WinApp ui wait-for ExportFileButton -a $AppPid -p IsEnabled --value False -t 3000 }
 Test-Ui 'Status bar is present' { & $WinApp ui wait-for StatusText -a $AppPid -t 3000 }

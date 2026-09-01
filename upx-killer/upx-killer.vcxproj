@@ -100,7 +100,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\upx-killer-contracts;$(GeneratedFilesDir)UI\Windows\MainWindow;$(GeneratedFilesDir)UI\Pages\Overview;$(GeneratedFilesDir)UI\Pages\Configuration;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\upx-killer-contracts;$(ProjectDir)..\upx-killer-inspection;$(GeneratedFilesDir)UI\Windows\MainWindow;$(GeneratedFilesDir)UI\Pages\Overview;$(GeneratedFilesDir)UI\Pages\Configuration;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
@@ -148,7 +148,6 @@
     <ClInclude Include="Application\TemporaryFiles\ITemporaryFolderPicker.h" />
     <ClInclude Include="Application\TemporaryFiles\TemporaryFileSettingsWorkflow.h" />
     <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h" />
-    <ClInclude Include="Core\BinaryInspection\TargetBinaryInspector.h" />
     <ClInclude Include="Infrastructure\Storage\TargetFilePicker.h" />
     <ClInclude Include="Infrastructure\Storage\ArtifactFileExporter.h" />
     <ClInclude Include="Infrastructure\Storage\TemporaryFolderPicker.h" />
@@ -175,6 +174,7 @@
     <ClInclude Include="UI\ViewModels\ConfigurationViewModel.h" />
     <ClInclude Include="UI\ViewModels\RelayCommand.h" />
     <ClInclude Include="UI\Presentation\UnpackStatusPresentation.h" />
+    <ClInclude Include="UI\Presentation\PackerInformationPresentation.h" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
@@ -202,7 +202,6 @@
     <ClCompile Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.cpp" />
     <ClCompile Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.cpp" />
     <ClCompile Include="Application\TargetSelection\TargetSelectionWorkflow.cpp" />
-    <ClCompile Include="Core\BinaryInspection\TargetBinaryInspector.cpp" />
     <ClCompile Include="Infrastructure\Storage\TargetFilePicker.cpp" />
     <ClCompile Include="Infrastructure\Storage\ArtifactFileExporter.cpp" />
     <ClCompile Include="Infrastructure\Storage\TemporaryFolderPicker.cpp" />
@@ -224,6 +223,7 @@
     <ClCompile Include="UI\ViewModels\OverviewViewModel.cpp" />
     <ClCompile Include="UI\ViewModels\ConfigurationViewModel.cpp" />
     <ClCompile Include="UI\Presentation\UnpackStatusPresentation.cpp" />
+    <ClCompile Include="UI\Presentation\PackerInformationPresentation.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +247,11 @@
     <ProjectReference Include="..\upx-killer-engine-host\upx-killer-engine-host.vcxproj">
       <Project>{DA9D947B-C14B-44CB-8DBD-CEBA49B319A6}</Project>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\upx-killer-inspection\upx-killer-inspection.vcxproj">
+      <Project>{6F2C9A41-7448-4CEB-A0DE-239C5F14B62E}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
