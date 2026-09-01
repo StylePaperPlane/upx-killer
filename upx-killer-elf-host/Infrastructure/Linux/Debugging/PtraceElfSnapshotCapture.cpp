@@ -90,8 +90,14 @@ PtraceElfSnapshotCapture::Capture(
       auto const signal = WSTOPSIG(status);
 
       if (breakpoint) {
-        if (breakpoint->RestoreIfHit(pid, signal))
+        auto const restore = breakpoint->RestoreIfHit(
+            pid, signal, request.target.packedLayout.imageClass);
+        if (restore == BreakpointRestoreResult::Restored)
           return {std::move(captured), resolvedEntry, {}};
+        if (restore == BreakpointRestoreResult::Failed)
+          return Failure(contracts::JobOutcome::Failed,
+                         contracts::ErrorCategory::Execution,
+                         "elf.oep.breakpoint_restore_failed", errno);
         if (!Continue(pid, PTRACE_CONT, signal == SIGTRAP ? 0 : signal))
           return Failure(contracts::JobOutcome::Failed,
                          contracts::ErrorCategory::Execution,

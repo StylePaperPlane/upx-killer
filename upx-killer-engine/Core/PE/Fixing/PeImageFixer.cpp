@@ -157,12 +157,13 @@ bool WriteHeaders(std::vector<std::byte>& bytes,
 }
 
 namespace upx_killer::engine::pe {
-FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImage const& dump,
+FixResult PeImageFixer::Rebuild(PeImageLayout const& layout,
+                                images::CapturedImage const& dump,
                                 FixRequest const& request) noexcept {
   try {
     if (request.oep.value >= layout.sizeOfImage || dump.bytes.size() < layout.sizeOfImage ||
         layout.sections.empty())
-      return {std::nullopt, EngineError::OepOutOfRange};
+      return {std::nullopt, PeFixError::EntryPointOutOfRange};
     auto const* relocationPlan =
         std::get_if<relocations::RelocationRebuildPlan>(&request.imagePlacement);
     auto const* fixedPlacement =
@@ -172,8 +173,8 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
                             relocationPlan->slots.empty() ||
                             relocationPlan->directoryBytes.empty())) ||
         (fixedPlacement && (fixedPlacement->preferredImageBase.value == 0 ||
-                            dump.loadedBase.value != fixedPlacement->preferredImageBase.value)))
-      return {std::nullopt, EngineError::RelocationEvidenceInsufficient};
+                            dump.loadedAddress.value != fixedPlacement->preferredImageBase.value)))
+      return {std::nullopt, PeFixError::ImagePlacementInvalid};
     auto const outputImageBase = relocationPlan ? relocationPlan->preferredImageBase
                                                 : fixedPlacement->preferredImageBase;
     auto const pointerSize = layout.format == PeFormat::Pe32
@@ -191,30 +192,30 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
             slot.imageTarget.value >= layout.sizeOfImage ||
             outputImageBase.value >
                 std::numeric_limits<std::uint64_t>::max() - slot.imageTarget.value)
-          return {std::nullopt, EngineError::RelocationValidationFailed};
+          return {std::nullopt, PeFixError::RelocationSlotInvalid};
         auto const value = outputImageBase.value + slot.imageTarget.value;
         if (!WritePointer(normalizedImage, slot.location.value, value, pointerSize))
-          return {std::nullopt, EngineError::RelocationValidationFailed};
+          return {std::nullopt, PeFixError::RelocationSlotInvalid};
       }
     }
     std::vector<RelativeVirtualAddress> exportCodeTargets;
     if (layout.imageKind == PeImageKind::DynamicLibrary) {
       auto exports = exports::ExportDirectoryAnalyzer::AnalyzeMapped(normalizedImage, layout);
-      if (!exports.directory) return {std::nullopt, EngineError::ExportDirectoryInvalid};
+      if (!exports.directory) return {std::nullopt, PeFixError::ExportDirectoryInvalid};
       exportCodeTargets = std::move(exports.directory->codeTargets);
     }
     auto const sectionLayout = sections::SectionLayoutRebuilder::Build(
         layout, {normalizedImage, outputImageBase, request.oep,
                  request.imports ? &*request.imports : nullptr, exportCodeTargets,
                  dump.regions});
-    if (!sectionLayout.plan) return {std::nullopt, EngineError::RebuildFailed};
+    if (!sectionLayout.plan) return {std::nullopt, PeFixError::SectionLayoutInvalid};
 
     auto const addImportSection = request.imports.has_value() && !request.imports->modules.empty();
     auto const addRelocationSection = relocationPlan != nullptr;
     if (sectionLayout.plan->sections.size() + (addImportSection ? 1u : 0u) +
             (addRelocationSection ? 1u : 0u) >
         96)
-      return {std::nullopt, EngineError::RebuildFailed};
+      return {std::nullopt, PeFixError::SectionLayoutInvalid};
     auto const sectionCount = static_cast<std::uint16_t>(sectionLayout.plan->sections.size() +
                                                          (addImportSection ? 1 : 0) +
                                                          (addRelocationSection ? 1 : 0));
@@ -276,21 +277,21 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
            ++moduleIndex) {
         auto const& module = request.imports->modules[moduleIndex];
         if (module.moduleName.empty() || module.symbols.empty())
-          return {std::nullopt, EngineError::ImportPlanInvalid};
+          return {std::nullopt, PeFixError::ImportPlanInvalid};
         if (module.symbols.size() >
             (std::numeric_limits<std::uint32_t>::max() / pointerSize) - 1)
-          return {std::nullopt, EngineError::ImportPlanInvalid};
+          return {std::nullopt, PeFixError::ImportPlanInvalid};
         auto const iatBytes =
             static_cast<std::uint64_t>(module.symbols.size()) * pointerSize;
         auto const intBytes =
             static_cast<std::uint64_t>(module.symbols.size() + 1) * pointerSize;
         if (module.firstThunk.value >= layout.sizeOfImage ||
             iatBytes > layout.sizeOfImage - module.firstThunk.value)
-          return {std::nullopt, EngineError::ImportPlanInvalid};
+          return {std::nullopt, PeFixError::ImportPlanInvalid};
         auto const moduleIatEnd = module.firstThunk.value + static_cast<std::uint32_t>(iatBytes);
         for (auto const& [begin, end] : iatRanges) {
           if (module.firstThunk.value < end && begin < moduleIatEnd) {
-            return {std::nullopt, EngineError::ImportPlanInvalid};
+            return {std::nullopt, PeFixError::ImportPlanInvalid};
           }
         }
         iatRanges.emplace_back(module.firstThunk.value, moduleIatEnd);
@@ -305,7 +306,7 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
           auto const& symbol = module.symbols[symbolIndex];
           std::uint64_t thunk{};
           if (symbol.ordinal.has_value() == symbol.name.has_value()) {
-            return {std::nullopt, EngineError::ImportPlanInvalid};
+            return {std::nullopt, PeFixError::ImportPlanInvalid};
           }
           if (symbol.ordinal) {
             thunk = ordinalFlag | *symbol.ordinal;
@@ -318,7 +319,7 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
           }
           if (!WritePointer(importBytes, intOffset + symbolIndex * pointerSize, thunk,
                             pointerSize))
-            return {std::nullopt, EngineError::ImportPlanInvalid};
+            return {std::nullopt, PeFixError::ImportPlanInvalid};
 
           auto patchIat = [&](std::uint32_t rva, std::uint64_t value) {
             for (auto const& section : sectionHeaders) {
@@ -333,7 +334,7 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
           if (!patchIat(module.firstThunk.value +
                             static_cast<std::uint32_t>(symbolIndex * pointerSize),
                         thunk)) {
-            return {std::nullopt, EngineError::ImportPlanInvalid};
+            return {std::nullopt, PeFixError::ImportPlanInvalid};
           }
         }
 
@@ -357,7 +358,7 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
             std::any_of(layout.sections.begin(), layout.sections.end(),
                         [&](PeSection const& section) { return section.name == importName; });
         if (!duplicate) break;
-        if (suffix == 999) return {std::nullopt, EngineError::RebuildFailed};
+        if (suffix == 999) return {std::nullopt, PeFixError::SectionLayoutInvalid};
       }
       std::memcpy(importSection.Name, importName.data(), importName.size());
       importSection.Misc.VirtualSize = static_cast<DWORD>(importBytes.size());
@@ -415,10 +416,10 @@ FixResult PeImageFixer::Rebuild(PeImageLayout const& layout, dumping::DumpedImag
                   relocationSection, relocationPlan && relocationPlan->enableDynamicBase,
                   relocationPlan && relocationPlan->enableHighEntropyVa,
                   sectionLayout.plan->tlsDirectory);
-    if (!headersWritten) return {std::nullopt, EngineError::RebuildFailed};
-    return {std::move(fixed), EngineError::None};
+    if (!headersWritten) return {std::nullopt, PeFixError::HeaderWriteFailed};
+    return {std::move(fixed), PeFixError::None};
   } catch (...) {
-    return {std::nullopt, EngineError::RebuildFailed};
+    return {std::nullopt, PeFixError::UnexpectedFailure};
   }
 }
 }

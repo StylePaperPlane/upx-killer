@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Application/PE/Preparation/PeTargetPreparationUseCase.h"
-#include "Core/Dumping/ProcessImageDumper.h"
+#include "Core/Images/CapturedImage.h"
 #include "Core/PE/Imports/ImportTypes.h"
 #include "Core/PE/Rebasing/PeFileRebaser.h"
 
@@ -13,8 +13,37 @@
 #include <vector>
 
 namespace upx_killer::engine::application::pe_capture {
+enum class PeSnapshotCaptureError {
+  None,
+  InvalidRequest,
+  DllLoaderUnavailable,
+  TargetLibraryLaunchFailed,
+  ProcessLaunchFailed,
+  DebugProtocolFailed,
+  TargetExited,
+  ReadFailed,
+  DumpInvalid,
+  Cancelled,
+  TimedOut,
+  EntryPointNotFound,
+  ControlledBaseUnavailable,
+  MachineMismatch,
+  Wow64Unavailable,
+  TargetLibraryAttachInvalid,
+  ImportSnapshotFailed,
+};
+
+enum class PeCaptureError {
+  None,
+  SourceRelocationsInvalid,
+  UnsupportedPe32RelocationType,
+  EntryPointsDiffer,
+  SnapshotFailed,
+  UnexpectedFailure,
+};
+
 struct PeCapturedRun {
-  dumping::DumpedImage image;
+  images::CapturedImage image;
   RelativeVirtualAddress entryPoint;
   pe::imports::RuntimeModuleSnapshot runtimeImports;
 };
@@ -35,8 +64,7 @@ struct PeSnapshotCaptureRequest {
 
 struct PeSnapshotCaptureResult {
   std::optional<PeCapturedRun> capture;
-  EngineOutcome outcome{EngineOutcome::Failed};
-  EngineError error{EngineError::None};
+  PeSnapshotCaptureError error{PeSnapshotCaptureError::None};
   std::uint32_t nativeError{};
 };
 
@@ -56,8 +84,8 @@ struct PeCaptureEvidence {
 
 struct PeRuntimeCaptureResult {
   std::optional<PeCaptureEvidence> evidence;
-  EngineOutcome outcome{EngineOutcome::Failed};
-  EngineError error{EngineError::None};
+  PeCaptureError error{PeCaptureError::None};
+  PeSnapshotCaptureError snapshotError{PeSnapshotCaptureError::None};
   std::uint32_t nativeError{};
 
   [[nodiscard]] bool Succeeded() const noexcept { return evidence.has_value(); }

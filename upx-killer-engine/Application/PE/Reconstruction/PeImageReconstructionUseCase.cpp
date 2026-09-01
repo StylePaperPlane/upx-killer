@@ -1,12 +1,8 @@
 #include "Application/PE/Reconstruction/PeImageReconstructionUseCase.h"
 
 #include "Core/PE/Imports/ImportDiscovery.h"
-#include "Core/PE/Imports/ImportTableValidator.h"
-#include "Core/PE/Parsing/PeParser.h"
-#include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Core/PE/Relocations/RelocationReconstructor.h"
-
-#include <Windows.h>
+#include "Core/PE/Validation/RebuiltPeImageValidator.h"
 
 #include <array>
 
@@ -17,7 +13,7 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
     pe_capture::PeCaptureEvidence const& evidence,
     std::function<void(EngineStage)> const& progress) const noexcept {
   try {
-    if (evidence.runs.empty()) return {std::nullopt, EngineError::DumpIncomplete};
+    if (evidence.runs.empty()) return {std::nullopt, PeReconstructionError::MissingCapture};
 
     std::optional<ImportRebuildPlan> imports = request.imports;
     if (!imports) {
@@ -36,8 +32,8 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
         } else {
           return {std::nullopt,
                   discovered.error == pe::imports::ImportDiscoveryError::ImportsAmbiguous
-                      ? EngineError::ImportsAmbiguous
-                      : EngineError::ImportsNotFound};
+                      ? PeReconstructionError::ImportsAmbiguous
+                      : PeReconstructionError::ImportsNotFound};
         }
       } else {
         imports = std::move(discovered.plan);
@@ -51,15 +47,18 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
           LoadedAddress{target.layout.preferredImageBase}};
     } else {
       if (evidence.runs.size() != 3)
-        return {std::nullopt, EngineError::RelocationEvidenceInsufficient};
+        return {std::nullopt, PeReconstructionError::RelocationEvidenceInsufficient};
       if (progress) progress(EngineStage::RebuildingRelocations);
       std::array<pe::relocations::LoadedImageSnapshot, 3> snapshots{
-          pe::relocations::LoadedImageSnapshot{evidence.runs[0].image.loadedBase,
-                                               evidence.runs[0].image.bytes},
-          pe::relocations::LoadedImageSnapshot{evidence.runs[1].image.loadedBase,
-                                               evidence.runs[1].image.bytes},
-          pe::relocations::LoadedImageSnapshot{evidence.runs[2].image.loadedBase,
-                                               evidence.runs[2].image.bytes},
+          pe::relocations::LoadedImageSnapshot{
+              LoadedAddress{evidence.runs[0].image.loadedAddress.value},
+              evidence.runs[0].image.bytes},
+          pe::relocations::LoadedImageSnapshot{
+              LoadedAddress{evidence.runs[1].image.loadedAddress.value},
+              evidence.runs[1].image.bytes},
+          pe::relocations::LoadedImageSnapshot{
+              LoadedAddress{evidence.runs[2].image.loadedAddress.value},
+              evidence.runs[2].image.bytes},
       };
       auto relocations = pe::relocations::RelocationReconstructor::Reconstruct(
           snapshots,
@@ -69,10 +68,10 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
                     evidence.sourceRelocationSlots},
           target.layout, target.executionPlan.outputBase);
       if (!relocations.plan) {
-        auto error = EngineError::RelocationEvidenceInsufficient;
+        auto error = PeReconstructionError::RelocationEvidenceInsufficient;
         if (relocations.error ==
             pe::relocations::RelocationRebuildError::CandidatesAmbiguous)
-          error = EngineError::RelocationCandidatesAmbiguous;
+          error = PeReconstructionError::RelocationCandidatesAmbiguous;
         return {std::nullopt, error};
       }
       expectedRelocationCount = relocations.plan->slots.size();
@@ -86,51 +85,28 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
         target.layout, evidence.runs.front().image,
         {evidence.runs.front().entryPoint, std::move(imports),
          std::move(imagePlacement)});
-    if (!fixed.image) return {std::nullopt, fixed.error};
-    auto fixedLayout = pe::PeParser::Parse(fixed.image->bytes);
-    if (!fixedLayout.layout ||
-        !pe::imports::ImportTableValidator::Validate(fixed.image->bytes,
-                                                     *fixedLayout.layout) ||
-        fixedLayout.layout->format != target.layout.format)
-      return {std::nullopt, EngineError::OutputValidationFailed};
-
-    auto const& rebuiltRelocations =
-        fixedLayout.layout->directories[IMAGE_DIRECTORY_ENTRY_BASERELOC];
-    if (!target.hasSourceRelocations) {
-      auto const fixedBaseFlags = IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE |
-                                  IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA;
-      if (fixedLayout.layout->preferredImageBase != target.layout.preferredImageBase ||
-          rebuiltRelocations.address.value != 0 || rebuiltRelocations.size != 0 ||
-          (fixedLayout.layout->characteristics & IMAGE_FILE_RELOCS_STRIPPED) == 0 ||
-          (fixedLayout.layout->dllCharacteristics & fixedBaseFlags) != 0)
-        return {std::nullopt, EngineError::OutputValidationFailed};
-    } else {
-      if (fixedLayout.layout->preferredImageBase !=
-              target.executionPlan.outputBase.value ||
-          rebuiltRelocations.address.value == 0)
+    if (!fixed.image)
+      return {std::nullopt, PeReconstructionError::FixingFailed, fixed.error};
+    auto validation = pe::validation::RebuiltPeImageValidator::Validate(
+        {fixed.image->bytes, target.layout, target.executionPlan.outputBase,
+         target.executionPlan.validationBase, target.hasSourceRelocations,
+         expectedRelocationCount});
+    if (!validation.layout) {
+      if (validation.error ==
+          pe::validation::RebuiltPeImageValidationError::InvalidRelocations)
         return {std::nullopt,
-                target.layout.format == pe::PeFormat::Pe32
-                    ? EngineError::Pe32RelocationValidationFailed
-                    : EngineError::RelocationValidationFailed};
-      auto relocationProbe = pe::rebasing::PeFileRebaser::Rebase(
-          fixed.image->bytes, *fixedLayout.layout,
-          target.executionPlan.validationBase);
-      if (!relocationProbe.image || !expectedRelocationCount ||
-          relocationProbe.image->sourceSlots.size() != *expectedRelocationCount)
-        return {std::nullopt,
-                target.layout.format == pe::PeFormat::Pe32
-                    ? EngineError::Pe32RelocationValidationFailed
-                    : EngineError::RelocationValidationFailed};
+                PeReconstructionError::RelocationValidationFailed};
+      return {std::nullopt, PeReconstructionError::OutputValidationFailed};
     }
 
     fixed.image->warnings.insert(fixed.image->warnings.end(),
                                  evidence.runs.front().image.warnings.begin(),
                                  evidence.runs.front().image.warnings.end());
     return {ReconstructedPeImage{std::move(*fixed.image),
-                                 std::move(*fixedLayout.layout)},
-            EngineError::None};
+                                 std::move(*validation.layout)},
+            PeReconstructionError::None};
   } catch (...) {
-    return {std::nullopt, EngineError::RebuildFailed};
+    return {std::nullopt, PeReconstructionError::UnexpectedFailure};
   }
 }
 }

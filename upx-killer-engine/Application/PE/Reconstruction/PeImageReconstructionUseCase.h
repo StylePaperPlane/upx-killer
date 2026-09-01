@@ -7,6 +7,19 @@
 #include <optional>
 
 namespace upx_killer::engine::application::pe_reconstruction {
+enum class PeReconstructionError {
+  None,
+  MissingCapture,
+  ImportsNotFound,
+  ImportsAmbiguous,
+  RelocationEvidenceInsufficient,
+  RelocationCandidatesAmbiguous,
+  RelocationValidationFailed,
+  OutputValidationFailed,
+  FixingFailed,
+  UnexpectedFailure,
+};
+
 struct ReconstructedPeImage {
   pe::FixedPeImage image;
   pe::PeImageLayout layout;
@@ -14,7 +27,8 @@ struct ReconstructedPeImage {
 
 struct PeImageReconstructionResult {
   std::optional<ReconstructedPeImage> image;
-  EngineError error{EngineError::None};
+  PeReconstructionError error{PeReconstructionError::None};
+  pe::PeFixError fixError{pe::PeFixError::None};
 
   [[nodiscard]] bool Succeeded() const noexcept { return image.has_value(); }
 };

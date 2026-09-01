@@ -40,11 +40,28 @@ Future ELF32/ELF64 executable and shared-object support adds a separate backend;
 the intended execution boundary is a WSL2 host rather than Windows debugging
 types in the portable contracts.
 
+Engine internals do not define a global error taxonomy. Each deep module owns
+the failures it can produce (`DumpError`, `PeFixError`,
+`DebugSessionError`, and use-case-specific errors). The PE contract translator
+is the only place that maps those local failures into public `JobOutcome`,
+`ErrorCategory`, detail code, and native code values. Adding a failure to one
+module therefore does not require unrelated Core, Infrastructure, or protocol
+interfaces to change.
+
+Runtime capture crosses format boundaries through `CapturedImage`. This model
+contains only a numeric load address, image-relative byte offsets, bytes,
+memory protections, and warnings. It does not reuse PE RVA/file-offset types or
+ELF virtual-address structures. PE and ELF modules must explicitly translate
+the neutral address values at their own boundary.
+
 ## Consequences
 
 - Backend additions do not require coordinator, UI workflow, or protocol model
   changes when existing descriptors can express the target.
 - PE domain models remain private to the PE engine.
+- Capture evidence remains reusable without importing a format domain model.
+- Module-local failures reduce cross-layer change amplification; contract error
+  compatibility remains centralized at the backend boundary.
 - Each use case can be tested through a narrow I/O seam.
 - The Host remains a single-job isolation boundary and continues to own concrete
   Windows composition.

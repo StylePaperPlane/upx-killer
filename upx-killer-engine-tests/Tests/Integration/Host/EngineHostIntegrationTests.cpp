@@ -88,9 +88,7 @@ int RunHostIntegrationTests() {
            std::chrono::seconds{10}, false, rebased.image->bytes,
            rebased.image->requiredBase},
           [](auto const&, auto const& loaded, auto, auto const&) {
-            return loaded.base.value == 0x200000000ull
-                       ? engine::EngineError::None
-                       : engine::EngineError::RelocationValidationFailed;
+            return loaded.base.value == 0x200000000ull;
           });
       expect(fourth.Succeeded(),
              "repaired artifact reaches OEP at a fourth controlled base");

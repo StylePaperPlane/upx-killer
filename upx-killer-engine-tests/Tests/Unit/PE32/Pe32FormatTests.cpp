@@ -181,8 +181,8 @@ int RunPe32FormatTests() {
              (entries[0] >> 12) == IMAGE_REL_BASED_HIGHLOW,
          "PE32 relocation directory encodes HIGHLOW entries");
 
-  dumping::DumpedImage dump{};
-  dump.loadedBase = {bases.front()};
+  images::CapturedImage dump{};
+  dump.loadedAddress = {bases.front()};
   dump.bytes = images.front();
   auto fixed = pe::PeImageFixer::Rebuild(
       *parsed.layout, dump,
@@ -205,8 +205,8 @@ int RunPe32FormatTests() {
   expect(fourth.image && fourth.image->sourceSlots.size() == 1,
          "PE32 output applies its HIGHLOW table at a fourth base");
 
-  dumping::DumpedImage fixedBaseDump{};
-  fixedBaseDump.loadedBase = {parsed.layout->preferredImageBase};
+  images::CapturedImage fixedBaseDump{};
+  fixedBaseDump.loadedAddress = {parsed.layout->preferredImageBase};
   fixedBaseDump.bytes = images.front();
   auto fixedBase = pe::PeImageFixer::Rebuild(
       *parsed.layout, fixedBaseDump,

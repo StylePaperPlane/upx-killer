@@ -52,7 +52,7 @@ PeSection const* SectionAt(PeImageLayout const& layout, std::uint32_t rva) {
 
 struct PackedFixture {
   PeImageLayout layout;
-  dumping::DumpedImage dump;
+  images::CapturedImage dump;
   ImportRebuildPlan imports;
 };
 
@@ -80,7 +80,7 @@ PackedFixture MakePackedFixture() {
   fixture.layout.directories[IMAGE_DIRECTORY_ENTRY_RESOURCE] = {RelativeVirtualAddress{0x5000},
                                                                 0x180};
 
-  fixture.dump.loadedBase = {0x7ff700000000ull};
+  fixture.dump.loadedAddress = {0x7ff700000000ull};
   fixture.dump.bytes.resize(fixture.layout.sizeOfImage);
   auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(fixture.dump.bytes.data());
   dos->e_magic = IMAGE_DOS_SIGNATURE;

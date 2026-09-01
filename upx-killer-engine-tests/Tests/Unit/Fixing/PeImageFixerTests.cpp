@@ -1,5 +1,6 @@
 #include "Core/PE/Fixing/PeImageFixer.h"
 #include "Core/PE/Parsing/PeParser.h"
+#include "Core/PE/Validation/RebuiltPeImageValidator.h"
 
 #include <Windows.h>
 
@@ -73,8 +74,8 @@ int RunFixerTests() {
   };
   auto file = MakePe64();
   auto parsed = pe::PeParser::Parse(file);
-  dumping::DumpedImage dump{};
-  dump.loadedBase = LoadedAddress{0x180000000ull};
+  images::CapturedImage dump{};
+  dump.loadedAddress = images::ImageAddress{0x180000000ull};
   dump.bytes.resize(0x2000);
   std::copy_n(file.begin(), 0x200, dump.bytes.begin());
   dump.bytes[0x1000] = std::byte{0xC3};
@@ -82,7 +83,7 @@ int RunFixerTests() {
   auto partial = pe::PeImageFixer::Rebuild(
       *parsed.layout, dump,
       {RelativeVirtualAddress{0x1000}, std::nullopt,
-       MakeRelocations(dump.loadedBase.value)});
+       MakeRelocations(dump.loadedAddress.value)});
   expect(partial.Succeeded() && partial.image &&
              partial.image->quality == ArtifactQuality::Partial,
          "basic PE rebuild reports missing imports as partial");
@@ -96,7 +97,7 @@ int RunFixerTests() {
   auto complete = pe::PeImageFixer::Rebuild(
       *parsed.layout, dump,
       {RelativeVirtualAddress{0x1000}, std::move(imports),
-       MakeRelocations(dump.loadedBase.value)});
+       MakeRelocations(dump.loadedAddress.value)});
   expect(complete.Succeeded() && complete.image &&
              complete.image->quality == ArtifactQuality::Complete,
          "a valid import plan produces a complete artifact");
@@ -130,6 +131,12 @@ int RunFixerTests() {
                        ->directories[IMAGE_DIRECTORY_ENTRY_BASERELOC]
                        .address.value != 0,
            "rebuilt image publishes its canonical base and relocation directory");
+    auto validation = pe::validation::RebuiltPeImageValidator::Validate(
+        {dynamic.image->bytes, *dynamicParsed.layout,
+         LoadedAddress{0x140000000ull}, LoadedAddress{0x1c0000000ull},
+         true, 1});
+    expect(validation.Succeeded(),
+           "core validator accepts a structurally valid relocatable image");
   }
   return failures;
 }

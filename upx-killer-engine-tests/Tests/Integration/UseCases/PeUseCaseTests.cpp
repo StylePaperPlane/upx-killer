@@ -62,7 +62,9 @@ class TimedOutSnapshotCapture final
       std::function<void(EngineStage)> const&,
       std::stop_token) const noexcept override {
     ++calls;
-    return {std::nullopt, EngineOutcome::TimedOut, EngineError::TimedOut, WAIT_TIMEOUT};
+    return {std::nullopt,
+            application::pe_capture::PeSnapshotCaptureError::TimedOut,
+            WAIT_TIMEOUT};
   }
 
   mutable unsigned calls{};
@@ -135,8 +137,12 @@ int RunPeUseCaseTests() {
   TimedOutSnapshotCapture snapshot;
   application::pe_capture::PeRuntimeCaptureUseCase capture{snapshot};
   auto captureResult = capture.Execute(request, *prepared.target);
-  Expect(!captureResult.Succeeded() && captureResult.outcome == EngineOutcome::TimedOut &&
-             captureResult.error == EngineError::TimedOut && snapshot.calls == 1,
+  Expect(!captureResult.Succeeded() &&
+             captureResult.error ==
+                 application::pe_capture::PeCaptureError::SnapshotFailed &&
+             captureResult.snapshotError ==
+                 application::pe_capture::PeSnapshotCaptureError::TimedOut &&
+             snapshot.calls == 1,
          "capture use case propagates a single-capture timeout", failures);
 
   application::pe_reconstruction::PeImageReconstructionUseCase reconstruction;
@@ -159,9 +165,7 @@ int RunPeUseCaseTests() {
        upx_killer::contracts::ImageKind::Executable},
        prepared.target->dependencyDirectory, 3000, fixed.quality,
        std::move(fixed.warnings), request.retainFailedOutput});
-  Expect(publicationResult.Succeeded() &&
-             publicationResult.outcome == EngineOutcome::Completed &&
-             store.promoted && !store.removed,
+  Expect(publicationResult.Succeeded() && store.promoted && !store.removed,
          "publication use case stages, validates, and promotes an artifact", failures);
 
   MemoryArtifactStore rejectedStore;

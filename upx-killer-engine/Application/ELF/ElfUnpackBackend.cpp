@@ -33,9 +33,15 @@ contracts::JobResult ElfUnpackBackend::Execute(
   auto reconstructed = reconstruction_.Execute(
       *captured.image, request.maximumImageSize);
   if (!reconstructed.bytes) return std::move(reconstructed.failure);
+  auto const descriptor =
+      ElfBackendCapabilities::DescriptorFor(prepared.target->packedLayout);
+  if (!descriptor)
+    return {contracts::JobOutcome::Failed,
+            contracts::ErrorCategory::Internal,
+            "elf.capability.descriptor_missing", std::nullopt, 0};
   return publisher_.Publish(
       {request.outputPath, *reconstructed.bytes,
-       ElfBackendCapabilities::Descriptor(),
+       *descriptor,
        prepared.target->dependencyDirectory,
        request.timeoutMilliseconds, request.retainFailedOutput},
       progress);

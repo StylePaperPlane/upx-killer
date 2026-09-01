@@ -1,26 +1,23 @@
 #pragma once
 
+#include "Core/Images/CapturedImage.h"
 #include "Core/PE/Parsing/PeParser.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <span>
-#include <string>
-#include <vector>
 
 namespace upx_killer::engine::dumping {
+enum class DumpError {
+  None,
+  InvalidImage,
+  ReadFailed,
+};
+
 struct MemoryRegion {
   LoadedAddress base;
   std::uint64_t size{};
-  bool readable{};
-  bool writable{};
-  bool executable{};
-};
-
-struct DumpedMemoryRegion {
-  RelativeVirtualAddress start;
-  std::uint32_t size{};
   bool readable{};
   bool writable{};
   bool executable{};
@@ -43,16 +40,9 @@ struct DumpLimits {
   std::uint64_t maximumImageSize{1ull << 30};
 };
 
-struct DumpedImage {
-  LoadedAddress loadedBase;
-  std::vector<std::byte> bytes;
-  std::vector<DumpedMemoryRegion> regions;
-  std::vector<std::string> warnings;
-};
-
 struct DumpResult {
-  std::optional<DumpedImage> image;
-  EngineError error{EngineError::None};
+  std::optional<images::CapturedImage> image;
+  DumpError error{DumpError::None};
 
   [[nodiscard]] bool Succeeded() const noexcept { return image.has_value(); }
 };

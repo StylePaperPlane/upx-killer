@@ -32,6 +32,23 @@ _Avoid_: Process file, loaded file
 A bounded capture of the Loaded Image before it is converted back to a disk layout.
 _Avoid_: Dump file, raw executable
 
+**Captured Image**:
+The fully format-neutral Core model for a Memory Dump: a numeric load address,
+bounded image bytes, image-relative byte offsets, memory-region protections,
+and structured warnings. It deliberately contains no PE RVA, ELF virtual
+address, parser layout, debugger handle, or dumper-specific type. Capture
+adapters produce it; format backends perform explicit conversion at their own
+boundary.
+_Avoid_: `DumpedImage`, debugger result, Windows memory object
+
+**Module Failure**:
+A failure enum owned by the module that can produce it, such as
+`DumpError`, `DebugSessionError`, or `PeReconstructionError`. Module failures
+never form a shared engine-wide taxonomy; a contract translator maps them to
+stable `JobOutcome`, `ErrorCategory`, and UTF-8 detail codes only at the backend
+boundary.
+_Avoid_: global engine error enum, cross-layer error code
+
 **Repaired Image**:
 A PE disk image reconstructed from a Memory Dump with the headers and available metadata made internally consistent.
 _Avoid_: Fixed EXE, output binary
@@ -107,6 +124,14 @@ _Avoid_: Fixer write, direct output stream
 **ELF Target Image**:
 An ELF64 little-endian x86-64 executable selected for unpacking. Both fixed-address `ET_EXEC` and position-independent `ET_DYN` executables are valid; shared objects remain outside the current production capability.
 _Avoid_: Linux file, extensionless executable
+
+**ELF Image Class**:
+The neutral 32-bit or 64-bit address-width classification retained in `ElfImageLayout`. Class-specific field offsets and widths are private Core implementation details and never expose native `Elf32_*` or `Elf64_*` structures across a module interface.
+_Avoid_: ELF header template, native ELF struct in Application
+
+**ELF Thread Control Context**:
+The class-neutral instruction and stack pointer view used by the Linux capture adapter while a tracee is stopped. Native ptrace register sets and their 32-bit compatibility layouts stay inside the ThreadContext module.
+_Avoid_: `user_regs_struct` in breakpoint code, public `eip`/`rip` fields
 
 **ELF Load Bias**:
 The runtime displacement between an ELF image's program-header virtual addresses and the addresses observed in `/proc/<pid>/maps`. The capture adapter resolves it from every `PT_LOAD` mapping before interpreting the runtime entry point.

@@ -24,58 +24,6 @@ enum class ArtifactQuality {
   Complete,
 };
 
-enum class EngineOutcome {
-  Completed,
-  Partial,
-  NeedsOep,
-  UnsupportedTarget,
-  Cancelled,
-  TimedOut,
-  Failed,
-  OepNotFound,
-};
-
-enum class EngineError {
-  None,
-  InvalidPe,
-  UnsupportedPe32,
-  UnsupportedArchitecture,
-  UnsupportedImageKind,
-  OepOutOfRange,
-  LaunchFailed,
-  DebugProtocolFailed,
-  TargetExited,
-  ReadMemoryFailed,
-  DumpIncomplete,
-  ImportPlanInvalid,
-  RebuildFailed,
-  OutputWriteFailed,
-  OutputValidationFailed,
-  ProtocolMismatch,
-  Cancelled,
-  TimedOut,
-  UnsupportedPacker,
-  OepNotFound,
-  ImportsNotFound,
-  ImportsAmbiguous,
-  ImportSnapshotFailed,
-  SourceRelocationsInvalid,
-  ControlledBaseUnavailable,
-  RelocationEvidenceInsufficient,
-  RelocationCandidatesAmbiguous,
-  RelocationValidationFailed,
-  Wow64Unavailable,
-  TargetMachineMismatch,
-  UnsupportedPe32RelocationType,
-  Pe32RelocationValidationFailed,
-  DllLoaderUnavailable,
-  LoadingTargetLibraryFailed,
-  TargetLibraryNotFound,
-  TargetLibraryAttachInvalid,
-  ExportDirectoryInvalid,
-  ExportValidationFailed,
-};
-
 enum class EngineStage {
   Validating,
   DiscoveringOep,
@@ -117,17 +65,4 @@ struct UnpackRequest {
   bool retainFailedOutput{};
 };
 
-struct EngineArtifact {
-  std::filesystem::path path;
-  ArtifactQuality quality{ArtifactQuality::Partial};
-  bool loaderMappable{};
-  std::vector<std::string> warnings;
-};
-
-struct EngineResult {
-  EngineOutcome outcome{EngineOutcome::Failed};
-  EngineError error{EngineError::None};
-  std::optional<EngineArtifact> artifact;
-  std::uint32_t nativeError{};
-};
 }

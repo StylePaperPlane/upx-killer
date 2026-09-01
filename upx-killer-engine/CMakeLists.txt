@@ -10,6 +10,7 @@ if(NOT TARGET upx_killer::contracts)
 endif()
 
 add_library(upx_killer_elf_core STATIC
+  Core/ELF/Format/Internal/ElfClassTraits.h
   Core/ELF/DynamicLinking/ElfDynamicMetadataAnalyzer.cpp
   Core/ELF/OepDiscovery/UpxElfOepLocator.cpp
   Core/ELF/Parsing/ElfParser.cpp

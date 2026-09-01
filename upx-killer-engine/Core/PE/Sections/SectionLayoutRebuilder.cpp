@@ -447,10 +447,13 @@ SectionLayoutResult SectionLayoutRebuilder::Build(PeImageLayout const& source,
       return {std::nullopt, SectionLayoutError::InvalidInput};
     std::vector<AddressRange> executableWritableRanges;
     for (auto const& region : input.memoryRegions) {
-      if (region.start.value >= source.sizeOfImage ||
-          region.size > source.sizeOfImage - region.start.value)
+      if (region.offset.value >= source.sizeOfImage ||
+          region.size > static_cast<std::uint64_t>(source.sizeOfImage) -
+                            region.offset.value)
         return {std::nullopt, SectionLayoutError::InvalidInput};
-      AddressRange range{region.start.value, region.start.value + region.size};
+      auto const begin = static_cast<std::uint32_t>(region.offset.value);
+      auto const end = static_cast<std::uint32_t>(region.offset.value + region.size);
+      AddressRange range{begin, end};
       if (region.writable && region.executable)
         executableWritableRanges.push_back(range);
       else if (region.writable)

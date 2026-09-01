@@ -60,7 +60,7 @@ int RunWow64DebugSessionTests() {
           auto const&) {
         callbackInvoked = loaded.base.value <= UINT32_MAX &&
                           resolved.value == layout->entryPoint.value;
-        return EngineError::None;
+        return true;
       });
   if (!result.Succeeded() || !callbackInvoked)
     std::cerr << "WOW64 capture error=" << static_cast<unsigned>(result.error)
@@ -112,7 +112,7 @@ int RunWow64DebugSessionTests() {
            std::chrono::seconds{10}, false, fourth.image->bytes, fourth.image->requiredBase},
           [&](auto const&, auto const& loaded, auto, auto const&) {
             fourthBaseCaptured = loaded.base.value == 0x30000000;
-            return EngineError::None;
+            return true;
           });
       expect(fourthResult.Succeeded() && fourthBaseCaptured,
              "Windows loader applies PE32 HIGHLOW relocations at a fourth base");

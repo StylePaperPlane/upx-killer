@@ -50,6 +50,21 @@ foreach ($project in $projects) {
             $failures.Add("Project item needs exactly one Filter in $($project.Name): $($group.Name)")
         }
     }
+    foreach ($item in $projectItems) {
+        $matchingFilter = @($filterItems | Where-Object Key -eq $item.Key)
+        if ($matchingFilter.Count -ne 1 -or
+            $matchingFilter[0].Filter -eq 'Generated' -or
+            $matchingFilter[0].Filter.StartsWith('Generated\', [StringComparison]::Ordinal)) {
+            continue
+        }
+        $itemPath = [System.IO.Path]::GetFullPath((Join-Path $project.DirectoryName $item.Include))
+        if (-not (Test-Path -LiteralPath $itemPath -PathType Leaf)) { continue }
+        $relativePath = [System.IO.Path]::GetRelativePath($RepositoryRoot, $itemPath).Replace('\', '/')
+        & git -C $RepositoryRoot check-ignore --quiet -- $relativePath
+        if ($LASTEXITCODE -eq 0) {
+            $failures.Add("Project item is hidden by .gitignore in $($project.Name): $($item.Include)")
+        }
+    }
     foreach ($group in $filterItems | Group-Object Key) {
         if ($group.Count -ne 1 -or -not ($projectItems.Key -contains $group.Name)) {
             $failures.Add("Orphan or duplicate filter item in $($project.Name): $($group.Name)")

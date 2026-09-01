@@ -23,8 +23,7 @@ PeRuntimeCaptureResult PeRuntimeCaptureUseCase::Execute(
         auto staging = pe::rebasing::NoSourceRelocationsImagePreparer::Prepare(
             target.sourceBytes, target.layout, base);
         if (!staging.image) {
-          return {std::nullopt, EngineOutcome::Failed,
-                  EngineError::SourceRelocationsInvalid};
+          return {std::nullopt, PeCaptureError::SourceRelocationsInvalid};
         }
         stagedImages.push_back({std::move(staging.image->bytes),
                                 staging.image->requiredBase,
@@ -36,9 +35,9 @@ PeRuntimeCaptureResult PeRuntimeCaptureUseCase::Execute(
           auto const error =
               target.layout.format == pe::PeFormat::Pe32 &&
                       staging.error == pe::rebasing::PeFileRebaseError::UnsupportedRelocationType
-                  ? EngineError::UnsupportedPe32RelocationType
-                  : EngineError::SourceRelocationsInvalid;
-          return {std::nullopt, EngineOutcome::Failed, error};
+                  ? PeCaptureError::UnsupportedPe32RelocationType
+                  : PeCaptureError::SourceRelocationsInvalid;
+          return {std::nullopt, error};
         }
         stagedImages.push_back({std::move(staging.image->bytes),
                                 staging.image->requiredBase,
@@ -65,21 +64,20 @@ PeRuntimeCaptureResult PeRuntimeCaptureUseCase::Execute(
            index == 0 && !request.imports.has_value()},
           progress, stopToken);
       if (!captured.capture) {
-        return {std::nullopt, captured.outcome, captured.error,
+        return {std::nullopt, PeCaptureError::SnapshotFailed, captured.error,
                 captured.nativeError};
       }
       if (!evidence.runs.empty() &&
           captured.capture->entryPoint.value != evidence.runs.front().entryPoint.value) {
-        return {std::nullopt, EngineOutcome::Failed,
-                EngineError::RelocationEvidenceInsufficient};
+        return {std::nullopt, PeCaptureError::EntryPointsDiffer};
       }
       evidence.runs.push_back(std::move(*captured.capture));
     }
     if (!stagedImages.empty())
       evidence.sourceRelocationSlots = std::move(stagedImages.front().sourceSlots);
-    return {std::move(evidence), EngineOutcome::Completed, EngineError::None};
+    return {std::move(evidence), PeCaptureError::None};
   } catch (...) {
-    return {std::nullopt, EngineOutcome::Failed, EngineError::DumpIncomplete};
+    return {std::nullopt, PeCaptureError::UnexpectedFailure};
   }
 }
 }

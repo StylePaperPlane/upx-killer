@@ -2,7 +2,8 @@ param(
     [string]$Distribution = "kali-linux",
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [string]$OutputDirectory = ""
+    [string]$OutputDirectory = "",
+    [switch]$RunTests
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,8 +24,9 @@ $drive = $normalizedProject.Substring(0, 1).ToLowerInvariant()
 $linuxProject = "/mnt/$drive" + $normalizedProject.Substring(2)
 $buildDirectory = "/tmp/upx-killer-elf-host-$($Configuration.ToLowerInvariant())"
 $buildType = if ($Configuration -eq "Release") { "Release" } else { "Debug" }
+$testOption = if ($RunTests) { "ON" } else { "OFF" }
 
-& $wslExecutable -d $Distribution -- bash -lc "set -euo pipefail; rm -rf '$buildDirectory'; cmake -S '$linuxProject' -B '$buildDirectory' -DCMAKE_BUILD_TYPE=$buildType; cmake --build '$buildDirectory' --parallel"
+& $wslExecutable -d $Distribution -- bash -lc "set -euo pipefail; rm -rf '$buildDirectory'; cmake -S '$linuxProject' -B '$buildDirectory' -DCMAKE_BUILD_TYPE=$buildType -DUPX_KILLER_BUILD_ELF_TESTS=$testOption; cmake --build '$buildDirectory' --parallel; if [ '$testOption' = 'ON' ]; then ctest --test-dir '$buildDirectory' --output-on-failure; fi"
 if ($LASTEXITCODE -ne 0) { throw "ELF Host build failed with exit code $LASTEXITCODE." }
 
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null

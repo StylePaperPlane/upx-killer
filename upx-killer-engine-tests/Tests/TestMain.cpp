@@ -9,6 +9,7 @@ int RunHostIntegrationTests();
 int RunDllLoaderCatalogTests();
 int RunPe64DllOepTests();
 int RunPeBackendCapabilitiesTests();
+int RunPeJobContractTranslatorTests();
 int RunOepDiscoveryTests();
 int RunOepDiscoveryIntegrationTests();
 int RunImportDiscoveryTests();
@@ -25,6 +26,7 @@ int RunPe32FormatTests();
 int RunPe32DllExportTests();
 int RunWow64DebugSessionTests();
 int RunElfCoreTests();
+int RunElf32ParsingTests();
 int ValidateElfTargetThroughHost(std::filesystem::path const& target,
                                  std::filesystem::path const& output);
 int ValidatePe64DllFixtures(std::filesystem::path const& root);
@@ -49,6 +51,7 @@ int wmain(int argc, wchar_t** argv) {
   failures += RunDllLoaderCatalogTests();
   failures += RunPe64DllOepTests();
   failures += RunPeBackendCapabilitiesTests();
+  failures += RunPeJobContractTranslatorTests();
   failures += RunOepDiscoveryTests();
   failures += RunOepDiscoveryIntegrationTests();
   failures += RunImportDiscoveryTests();
@@ -65,6 +68,7 @@ int wmain(int argc, wchar_t** argv) {
   failures += RunPe32DllExportTests();
   failures += RunWow64DebugSessionTests();
   failures += RunElfCoreTests();
+  failures += RunElf32ParsingTests();
   if (failures == 0) std::cout << "All engine module tests passed.\n";
   return failures == 0 ? 0 : 1;
 }

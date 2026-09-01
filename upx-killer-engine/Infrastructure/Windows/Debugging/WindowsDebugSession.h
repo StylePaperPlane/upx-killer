@@ -12,6 +12,25 @@
 #include <variant>
 
 namespace upx_killer::engine::debugging {
+enum class DebugSessionError {
+  None,
+  UnsupportedHost,
+  InvalidRequest,
+  EntryPointNotFound,
+  ControlledBaseUnavailable,
+  TargetLibraryLaunchFailed,
+  ProcessLaunchFailed,
+  Cancelled,
+  TimedOut,
+  ProtocolFailure,
+  MachineMismatch,
+  Wow64Unavailable,
+  TargetLibraryAttachInvalid,
+  ImportSnapshotFailed,
+  TargetExited,
+  CaptureRejected,
+};
+
 struct DebugLaunchRequest {
   std::filesystem::path targetPath;
   pe::PeFormat format{pe::PeFormat::Pe64};
@@ -29,16 +48,16 @@ struct DebugLaunchRequest {
 };
 
 struct DebugCaptureResult {
-  EngineError error{EngineError::None};
+  DebugSessionError error{DebugSessionError::None};
   std::uint32_t nativeError{};
   LoadedAddress observedImageBase;
 
-  [[nodiscard]] bool Succeeded() const noexcept { return error == EngineError::None; }
+  [[nodiscard]] bool Succeeded() const noexcept { return error == DebugSessionError::None; }
 };
 
 using CaptureCallback =
-    std::function<EngineError(dumping::IRemoteMemoryReader const&, dumping::LoadedImage const&,
-                              RelativeVirtualAddress, pe::imports::RuntimeModuleSnapshot const&)>;
+    std::function<bool(dumping::IRemoteMemoryReader const&, dumping::LoadedImage const&,
+                       RelativeVirtualAddress, pe::imports::RuntimeModuleSnapshot const&)>;
 
 class WindowsDebugSession final {
  public:

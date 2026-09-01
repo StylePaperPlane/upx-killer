@@ -14,10 +14,10 @@ contracts::BackendProbeResult ElfTargetProbe::Execute(
   auto parsed = elf::ElfParser::Parse(bytes);
   if (!parsed.layout)
     return {true, false, std::nullopt, "elf.target.unsupported"};
-  auto const descriptor = ElfBackendCapabilities::Descriptor();
-  return {true, ElfBackendCapabilities::Supports(*parsed.layout), descriptor,
-          ElfBackendCapabilities::Supports(*parsed.layout)
-              ? std::string{}
-              : std::string{"elf.target.kind_unsupported"}};
+  auto const descriptor =
+      ElfBackendCapabilities::DescriptorFor(*parsed.layout);
+  return {true, descriptor.has_value(), descriptor,
+          descriptor ? std::string{}
+                     : std::string{"elf.target.kind_unsupported"}};
 }
 }  // namespace upx_killer::engine::application::elf_preparation

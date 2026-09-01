@@ -4,26 +4,22 @@
 
 namespace {
 using namespace upx_killer::engine;
+using upx_killer::engine::application::pe_preparation::PePreparationError;
 constexpr std::size_t BaseRelocationDirectoryIndex = 5;
 
-EngineError MapParseError(pe::PeError error) noexcept {
+PePreparationError MapParseError(pe::PeError error) noexcept {
   switch (error) {
     case pe::PeError::UnsupportedPe32:
-      return EngineError::UnsupportedPe32;
+      return PePreparationError::UnsupportedPe32;
     case pe::PeError::UnsupportedArchitecture:
-      return EngineError::UnsupportedArchitecture;
+      return PePreparationError::UnsupportedArchitecture;
     case pe::PeError::UnsupportedImageKind:
-      return EngineError::UnsupportedImageKind;
+      return PePreparationError::UnsupportedImageKind;
     default:
-      return EngineError::InvalidPe;
+      return PePreparationError::InvalidPe;
   }
 }
 
-bool IsUnsupported(EngineError error) noexcept {
-  return error == EngineError::UnsupportedPe32 ||
-         error == EngineError::UnsupportedArchitecture ||
-         error == EngineError::UnsupportedImageKind;
-}
 }
 
 namespace upx_killer::engine::application::pe_preparation {
@@ -34,26 +30,22 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
     if (progress) progress(EngineStage::Validating);
     auto source = sourceReader_.Read(request.targetPath, request.maximumImageSize);
     if (!source.source) {
-      return {std::nullopt, EngineOutcome::Failed, EngineError::InvalidPe,
+      return {std::nullopt, PePreparationError::SourceReadFailed,
               source.nativeError};
     }
 
     auto parsed = pe::PeParser::Parse(source.source->bytes);
     if (!parsed.layout) {
       auto const error = MapParseError(parsed.error);
-      return {std::nullopt,
-              IsUnsupported(error) ? EngineOutcome::UnsupportedTarget
-                                   : EngineOutcome::Failed,
-              error};
+      return {std::nullopt, error};
     }
     if (request.oep && request.oep->value >= parsed.layout->sizeOfImage) {
-      return {std::nullopt, EngineOutcome::Failed, EngineError::OepOutOfRange};
+      return {std::nullopt, PePreparationError::EntryPointOutOfRange};
     }
     auto executionPlan =
         PeExecutionPlanFactory::Create(*parsed.layout, capabilities_);
     if (!executionPlan) {
-      return {std::nullopt, EngineOutcome::UnsupportedTarget,
-              EngineError::UnsupportedImageKind};
+      return {std::nullopt, PePreparationError::UnsupportedImageKind};
     }
 
     std::variant<RelativeVirtualAddress, pe::oep::OepDiscoveryPlan> entryPointTarget;
@@ -64,10 +56,9 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
       auto discovery = pe::oep::UpxOepLocator::Analyze(source.source->bytes, *parsed.layout);
       if (!discovery.plan) {
         if (discovery.error == pe::oep::OepDiscoveryError::UnsupportedPacker) {
-          return {std::nullopt, EngineOutcome::UnsupportedTarget,
-                  EngineError::UnsupportedPacker};
+          return {std::nullopt, PePreparationError::UnsupportedPacker};
         }
-        return {std::nullopt, EngineOutcome::OepNotFound, EngineError::OepNotFound};
+        return {std::nullopt, PePreparationError::EntryPointNotFound};
       }
       entryPointTarget = std::move(*discovery.plan);
     }
@@ -78,8 +69,7 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
         relocationDirectory.address.value != 0 || relocationDirectory.size != 0;
     if (!hasSourceRelocations &&
         !std::holds_alternative<pe::oep::OepDiscoveryPlan>(entryPointTarget)) {
-      return {std::nullopt, EngineOutcome::Failed,
-              EngineError::SourceRelocationsInvalid};
+      return {std::nullopt, PePreparationError::SourceRelocationsInvalid};
     }
 
     PreparedPeTarget prepared{};
@@ -90,9 +80,9 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
     prepared.entryPointTarget = std::move(entryPointTarget);
     prepared.executionPlan = *executionPlan;
     prepared.hasSourceRelocations = hasSourceRelocations;
-    return {std::move(prepared), EngineOutcome::Completed, EngineError::None};
+    return {std::move(prepared), PePreparationError::None};
   } catch (...) {
-    return {std::nullopt, EngineOutcome::Failed, EngineError::InvalidPe};
+    return {std::nullopt, PePreparationError::UnexpectedFailure};
   }
 }
 }

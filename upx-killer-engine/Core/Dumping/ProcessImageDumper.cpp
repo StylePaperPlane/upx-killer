@@ -9,11 +9,11 @@ DumpResult ProcessImageDumper::Dump(IRemoteMemoryReader const& reader, LoadedIma
   if (loadedImage.size != layout.sizeOfImage || loadedImage.size == 0 ||
       loadedImage.size > limits.maximumImageSize ||
       loadedImage.size > std::numeric_limits<std::size_t>::max())
-    return {std::nullopt, EngineError::DumpIncomplete};
+    return {std::nullopt, DumpError::InvalidImage};
 
   try {
-    DumpedImage result{};
-    result.loadedBase = loadedImage.base;
+    images::CapturedImage result{};
+    result.loadedAddress = images::ImageAddress{loadedImage.base.value};
     result.bytes.resize(static_cast<std::size_t>(loadedImage.size));
 
     std::uint64_t offset = 0;
@@ -22,14 +22,13 @@ DumpResult ProcessImageDumper::Dump(IRemoteMemoryReader const& reader, LoadedIma
       auto const region = reader.Query(current);
       if (region.size == 0 || region.base.value > current.value ||
           current.value - region.base.value >= region.size)
-        return {std::nullopt, EngineError::ReadMemoryFailed};
+        return {std::nullopt, DumpError::ReadFailed};
 
       auto const regionEnd = region.base.value + region.size;
       auto const remaining = loadedImage.size - offset;
       auto const chunk64 = std::min(remaining, regionEnd - current.value);
       auto const chunk = static_cast<std::size_t>(chunk64);
-      result.regions.push_back({RelativeVirtualAddress{static_cast<std::uint32_t>(offset)},
-                                static_cast<std::uint32_t>(chunk64), region.readable,
+      result.regions.push_back({images::ImageOffset{offset}, chunk64, region.readable,
                                 region.writable, region.executable});
       if (!region.readable) {
         result.warnings.emplace_back("UnreadableMemoryRegionZeroFilled");
@@ -48,9 +47,9 @@ DumpResult ProcessImageDumper::Dump(IRemoteMemoryReader const& reader, LoadedIma
       }
       offset += chunk64;
     }
-    return {std::move(result), EngineError::None};
+    return {std::move(result), DumpError::None};
   } catch (...) {
-    return {std::nullopt, EngineError::ReadMemoryFailed};
+    return {std::nullopt, DumpError::ReadFailed};
   }
 }
 }

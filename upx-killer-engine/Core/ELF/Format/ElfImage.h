@@ -7,6 +7,16 @@
 
 namespace upx_killer::engine::elf {
 
+enum class ElfClass : std::uint8_t {
+  Bits32,
+  Bits64,
+};
+
+enum class ElfMachine : std::uint8_t {
+  X86,
+  X64,
+};
+
 enum class ElfImageType : std::uint8_t {
   Executable,
   PositionIndependentExecutable,
@@ -33,6 +43,8 @@ struct ElfProgramHeader {
 };
 
 struct ElfImageLayout {
+  ElfClass imageClass{ElfClass::Bits64};
+  ElfMachine machine{ElfMachine::X64};
   ElfImageType imageType{ElfImageType::Executable};
   std::uint64_t entryPoint{};
   std::uint64_t programHeaderOffset{};

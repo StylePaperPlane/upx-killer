@@ -30,12 +30,15 @@
     <ClCompile Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.cpp" />
     <ClCompile Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.cpp" />
     <ClCompile Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Debugging\ThreadContext\LinuxThreadContext.cpp" />
     <ClCompile Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.cpp" />
     <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp" />
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp" />
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.cpp" />
     <ClCompile Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.cpp" />
+    <ClCompile Include="Tests\Integration\Debugging\PtraceScenarioTests.cpp" />
     <ClInclude Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.h" />
+    <ClInclude Include="Infrastructure\Linux\Debugging\ThreadContext\LinuxThreadContext.h" />
     <ClInclude Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.h" />
     <ClInclude Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.h" />
     <ClInclude Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.h" />
@@ -44,6 +47,8 @@
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h" />
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.h" />
     <ClInclude Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.h" />
+    <None Include="Tests\Fixtures\Debugging\Tracee.c" />
+    <None Include="Tests\Fixtures\Debugging\Tracee32.S" />
     <None Include="Build-ElfHost.ps1" />
     <None Include="CMakeLists.txt" />
   </ItemGroup>

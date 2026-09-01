@@ -36,6 +36,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\ELF\Format\ElfImage.h" />
+    <ClInclude Include="Core\ELF\Format\Internal\ElfClassTraits.h" />
     <ClInclude Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.h" />
     <ClInclude Include="Core\ELF\Parsing\ElfParser.h" />
     <ClInclude Include="Core\ELF\OepDiscovery\UpxElfOepLocator.h" />
@@ -57,10 +58,12 @@
     <ClInclude Include="Core\PE\Parsing\PeParser.h" />
     <ClInclude Include="Core\PE\OepDiscovery\UpxOepLocator.h" />
     <ClInclude Include="Core\PE\OepDiscovery\Internal\UpxTailTransferAnalyzer.h" />
+    <ClInclude Include="Core\Images\CapturedImage.h" />
     <ClInclude Include="Core\Dumping\ProcessImageDumper.h" />
     <ClInclude Include="Core\PE\Fixing\PeImageFixer.h" />
     <ClInclude Include="Core\PE\Fixing\ImagePlacementPlan.h" />
     <ClInclude Include="Core\PE\Sections\SectionLayoutRebuilder.h" />
+    <ClInclude Include="Core\PE\Validation\RebuiltPeImageValidator.h" />
     <ClInclude Include="Core\PE\Rebasing\PeFileRebaser.h" />
     <ClInclude Include="Core\PE\Rebasing\NoSourceRelocations\NoSourceRelocationsImagePreparer.h" />
     <ClInclude Include="Core\PE\Rebasing\NoSourceRelocations\UpxPe32StubAddressingRebaser.h" />
@@ -84,6 +87,7 @@
     <ClInclude Include="Application\PE\Preparation\PeTargetPreparationUseCase.h" />
     <ClInclude Include="Application\PE\Preparation\PeTargetProbe.h" />
     <ClInclude Include="Application\PE\PeUnpackBackend.h" />
+    <ClInclude Include="Application\PE\Translation\PeJobContractTranslator.h" />
     <ClInclude Include="Application\PE\Capture\PeRuntimeCaptureUseCase.h" />
     <ClInclude Include="Application\PE\Reconstruction\PeImageReconstructionUseCase.h" />
     <ClInclude Include="Application\Artifacts\ArtifactPublicationUseCase.h" />
@@ -112,6 +116,7 @@
     <ClCompile Include="Core\Dumping\ProcessImageDumper.cpp" />
     <ClCompile Include="Core\PE\Fixing\PeImageFixer.cpp" />
     <ClCompile Include="Core\PE\Sections\SectionLayoutRebuilder.cpp" />
+    <ClCompile Include="Core\PE\Validation\RebuiltPeImageValidator.cpp" />
     <ClCompile Include="Core\PE\Rebasing\PeFileRebaser.cpp" />
     <ClCompile Include="Core\PE\Rebasing\NoSourceRelocations\NoSourceRelocationsImagePreparer.cpp" />
     <ClCompile Include="Core\PE\Rebasing\NoSourceRelocations\UpxPe32StubAddressingRebaser.cpp" />
@@ -134,6 +139,7 @@
     <ClCompile Include="Application\PE\Preparation\PeTargetPreparationUseCase.cpp" />
     <ClCompile Include="Application\PE\Preparation\PeTargetProbe.cpp" />
     <ClCompile Include="Application\PE\PeUnpackBackend.cpp" />
+    <ClCompile Include="Application\PE\Translation\PeJobContractTranslator.cpp" />
     <ClCompile Include="Application\PE\Capture\PeRuntimeCaptureUseCase.cpp" />
     <ClCompile Include="Application\PE\Reconstruction\PeImageReconstructionUseCase.cpp" />
     <ClCompile Include="Application\Artifacts\ArtifactPublicationUseCase.cpp" />

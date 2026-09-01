@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Core/Images/CapturedImage.h"
 #include "Core/PE/Parsing/PeParser.h"
-#include "Core/Dumping/ProcessImageDumper.h"
 
 #include <array>
 #include <cstddef>
@@ -17,7 +17,7 @@ struct SectionLayoutInput {
   RelativeVirtualAddress oep;
   ImportRebuildPlan const* imports{};
   std::span<RelativeVirtualAddress const> exportCodeTargets;
-  std::span<dumping::DumpedMemoryRegion const> memoryRegions;
+  std::span<images::CapturedImageRegion const> memoryRegions;
 };
 
 struct RebuiltSection {

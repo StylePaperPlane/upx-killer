@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Dumping/ProcessImageDumper.h"
+#include "Core/Images/CapturedImage.h"
 #include "Core/PE/Fixing/ImagePlacementPlan.h"
 
 #include <cstddef>
@@ -8,6 +8,18 @@
 #include <vector>
 
 namespace upx_killer::engine::pe {
+enum class PeFixError {
+  None,
+  EntryPointOutOfRange,
+  ImagePlacementInvalid,
+  RelocationSlotInvalid,
+  ExportDirectoryInvalid,
+  SectionLayoutInvalid,
+  ImportPlanInvalid,
+  HeaderWriteFailed,
+  UnexpectedFailure,
+};
+
 struct FixRequest {
   RelativeVirtualAddress oep;
   std::optional<ImportRebuildPlan> imports;
@@ -22,7 +34,7 @@ struct FixedPeImage {
 
 struct FixResult {
   std::optional<FixedPeImage> image;
-  EngineError error{EngineError::None};
+  PeFixError error{PeFixError::None};
 
   [[nodiscard]] bool Succeeded() const noexcept { return image.has_value(); }
 };
@@ -30,7 +42,7 @@ struct FixResult {
 class PeImageFixer final {
  public:
   [[nodiscard]] static FixResult Rebuild(PeImageLayout const& layout,
-                                         dumping::DumpedImage const& dump,
+                                         images::CapturedImage const& capturedImage,
                                          FixRequest const& request) noexcept;
 };
 }

@@ -59,8 +59,9 @@ ThreadContextController& ThreadContextController::operator=(
   return *this;
 }
 
-EngineError ThreadContextController::ValidateProcess(HANDLE process, pe::PeFormat expectedFormat,
-                                                     std::uint32_t& nativeError) noexcept {
+ThreadContextError ThreadContextController::ValidateProcess(
+    HANDLE process, pe::PeFormat expectedFormat,
+    std::uint32_t& nativeError) noexcept {
   nativeError = ERROR_SUCCESS;
   auto const& functions = Functions();
   if (functions.isWow64Process2) {
@@ -68,7 +69,7 @@ EngineError ThreadContextController::ValidateProcess(HANDLE process, pe::PeForma
     USHORT nativeMachine{};
     if (!functions.isWow64Process2(process, &processMachine, &nativeMachine)) {
       nativeError = GetLastError();
-      return EngineError::DebugProtocolFailed;
+      return ThreadContextError::PlatformCallFailed;
     }
     auto const isPe32 = processMachine == IMAGE_FILE_MACHINE_I386;
     auto const isPe64 =
@@ -76,26 +77,26 @@ EngineError ThreadContextController::ValidateProcess(HANDLE process, pe::PeForma
     if ((expectedFormat == pe::PeFormat::Pe32 && !isPe32) ||
         (expectedFormat == pe::PeFormat::Pe64 && !isPe64)) {
       nativeError = ERROR_BAD_EXE_FORMAT;
-      return EngineError::TargetMachineMismatch;
+      return ThreadContextError::MachineMismatch;
     }
   } else {
     BOOL isWow64{};
     if (!IsWow64Process(process, &isWow64)) {
       nativeError = GetLastError();
-      return EngineError::DebugProtocolFailed;
+      return ThreadContextError::PlatformCallFailed;
     }
     if ((expectedFormat == pe::PeFormat::Pe32) != (isWow64 != FALSE)) {
       nativeError = ERROR_BAD_EXE_FORMAT;
-      return EngineError::TargetMachineMismatch;
+      return ThreadContextError::MachineMismatch;
     }
   }
 
   if (expectedFormat == pe::PeFormat::Pe32 &&
       (!functions.getThreadContext || !functions.setThreadContext)) {
     nativeError = ERROR_CALL_NOT_IMPLEMENTED;
-    return EngineError::Wow64Unavailable;
+    return ThreadContextError::Wow64Unavailable;
   }
-  return EngineError::None;
+  return ThreadContextError::None;
 }
 
 std::optional<ThreadContextController> ThreadContextController::Open(

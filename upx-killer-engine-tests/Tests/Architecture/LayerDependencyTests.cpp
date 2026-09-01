@@ -85,17 +85,40 @@ int RunLayerDependencyTests() {
       "Contracts must remain portable and format-neutral");
   failures += RequireAbsent(
       *root / "upx-killer-engine" / "Application",
-      {"#include \"Infrastructure/"},
-      "Application must not depend on Infrastructure");
+      {"#include \"Infrastructure/", "#include <Windows",
+       "#include \"Windows", "winrt/", "IMAGE_DIRECTORY_ENTRY_",
+       "IMAGE_DLLCHARACTERISTICS_", "IMAGE_FILE_RELOCS_STRIPPED",
+       "Core/ELF/Format/Internal/ElfClassTraits.h"},
+      "Application must remain platform-neutral and not depend on Infrastructure");
   failures += RequireAbsent(
       *root / "upx-killer-engine" / "Core",
       {"#include \"Infrastructure/"},
       "Core must not depend on Infrastructure");
   failures += RequireAbsent(
+      *root / "upx-killer-engine",
+      {"EngineError", "EngineResult", "EngineArtifact", "EngineOutcome"},
+      "Engine modules must expose local result and error types");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Core" / "Images" / "CapturedImage.h",
+      {"Core/", "RelativeVirtualAddress", "LoadedAddress", "FileOffset",
+       "PeImage", "ElfImage", "PE/", "ELF/"},
+      "Captured image must remain format-neutral and self-contained");
+  failures += RequireAbsent(
       *root / "upx-killer-engine" / "Application" / "PE" / "PeUnpackBackend.cpp",
       {"PeParser::", "PeImageFixer", "RelocationReconstructor",
-       "WindowsDebugSession", "ReadProcessMemory", "CreateFileW"},
+       "WindowsDebugSession", "ReadProcessMemory", "CreateFileW",
+       "DetailCode(", "MapStage(", "MapOutcome(", "Category("},
       "PE backend must only coordinate use cases");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Core" / "PE" / "Sections",
+      {"Core/Dumping/ProcessImageDumper.h", "dumping::DumpedImage",
+       "dumping::DumpedMemoryRegion"},
+      "PE section reconstruction must consume the neutral captured image model");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Core" / "PE" / "Fixing",
+      {"Core/Dumping/ProcessImageDumper.h", "dumping::DumpedImage",
+       "dumping::DumpedMemoryRegion"},
+      "PE fixing must consume the neutral captured image model");
   failures += RequireAbsent(
       *root / "upx-killer-engine" / "Application" / "ELF" /
           "ElfUnpackBackend.cpp",
@@ -118,6 +141,10 @@ int RunLayerDependencyTests() {
       {"Core/ELF/", "ElfParser::", "ElfImageRebuilder", "ptrace"},
       "Windows WSL adapters must use portable contracts, not ELF internals");
   failures += RequireAbsent(
+      *root / "upx-killer-elf-host" / "Infrastructure",
+      {"Core/ELF/Format/Internal/ElfClassTraits.h"},
+      "Linux adapters must not depend on internal ELF class traits");
+  failures += RequireAbsent(
       *root / "upx-killer-elf-host" / "CMakeLists.txt",
       {"${CONTRACTS_ROOT}/", "${ENGINE_ROOT}/"},
       "ELF Host CMake must consume module targets instead of external sources");
@@ -135,5 +162,11 @@ int RunLayerDependencyTests() {
       {"add_subdirectory(", "add_library(upx_killer_elf_linux",
        "target_link_libraries(upx_killer_elf_host"},
       "ELF Host must compose owned module targets");
+  failures += RequirePresent(
+      *root / ".gitignore", {"/artifacts/"},
+      "Generated artifact output must be ignored only at repository root");
+  failures += RequireAbsent(
+      *root / ".gitignore", {"\nartifacts/", "\r\nartifacts/"},
+      "Git ignore rules must not hide the Application/Artifacts source module");
   return failures;
 }

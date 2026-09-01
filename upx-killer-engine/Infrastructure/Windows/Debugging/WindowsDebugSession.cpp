@@ -77,6 +77,21 @@ void DrainDebuggeeExit(DWORD processId) noexcept {
     if (isTargetExit) return;
   }
 }
+
+DebugSessionError MapThreadContextError(
+    thread_context::ThreadContextError error) noexcept {
+  using thread_context::ThreadContextError;
+  switch (error) {
+    case ThreadContextError::None: return DebugSessionError::None;
+    case ThreadContextError::MachineMismatch:
+      return DebugSessionError::MachineMismatch;
+    case ThreadContextError::Wow64Unavailable:
+      return DebugSessionError::Wow64Unavailable;
+    case ThreadContextError::PlatformCallFailed:
+      return DebugSessionError::ProtocolFailure;
+  }
+  return DebugSessionError::ProtocolFailure;
+}
 }
 
 namespace upx_killer::engine::debugging {
@@ -87,10 +102,10 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
   (void)request;
   (void)capture;
   (void)stopToken;
-  return {EngineError::UnsupportedArchitecture, ERROR_NOT_SUPPORTED};
+  return {DebugSessionError::UnsupportedHost, ERROR_NOT_SUPPORTED};
 #else
   if (!capture || request.sizeOfImage == 0)
-    return {EngineError::OepOutOfRange, ERROR_INVALID_PARAMETER};
+    return {DebugSessionError::InvalidRequest, ERROR_INVALID_PARAMETER};
 
   auto const* explicitOep = std::get_if<RelativeVirtualAddress>(&request.oepTarget);
   auto const* discovery = std::get_if<pe::oep::OepDiscoveryPlan>(&request.oepTarget);
@@ -98,7 +113,8 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
                        (request.imageKind == pe::PeImageKind::DynamicLibrary &&
                         explicitOep->value == 0))) ||
       (discovery && discovery->candidates.empty()))
-    return {explicitOep ? EngineError::OepOutOfRange : EngineError::OepNotFound,
+    return {explicitOep ? DebugSessionError::InvalidRequest
+                        : DebugSessionError::EntryPointNotFound,
             ERROR_INVALID_PARAMETER};
 
   std::uint32_t launchError{};
@@ -108,7 +124,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
     stagedTarget = staging::StagedDebugTarget::Create(request.targetPath, request.imageKind,
                                                        request.stagedTargetImage,
                                                        launchError);
-    if (!stagedTarget) return {EngineError::ControlledBaseUnavailable, launchError};
+    if (!stagedTarget) return {DebugSessionError::ControlledBaseUnavailable, launchError};
     launchPath = stagedTarget->ImagePath();
   }
   auto const workingDirectory = request.workingDirectory.empty()
@@ -117,10 +133,10 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
   auto launch = loading::DebugTargetLoader::CreateCommand(
       request.imageKind, launchPath, workingDirectory, request.dllLoader,
       launchError);
-  if (!launch) return {EngineError::LoadingTargetLibraryFailed, launchError};
+  if (!launch) return {DebugSessionError::TargetLibraryLaunchFailed, launchError};
   auto process = DebugProcess::Launch(launch->application, std::move(launch->commandLine),
                                       workingDirectory, launchError);
-  if (!process) return {EngineError::LaunchFailed, launchError};
+  if (!process) return {DebugSessionError::ProcessLaunchFailed, launchError};
 
   SoftwareBreakpointSet breakpoints{process->ProcessHandle()};
   auto const started = std::chrono::steady_clock::now();
@@ -135,12 +151,12 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
     if (stopToken.stop_requested()) {
       process->Terminate(ERROR_CANCELLED);
       DrainDebuggeeExit(process->ProcessId());
-      return {EngineError::Cancelled, ERROR_CANCELLED};
+      return {DebugSessionError::Cancelled, ERROR_CANCELLED};
     }
     if (std::chrono::steady_clock::now() - started >= request.timeout) {
       process->Terminate(WAIT_TIMEOUT);
       DrainDebuggeeExit(process->ProcessId());
-      return {EngineError::TimedOut, WAIT_TIMEOUT};
+      return {DebugSessionError::TimedOut, WAIT_TIMEOUT};
     }
 
     DEBUG_EVENT event{};
@@ -149,11 +165,11 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
       if (error == ERROR_SEM_TIMEOUT) continue;
       process->Terminate(error);
       DrainDebuggeeExit(process->ProcessId());
-      return {EngineError::DebugProtocolFailed, error};
+      return {DebugSessionError::ProtocolFailure, error};
     }
 
     DWORD continueStatus = DBG_CONTINUE;
-    EngineError terminalError = EngineError::None;
+    DebugSessionError terminalError = DebugSessionError::None;
     std::uint32_t terminalNativeError{};
     bool terminal{};
     bool terminalEventIsExit{};
@@ -161,14 +177,14 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
     if (event.dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT) {
       auto const formatError = thread_context::ThreadContextController::ValidateProcess(
           process->ProcessHandle(), request.format, terminalNativeError);
-      if (formatError != EngineError::None) {
+      if (formatError != thread_context::ThreadContextError::None) {
         terminal = true;
-        terminalError = formatError;
+        terminalError = MapThreadContextError(formatError);
       } else if (!launch->targetArrivesAsDll) {
         imageBase = reinterpret_cast<std::uint64_t>(event.u.CreateProcessInfo.lpBaseOfImage);
         if (request.requiredImageBase && imageBase != request.requiredImageBase->value) {
           terminal = true;
-          terminalError = EngineError::ControlledBaseUnavailable;
+          terminalError = DebugSessionError::ControlledBaseUnavailable;
           terminalNativeError = ERROR_INVALID_ADDRESS;
         }
       }
@@ -179,7 +195,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
         auto const id = explicitOep ? ExplicitBreakpointId : PackedEntryBreakpointId;
         if (!breakpoints.Install(address, id, breakpointError)) {
           terminal = true;
-          terminalError = EngineError::DebugProtocolFailed;
+          terminalError = DebugSessionError::ProtocolFailure;
           terminalNativeError = breakpointError;
         }
       }
@@ -189,7 +205,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
       imageBase = reinterpret_cast<std::uint64_t>(event.u.LoadDll.lpBaseOfDll);
       if (request.requiredImageBase && imageBase != request.requiredImageBase->value) {
         terminal = true;
-        terminalError = EngineError::ControlledBaseUnavailable;
+        terminalError = DebugSessionError::ControlledBaseUnavailable;
         terminalNativeError = ERROR_INVALID_ADDRESS;
       } else {
         std::uint32_t breakpointError{};
@@ -198,7 +214,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
         auto const id = explicitOep ? ExplicitBreakpointId : PackedEntryBreakpointId;
         if (!breakpoints.Install(address, id, breakpointError)) {
           terminal = true;
-          terminalError = EngineError::DebugProtocolFailed;
+          terminalError = DebugSessionError::ProtocolFailure;
           terminalNativeError = breakpointError;
         }
       }
@@ -215,11 +231,11 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
         if (!context ||
             !breakpoints.Restore(exceptionAddress, contextError)) {
           terminal = true;
-          terminalError = EngineError::DebugProtocolFailed;
+          terminalError = DebugSessionError::ProtocolFailure;
           terminalNativeError = contextError;
         } else if (!context->SetInstructionPointer(exceptionAddress, contextError)) {
           terminal = true;
-          terminalError = EngineError::DebugProtocolFailed;
+          terminalError = DebugSessionError::ProtocolFailure;
           terminalNativeError = contextError;
         } else {
           if (*breakpointId == ExplicitBreakpointId) {
@@ -230,10 +246,10 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
             }
             if (!processAttachValidated) {
               terminal = true;
-              terminalError = EngineError::TargetLibraryAttachInvalid;
+              terminalError = DebugSessionError::TargetLibraryAttachInvalid;
             }
             if (!context->Commit(contextError)) {
-              terminalError = EngineError::DebugProtocolFailed;
+              terminalError = DebugSessionError::ProtocolFailure;
               terminalNativeError = contextError;
             } else {
               ProcessMemoryReader reader{process->ProcessHandle()};
@@ -244,14 +260,15 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
                                                  request.format, LoadedAddress{imageBase});
                 if (!catalog.Succeeded()) {
                   terminal = true;
-                  terminalError = EngineError::ImportSnapshotFailed;
+                  terminalError = DebugSessionError::ImportSnapshotFailed;
                   terminalNativeError = catalog.nativeError;
                 } else
                   runtime = std::move(catalog.snapshot);
               }
-              if (!terminal)
-                terminalError =
-                    capture(reader, {{imageBase}, request.sizeOfImage}, *explicitOep, runtime);
+              if (!terminal &&
+                  !capture(reader, {{imageBase}, request.sizeOfImage},
+                           *explicitOep, runtime))
+                terminalError = DebugSessionError::CaptureRejected;
             }
             terminal = true;
           } else if (*breakpointId == PackedEntryBreakpointId) {
@@ -264,7 +281,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
             }
             if (!context->Commit(contextError)) {
               terminal = true;
-              terminalError = EngineError::DebugProtocolFailed;
+              terminalError = DebugSessionError::ProtocolFailure;
               terminalNativeError = contextError;
             } else {
               for (std::size_t index = 0; index < discovery->candidates.size(); ++index) {
@@ -277,7 +294,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
                         CandidateBreakpointBase + static_cast<std::uint32_t>(index),
                         terminalNativeError)) {
                   terminal = true;
-                  terminalError = EngineError::DebugProtocolFailed;
+                  terminalError = DebugSessionError::ProtocolFailure;
                   break;
                 }
               }
@@ -295,7 +312,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
                                targetReadable && targetChanged;
             if (!context->Commit(contextError)) {
               terminal = true;
-              terminalError = EngineError::DebugProtocolFailed;
+              terminalError = DebugSessionError::ProtocolFailure;
               terminalNativeError = contextError;
             } else if (valid) {
               ProcessMemoryReader reader{process->ProcessHandle()};
@@ -306,18 +323,19 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
                                                  request.format, LoadedAddress{imageBase});
                 if (!catalog.Succeeded()) {
                   terminal = true;
-                  terminalError = EngineError::ImportSnapshotFailed;
+                  terminalError = DebugSessionError::ImportSnapshotFailed;
                   terminalNativeError = catalog.nativeError;
                 } else
                   runtime = std::move(catalog.snapshot);
               }
-              if (!terminal)
-                terminalError =
-                    capture(reader, {{imageBase}, request.sizeOfImage}, candidate.target, runtime);
+              if (!terminal &&
+                  !capture(reader, {{imageBase}, request.sizeOfImage},
+                           candidate.target, runtime))
+                terminalError = DebugSessionError::CaptureRejected;
               terminal = true;
             } else if (breakpoints.Count() == 0) {
               terminal = true;
-              terminalError = EngineError::OepNotFound;
+              terminalError = DebugSessionError::EntryPointNotFound;
             }
           }
         }
@@ -327,13 +345,14 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
     } else if (event.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT) {
       terminal = true;
       terminalEventIsExit = true;
-      terminalError = discovery ? EngineError::OepNotFound : EngineError::TargetExited;
+      terminalError = discovery ? DebugSessionError::EntryPointNotFound
+                                : DebugSessionError::TargetExited;
       terminalNativeError = event.u.ExitProcess.dwExitCode;
     }
 
     CloseDebugEventHandles(event);
     if (!ContinueDebugEvent(event.dwProcessId, event.dwThreadId, continueStatus) && !terminal)
-      return {EngineError::DebugProtocolFailed, GetLastError()};
+      return {DebugSessionError::ProtocolFailure, GetLastError()};
     if (terminal) {
       if (!terminalEventIsExit) {
         process->Terminate(terminalNativeError);

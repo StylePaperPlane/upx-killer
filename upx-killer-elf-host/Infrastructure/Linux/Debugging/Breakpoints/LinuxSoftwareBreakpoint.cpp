@@ -1,7 +1,8 @@
 #include "Infrastructure/Linux/Debugging/Breakpoints/LinuxSoftwareBreakpoint.h"
 
+#include "Infrastructure/Linux/Debugging/ThreadContext/LinuxThreadContext.h"
+
 #include <sys/ptrace.h>
-#include <sys/user.h>
 
 #include <cerrno>
 #include <csignal>
@@ -24,17 +25,19 @@ std::optional<LinuxSoftwareBreakpoint> LinuxSoftwareBreakpoint::Install(
   return LinuxSoftwareBreakpoint{address, aligned, original};
 }
 
-bool LinuxSoftwareBreakpoint::RestoreIfHit(pid_t pid, int signal) const noexcept {
-  user_regs_struct registers{};
-  if (signal != SIGTRAP ||
-      ptrace(PTRACE_GETREGS, pid, nullptr, &registers) != 0 ||
-      registers.rip != address_ + 1)
-    return false;
+BreakpointRestoreResult LinuxSoftwareBreakpoint::RestoreIfHit(
+    pid_t pid, int signal, engine::elf::ElfClass imageClass) const noexcept {
+  if (signal != SIGTRAP) return BreakpointRestoreResult::NotHit;
+  auto const context = LinuxThreadContext::Read(pid, imageClass);
+  if (!context) return BreakpointRestoreResult::Failed;
+  if (context->instructionPointer != address_ + 1)
+    return BreakpointRestoreResult::NotHit;
   if (ptrace(PTRACE_POKEDATA, pid,
              reinterpret_cast<void*>(alignedAddress_),
              reinterpret_cast<void*>(originalWord_)) != 0)
-    return false;
-  registers.rip = address_;
-  return ptrace(PTRACE_SETREGS, pid, nullptr, &registers) == 0;
+    return BreakpointRestoreResult::Failed;
+  if (!LinuxThreadContext::SetInstructionPointer(pid, imageClass, address_))
+    return BreakpointRestoreResult::Failed;
+  return BreakpointRestoreResult::Restored;
 }
 }  // namespace upx_killer::elf_host::debugging

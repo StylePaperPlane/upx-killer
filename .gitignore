@@ -34,7 +34,7 @@
 packages/
 dist/
 dist-rebuilt/
-artifacts/
+/artifacts/
 upx-killer/verify-output/
 upx-killer/verify-no-uid/
 upx-killer/verify-languages/

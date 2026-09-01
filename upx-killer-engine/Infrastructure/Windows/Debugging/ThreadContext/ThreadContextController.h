@@ -9,6 +9,13 @@
 #include <optional>
 
 namespace upx_killer::engine::debugging::thread_context {
+enum class ThreadContextError {
+  None,
+  PlatformCallFailed,
+  MachineMismatch,
+  Wow64Unavailable,
+};
+
 struct ThreadControlContext {
   std::uint64_t instructionPointer{};
   std::uint64_t stackPointer{};
@@ -31,8 +38,9 @@ class ThreadContextController final {
   ThreadContextController(ThreadContextController&& other) noexcept;
   ThreadContextController& operator=(ThreadContextController&& other) noexcept;
 
-  [[nodiscard]] static EngineError ValidateProcess(HANDLE process, pe::PeFormat expectedFormat,
-                                                   std::uint32_t& nativeError) noexcept;
+  [[nodiscard]] static ThreadContextError ValidateProcess(
+      HANDLE process, pe::PeFormat expectedFormat,
+      std::uint32_t& nativeError) noexcept;
   [[nodiscard]] static std::optional<ThreadContextController> Open(
       DWORD threadId, pe::PeFormat format, std::uint32_t& nativeError) noexcept;
 

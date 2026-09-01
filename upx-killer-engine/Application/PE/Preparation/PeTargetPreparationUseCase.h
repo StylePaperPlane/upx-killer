@@ -11,6 +11,20 @@
 #include <vector>
 
 namespace upx_killer::engine::application::pe_preparation {
+enum class PePreparationError {
+  None,
+  SourceReadFailed,
+  InvalidPe,
+  UnsupportedPe32,
+  UnsupportedArchitecture,
+  UnsupportedImageKind,
+  EntryPointOutOfRange,
+  UnsupportedPacker,
+  EntryPointNotFound,
+  SourceRelocationsInvalid,
+  UnexpectedFailure,
+};
+
 struct TargetSource {
   std::vector<std::byte> bytes;
   std::filesystem::path dependencyDirectory;
@@ -41,8 +55,7 @@ struct PreparedPeTarget {
 
 struct PePreparationResult {
   std::optional<PreparedPeTarget> target;
-  EngineOutcome outcome{EngineOutcome::Failed};
-  EngineError error{EngineError::None};
+  PePreparationError error{PePreparationError::None};
   std::uint32_t nativeError{};
 
   [[nodiscard]] bool Succeeded() const noexcept { return target.has_value(); }

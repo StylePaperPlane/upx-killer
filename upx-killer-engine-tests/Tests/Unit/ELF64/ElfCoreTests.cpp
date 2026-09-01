@@ -1,4 +1,5 @@
 #include "Core/ELF/OepDiscovery/UpxElfOepLocator.h"
+#include "Application/ELF/Capabilities/ElfBackendCapabilities.h"
 #include "Core/ELF/Reconstruction/ElfImageRebuilder.h"
 #include "Core/ELF/Validation/ElfImageValidator.h"
 
@@ -70,6 +71,16 @@ int RunElfCoreTests() {
   expect(parsed.layout.has_value(), "ELF64 x86-64 executable parses");
   expect(parsed.layout && parsed.layout->entryPoint == 0x401000,
          "ELF entry point is retained");
+  auto descriptor = parsed.layout
+                        ? upx_killer::engine::application::
+                              ElfBackendCapabilities::DescriptorFor(
+                                  *parsed.layout)
+                        : std::nullopt;
+  auto manifest =
+      upx_killer::engine::application::ElfBackendCapabilities::Manifest();
+  expect(descriptor && manifest.capabilities.size() == 1 &&
+             manifest.capabilities.front() == *descriptor,
+         "ELF manifest and layout descriptor share one capability source");
   auto pie = ElfParser::Parse(MakeElf64(true));
   expect(pie.layout &&
              pie.layout->imageType == ElfImageType::PositionIndependentExecutable,
@@ -92,9 +103,9 @@ int RunElfCoreTests() {
          "ordinary sectioned ELF is not classified as modified UPX");
 
   auto invalid = source;
-  invalid[4] = std::byte{1};
+  invalid[4] = std::byte{3};
   expect(ElfParser::Parse(invalid).error == ElfParseError::UnsupportedClass,
-         "ELF32 is rejected by the ELF64 parser");
+         "unknown ELF class is rejected");
 
   source.resize(0x3100);
   source[0x3000] = std::byte{'U'};
