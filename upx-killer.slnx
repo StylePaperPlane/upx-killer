@@ -9,9 +9,11 @@
       <Deploy />
     </Project>
   </Folder>
-  <Folder Name="/Engine/">
+  <Folder Name="/Shared/">
     <Project Path="upx-killer-contracts/upx-killer-contracts.vcxproj" Id="b36a63da-b807-4d29-a538-5a1047b46542" />
     <Project Path="upx-killer-inspection/upx-killer-inspection.vcxproj" Id="6f2c9a41-7448-4ceb-a0de-239c5f14b62e" />
+  </Folder>
+  <Folder Name="/Engine/">
     <Project Path="upx-killer-engine/upx-killer-engine.vcxproj" Id="911e077c-a45d-4468-a634-b1a8029a9dd1" />
     <Project Path="upx-killer-engine-host/upx-killer-engine-host.vcxproj" Id="da9d947b-c14b-44cb-8dbd-ceba49b319a6" />
     <Project Path="upx-killer-elf-host/upx-killer-elf-host.vcxproj" Id="42b491c8-7c0b-48a2-a83d-b0e026563226" />
