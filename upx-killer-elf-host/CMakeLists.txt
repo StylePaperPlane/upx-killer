@@ -15,10 +15,11 @@ add_subdirectory(
   "${CMAKE_BINARY_DIR}/upx-killer-engine")
 
 add_library(upx_killer_elf_linux STATIC
-  Infrastructure/Linux/Debugging/Breakpoints/LinuxSoftwareBreakpoint.cpp
+  Infrastructure/Linux/Debugging/Breakpoints/LinuxExecutionBreakpoint.cpp
   Infrastructure/Linux/Debugging/Memory/LinuxProcessMemory.cpp
   Infrastructure/Linux/Debugging/Process/LinuxTracedProcess.cpp
   Infrastructure/Linux/Debugging/PtraceElfSnapshotCapture.cpp
+  Infrastructure/Linux/Debugging/Recovery/RecoveredElfLoadBiasResolver.cpp
   Infrastructure/Linux/Debugging/Recovery/RecoveredElfImageLocator.cpp
   Infrastructure/Linux/Debugging/ThreadContext/LinuxThreadContext.cpp
   Infrastructure/Linux/Pipes/PosixPipeTransport.cpp
@@ -77,6 +78,85 @@ if(UPX_KILLER_BUILD_ELF_TESTS)
   add_custom_target(upx_killer_elf_tracee_x86_fixture
     DEPENDS "${UPX_KILLER_ELF_TRACEE32}")
 
+  set(UPX_KILLER_ELF_BEHAVIOR32_OBJECT
+    "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_behavior_x86.o")
+  set(UPX_KILLER_ELF_BEHAVIOR32
+    "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_behavior_x86")
+  add_custom_command(
+    OUTPUT "${UPX_KILLER_ELF_BEHAVIOR32_OBJECT}"
+    COMMAND "${UPX_KILLER_AS_EXECUTABLE}" --32
+      "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Fixtures/ELF32/BehaviorTracee32.S"
+      -o "${UPX_KILLER_ELF_BEHAVIOR32_OBJECT}"
+    DEPENDS Tests/Fixtures/ELF32/BehaviorTracee32.S
+    VERBATIM)
+  add_custom_target(upx_killer_elf_behavior_x86_object
+    DEPENDS "${UPX_KILLER_ELF_BEHAVIOR32_OBJECT}")
+  add_custom_command(
+    OUTPUT "${UPX_KILLER_ELF_BEHAVIOR32}"
+    COMMAND "${UPX_KILLER_LD_EXECUTABLE}" -m elf_i386
+      "${UPX_KILLER_ELF_BEHAVIOR32_OBJECT}"
+      -o "${UPX_KILLER_ELF_BEHAVIOR32}"
+    DEPENDS upx_killer_elf_behavior_x86_object
+    VERBATIM)
+  add_custom_target(upx_killer_elf_behavior_x86_fixture
+    DEPENDS "${UPX_KILLER_ELF_BEHAVIOR32}")
+
+  find_file(UPX_KILLER_ELF32_LIBC
+    NAMES libc.so.6
+    PATHS
+      /lib32
+      /usr/lib32
+      /lib/i386-linux-gnu
+      /usr/lib/i386-linux-gnu
+    NO_DEFAULT_PATH
+    REQUIRED)
+  set(UPX_KILLER_ELF_DYNAMIC_PIE32_OBJECT
+    "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_dynamic_pie_x86.o")
+  set(UPX_KILLER_ELF_DYNAMIC_PIE32
+    "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_dynamic_pie_x86")
+  add_custom_command(
+    OUTPUT "${UPX_KILLER_ELF_DYNAMIC_PIE32_OBJECT}"
+    COMMAND "${CMAKE_C_COMPILER}" -m32 -fPIE -fno-stack-protector
+      -fno-asynchronous-unwind-tables -O2 -Wall -Wextra -Wpedantic -Werror
+      -c
+      "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Fixtures/ELF32/PIE/DynamicPieTracee32.c"
+      -o "${UPX_KILLER_ELF_DYNAMIC_PIE32_OBJECT}"
+    DEPENDS Tests/Fixtures/ELF32/PIE/DynamicPieTracee32.c
+    VERBATIM)
+  add_custom_command(
+    OUTPUT "${UPX_KILLER_ELF_DYNAMIC_PIE32}"
+    COMMAND "${UPX_KILLER_LD_EXECUTABLE}" -m elf_i386 -pie
+      --dynamic-linker /lib/ld-linux.so.2 -e _start
+      "${UPX_KILLER_ELF_DYNAMIC_PIE32_OBJECT}"
+      "${UPX_KILLER_ELF32_LIBC}"
+      -o "${UPX_KILLER_ELF_DYNAMIC_PIE32}"
+    DEPENDS "${UPX_KILLER_ELF_DYNAMIC_PIE32_OBJECT}"
+    VERBATIM)
+  add_custom_target(upx_killer_elf_dynamic_pie_x86_fixture
+    DEPENDS "${UPX_KILLER_ELF_DYNAMIC_PIE32}")
+
+  set(UPX_KILLER_ELF_STATIC_PIE32_OBJECT
+    "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_static_pie_x86.o")
+  set(UPX_KILLER_ELF_STATIC_PIE32
+    "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_static_pie_x86")
+  add_custom_command(
+    OUTPUT "${UPX_KILLER_ELF_STATIC_PIE32_OBJECT}"
+    COMMAND "${UPX_KILLER_AS_EXECUTABLE}" --32
+      "${CMAKE_CURRENT_SOURCE_DIR}/Tests/Fixtures/ELF32/PIE/StaticPieTracee32.S"
+      -o "${UPX_KILLER_ELF_STATIC_PIE32_OBJECT}"
+    DEPENDS Tests/Fixtures/ELF32/PIE/StaticPieTracee32.S
+    VERBATIM)
+  add_custom_command(
+    OUTPUT "${UPX_KILLER_ELF_STATIC_PIE32}"
+    COMMAND "${UPX_KILLER_LD_EXECUTABLE}" -m elf_i386 -pie
+      --no-dynamic-linker -e _start
+      "${UPX_KILLER_ELF_STATIC_PIE32_OBJECT}"
+      -o "${UPX_KILLER_ELF_STATIC_PIE32}"
+    DEPENDS "${UPX_KILLER_ELF_STATIC_PIE32_OBJECT}"
+    VERBATIM)
+  add_custom_target(upx_killer_elf_static_pie_x86_fixture
+    DEPENDS "${UPX_KILLER_ELF_STATIC_PIE32}")
+
   add_executable(upx_killer_elf_ptrace_tests
     Tests/Integration/Debugging/PtraceScenarioTests.cpp)
   target_compile_options(upx_killer_elf_ptrace_tests PRIVATE
@@ -84,7 +164,10 @@ if(UPX_KILLER_BUILD_ELF_TESTS)
   target_link_libraries(upx_killer_elf_ptrace_tests PRIVATE
     upx_killer::elf_linux)
   add_dependencies(upx_killer_elf_ptrace_tests
-    upx_killer_elf_tracee_x86_fixture)
+    upx_killer_elf_tracee_x86_fixture
+    upx_killer_elf_behavior_x86_fixture
+    upx_killer_elf_dynamic_pie_x86_fixture
+    upx_killer_elf_static_pie_x86_fixture)
 
   add_test(NAME upx_killer_elf_ptrace_scenarios
     COMMAND upx_killer_elf_ptrace_tests

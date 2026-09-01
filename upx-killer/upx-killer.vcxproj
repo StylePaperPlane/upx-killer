@@ -263,7 +263,10 @@
     <Text Include="..\docs\adr\0005-format-backends-and-portable-engine-contracts.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0006-pe64-dll-vertical-slice.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0007-wsl2-elf64-backend.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0008-elf32-et-exec-vertical-slice.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0009-elf32-pie-production-support.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\testing\elf32-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\planning\elf32-extension.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\real-sample-baseline.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>

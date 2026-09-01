@@ -1,4 +1,6 @@
 #include "Infrastructure/Linux/Debugging/ThreadContext/LinuxThreadContext.h"
+#include "Infrastructure/Linux/Debugging/Recovery/RecoveredElfImageLocator.h"
+#include "Infrastructure/Linux/Debugging/Recovery/RecoveredElfLoadBiasResolver.h"
 
 #include <sys/ptrace.h>
 #include <sys/wait.h>
@@ -12,6 +14,7 @@
 #include <iostream>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 namespace {
 using upx_killer::elf_host::debugging::LinuxThreadContext;
@@ -186,6 +189,82 @@ void TestMultithreadEvent(std::filesystem::path const& executable) {
   Expect(mainExited, "multithread tracee exits normally");
   if (!mainExited) KillAndReap(pid);
 }
+
+void TestElf32DynamicLinkageReadiness() {
+  using upx_killer::elf_host::debugging::RecoveredElfImageLocator;
+  using namespace upx_killer::engine::elf;
+
+  CapturedElfImage captured{};
+  captured.layout.imageClass = ElfClass::Bits32;
+  captured.layout.programHeaders = {
+      {1, 6, 0, 0x1000, 0x1000, 0x200, 0x200, 0x1000},
+      {2, 6, 0x100, 0x1100, 0x1100, 24, 24, 4},
+  };
+  CapturedElfSegment segment{};
+  segment.programHeaderIndex = 0;
+  segment.fileBytes.resize(0x200);
+  auto write = [&](std::size_t offset, std::uint32_t value) {
+    for (std::size_t index = 0; index < sizeof(value); ++index)
+      segment.fileBytes[offset + index] =
+          static_cast<std::byte>((value >> (index * 8)) & 0xff);
+  };
+  write(0x100, 5);
+  write(0x104, 0x1180);
+  write(0x108, 6);
+  write(0x10c, 0x1140);
+  write(0x110, 0);
+  write(0x114, 0);
+  captured.segments.push_back(std::move(segment));
+
+  Expect(RecoveredElfImageLocator::HasCompleteDynamicLinkage(captured),
+         "ELF32 readiness decodes 8-byte dynamic entries");
+  captured.layout.programHeaders[1].fileSize = 16;
+  Expect(!RecoveredElfImageLocator::HasCompleteDynamicLinkage(captured),
+         "ELF32 readiness rejects a dynamic table without a terminator");
+}
+
+void TestElf32PieLoadBiasResolution() {
+  using namespace upx_killer::elf_host::debugging;
+  using namespace upx_killer::engine::elf;
+  constexpr std::uint64_t expectedBias = 0xf7000000;
+
+  ElfImageLayout layout{};
+  layout.imageClass = ElfClass::Bits32;
+  layout.machine = ElfMachine::X86;
+  layout.imageType = ElfImageType::PositionIndependentExecutable;
+  layout.programHeaders = {
+      {1, 4, 0, 0, 0, 0x200, 0x200, 0x1000},
+      {1, 5, 0x1000, 0x1000, 0x1000, 0x100, 0x100, 0x1000},
+      {1, 4, 0x2000, 0x2000, 0x2000, 0x2010, 0x2010, 0x1000},
+      {1, 6, 0x4f98, 0x5f98, 0x5f98, 0x68, 0x68, 0x1000},
+  };
+  std::vector<LinuxMemoryMapping> mappings{
+      {expectedBias, expectedBias + 0x1000, true, false, true, 0, {}},
+      {expectedBias + 0x1000, expectedBias + 0x2000, true, false, true,
+       0, {}},
+      {expectedBias + 0x2000, expectedBias + 0x5000, true, false, false,
+       0, {}},
+      {expectedBias + 0x5000, expectedBias + 0x6000, true, true, false,
+       0, {}},
+  };
+  auto const resolved = RecoveredElfLoadBiasResolver::Resolve(
+      layout, expectedBias, mappings);
+  Expect(resolved && *resolved == expectedBias,
+         "ELF32 PIE load bias is anchored to the recovered ELF header");
+
+  mappings[2].begin += 0x1000;
+  Expect(!RecoveredElfLoadBiasResolver::Resolve(layout, expectedBias, mappings),
+         "ELF32 PIE load bias rejects incomplete load mappings");
+
+  layout.programHeaders = {
+      {1, 5, 0, 0, 0, 0x100, 0x100, 0x1000},
+      {1, 5, 0x1000, UINT64_MAX - 0x7ff, UINT64_MAX - 0x7ff,
+       0x1000, 0x1000, 0x1000},
+  };
+  Expect(!RecoveredElfLoadBiasResolver::Resolve(
+             layout, expectedBias, std::span{mappings}),
+         "ELF32 PIE load bias rejects overflowing runtime ranges");
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -199,6 +278,8 @@ int main(int argc, char** argv) {
   TestExceptionalSignal(argv[1]);
   TestTimeoutCleanup(argv[1]);
   TestMultithreadEvent(argv[1]);
+  TestElf32DynamicLinkageReadiness();
+  TestElf32PieLoadBiasResolution();
   if (failures != 0) {
     std::cerr << failures << " ptrace integration test(s) failed\n";
     return 1;

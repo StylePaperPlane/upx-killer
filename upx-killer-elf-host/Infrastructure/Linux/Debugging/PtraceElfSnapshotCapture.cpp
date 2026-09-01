@@ -1,12 +1,13 @@
 #include "Infrastructure/Linux/Debugging/PtraceElfSnapshotCapture.h"
 
-#include "Infrastructure/Linux/Debugging/Breakpoints/LinuxSoftwareBreakpoint.h"
+#include "Infrastructure/Linux/Debugging/Breakpoints/LinuxExecutionBreakpoint.h"
 #include "Infrastructure/Linux/Debugging/Process/LinuxTracedProcess.h"
 #include "Infrastructure/Linux/Debugging/Recovery/RecoveredElfImageLocator.h"
 
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
@@ -41,6 +42,13 @@ bool Continue(pid_t pid, enum __ptrace_request request,
   return ptrace(request, pid, nullptr,
                 reinterpret_cast<void*>(static_cast<intptr_t>(signal))) == 0;
 }
+
+bool RequiresDynamicLinkerPreEntryCapture(
+    engine::elf::ElfImageLayout const& layout) {
+  return std::any_of(layout.programHeaders.begin(), layout.programHeaders.end(),
+                     [](auto const& header) { return header.type == 3; });
+}
+
 }  // namespace
 
 namespace upx_killer::elf_host::debugging {
@@ -57,8 +65,8 @@ PtraceElfSnapshotCapture::Capture(
                           std::chrono::milliseconds(request.timeoutMilliseconds);
     bool enteringSyscall{true};
     std::optional<RecoveredElfImage> recovered;
-    std::optional<engine::elf::CapturedElfImage> captured;
-    std::optional<LinuxSoftwareBreakpoint> breakpoint;
+    std::optional<engine::elf::CapturedElfImage> preEntryCapture;
+    std::optional<LinuxExecutionBreakpoint> breakpoint;
     std::uint64_t resolvedEntry{};
     int status{};
 
@@ -92,8 +100,24 @@ PtraceElfSnapshotCapture::Capture(
       if (breakpoint) {
         auto const restore = breakpoint->RestoreIfHit(
             pid, signal, request.target.packedLayout.imageClass);
-        if (restore == BreakpointRestoreResult::Restored)
+        if (restore == BreakpointRestoreResult::Restored) {
+          if (!recovered)
+            return Failure(contracts::JobOutcome::Failed,
+                           contracts::ErrorCategory::Internal,
+                           "elf.capture.state_invalid");
+          std::optional<engine::elf::CapturedElfImage> captured;
+          if (RequiresDynamicLinkerPreEntryCapture(recovered->layout)) {
+            captured = std::move(preEntryCapture);
+          } else {
+            captured = RecoveredElfImageLocator::Capture(
+                pid, *recovered, request.maximumImageSize);
+          }
+          if (!captured)
+            return Failure(contracts::JobOutcome::Failed,
+                           contracts::ErrorCategory::Execution,
+                           "elf.capture.read_failed", errno);
           return {std::move(captured), resolvedEntry, {}};
+        }
         if (restore == BreakpointRestoreResult::Failed)
           return Failure(contracts::JobOutcome::Failed,
                          contracts::ErrorCategory::Execution,
@@ -113,27 +137,36 @@ PtraceElfSnapshotCapture::Capture(
         } else if (recovered &&
                    RecoveredElfImageLocator::AllSegmentsReady(pid,
                                                               *recovered)) {
-          captured = RecoveredElfImageLocator::Capture(
-              pid, *recovered, request.maximumImageSize);
-          if (!captured)
+          if (RequiresDynamicLinkerPreEntryCapture(recovered->layout)) {
+            preEntryCapture = RecoveredElfImageLocator::Capture(
+                pid, *recovered, request.maximumImageSize);
+            if (!preEntryCapture)
+              return Failure(contracts::JobOutcome::Failed,
+                             contracts::ErrorCategory::Execution,
+                             "elf.capture.read_failed", errno);
+            if (!RecoveredElfImageLocator::HasCompleteDynamicLinkage(
+                    *preEntryCapture)) {
+              preEntryCapture.reset();
+              enteringSyscall = !enteringSyscall;
+              if (!Continue(pid, PTRACE_SYSCALL))
+                return Failure(contracts::JobOutcome::Failed,
+                               contracts::ErrorCategory::Execution,
+                               "elf.capture.continue_failed", errno);
+              continue;
+            }
+          }
+          auto const relativeEntry = recovered->layout.entryPoint;
+          if (request.target.explicitEntryPoint &&
+              request.target.explicitEntryPoint->value != relativeEntry)
             return Failure(contracts::JobOutcome::Failed,
                            contracts::ErrorCategory::Execution,
-                           "elf.capture.read_failed", errno);
-          if (!RecoveredElfImageLocator::HasCompleteDynamicLinkage(*captured)) {
-            captured.reset();
-          } else {
-            auto const relativeEntry = recovered->layout.entryPoint;
-            if (request.target.explicitEntryPoint &&
-                request.target.explicitEntryPoint->value != relativeEntry)
-              return Failure(contracts::JobOutcome::Failed,
-                             contracts::ErrorCategory::Execution,
-                             "elf.oep.explicit_mismatch");
-            resolvedEntry = recovered->loadBias + relativeEntry;
-            breakpoint = LinuxSoftwareBreakpoint::Install(pid, resolvedEntry);
-            if (!breakpoint)
-              return Failure(contracts::JobOutcome::Failed,
-                             contracts::ErrorCategory::Execution,
-                             "elf.oep.breakpoint_failed", errno);
+                           "elf.oep.explicit_mismatch");
+          resolvedEntry = recovered->loadBias + relativeEntry;
+          breakpoint = LinuxExecutionBreakpoint::Install(pid, resolvedEntry);
+          if (!breakpoint) {
+            return Failure(contracts::JobOutcome::Failed,
+                           contracts::ErrorCategory::Execution,
+                           "elf.oep.breakpoint_failed", errno);
           }
         }
         enteringSyscall = !enteringSyscall;

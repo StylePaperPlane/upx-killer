@@ -78,7 +78,7 @@ int RunElfCoreTests() {
                         : std::nullopt;
   auto manifest =
       upx_killer::engine::application::ElfBackendCapabilities::Manifest();
-  expect(descriptor && manifest.capabilities.size() == 1 &&
+  expect(descriptor && manifest.capabilities.size() == 2 &&
              manifest.capabilities.front() == *descriptor,
          "ELF manifest and layout descriptor share one capability source");
   auto pie = ElfParser::Parse(MakeElf64(true));

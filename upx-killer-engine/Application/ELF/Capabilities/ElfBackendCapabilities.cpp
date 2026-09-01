@@ -5,9 +5,11 @@
 namespace {
 using namespace upx_killer;
 
-constexpr std::array<contracts::TargetDescriptor, 1> SupportedTargets{{
+constexpr std::array<contracts::TargetDescriptor, 2> SupportedTargets{{
     {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits64,
      contracts::CpuArchitecture::X64, contracts::ImageKind::Executable},
+    {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits32,
+     contracts::CpuArchitecture::X86, contracts::ImageKind::Executable},
 }};
 
 std::optional<contracts::TargetDescriptor> Describe(

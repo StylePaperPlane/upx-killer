@@ -2,42 +2,24 @@
 
 #include "Core/ELF/Parsing/ElfParser.h"
 #include "Infrastructure/Linux/Debugging/Memory/LinuxProcessMemory.h"
+#include "Infrastructure/Linux/Debugging/Recovery/RecoveredElfLoadBiasResolver.h"
 
 #include <algorithm>
 #include <limits>
 
 namespace {
 using namespace upx_killer;
-using elf_host::debugging::LinuxMemoryMapping;
-
 constexpr std::uint32_t LoadProgramHeader = 1;
 constexpr std::uint32_t DynamicProgramHeader = 2;
-constexpr std::uint32_t ExecuteFlag = 1;
 
-bool RangeCovered(std::vector<LinuxMemoryMapping> const& mappings,
-                  std::uint64_t begin, std::uint64_t end,
-                  std::uint32_t flags) noexcept {
-  auto cursor = begin;
-  while (cursor < end) {
-    auto found = std::find_if(mappings.begin(), mappings.end(),
-                              [&](auto const& mapping) {
-                                return mapping.begin <= cursor &&
-                                       mapping.end > cursor;
-                              });
-    if (found == mappings.end() || !found->read ||
-        (((flags & ExecuteFlag) != 0) != found->execute) ||
-        ((flags & 2u) == 0 && found->write))
-      return false;
-    cursor = std::min(end, found->end);
-  }
-  return true;
-}
-
-std::uint64_t ReadU64(std::span<std::byte const> bytes,
-                      std::size_t offset) noexcept {
+std::uint64_t ReadUnsigned(std::span<std::byte const> bytes,
+                           std::size_t offset,
+                           std::size_t width) noexcept {
   std::uint64_t value{};
-  if (offset > bytes.size() || 8 > bytes.size() - offset) return 0;
-  for (std::size_t index = 0; index < 8; ++index)
+  if ((width != 4 && width != 8) || offset > bytes.size() ||
+      width > bytes.size() - offset)
+    return 0;
+  for (std::size_t index = 0; index < width; ++index)
     value |= static_cast<std::uint64_t>(
                  std::to_integer<std::uint8_t>(bytes[offset + index]))
              << (index * 8);
@@ -81,52 +63,23 @@ std::optional<RecoveredElfImage> RecoveredElfImageLocator::Find(
       if (parsed.layout->entryPoint == packed.entryPoint &&
           parsed.layout->programHeaderCount == packed.programHeaderCount)
         continue;
-      std::uint64_t bias{};
-      if (parsed.layout->imageType != engine::elf::ElfImageType::Executable) {
-        bool foundBias{};
-        for (auto const& candidate : mappings) {
-          for (auto const& header : parsed.layout->programHeaders) {
-            if (header.type != LoadProgramHeader) continue;
-            auto const alignedVirtualAddress = header.virtualAddress & ~0xfffull;
-            if (candidate.begin < alignedVirtualAddress) continue;
-            auto const candidateBias = candidate.begin - alignedVirtualAddress;
-            auto const allLoadsCovered = std::all_of(
-                parsed.layout->programHeaders.begin(),
-                parsed.layout->programHeaders.end(), [&](auto const& load) {
-                  return load.type != LoadProgramHeader || load.fileSize == 0 ||
-                         RangeCovered(mappings,
-                                      candidateBias + load.virtualAddress,
-                                      candidateBias + load.virtualAddress +
-                                          load.fileSize,
-                                      load.flags);
-                });
-            if (allLoadsCovered) {
-              bias = candidateBias;
-              foundBias = true;
-              break;
-            }
-          }
-          if (foundBias) break;
-        }
-        if (!foundBias) continue;
-      }
+      auto const headerAddress = mapping.begin + offset;
+      auto const bias = RecoveredElfLoadBiasResolver::Resolve(
+          *parsed.layout, headerAddress, mappings);
+      if (!bias) continue;
       return RecoveredElfImage{std::move(*parsed.layout),
-                               mapping.begin + offset, bias};
+                               headerAddress, *bias};
     }
   }
   return std::nullopt;
 }
 
 bool RecoveredElfImageLocator::AllSegmentsReady(
-    pid_t pid, RecoveredElfImage const& recovered) {
+  pid_t pid, RecoveredElfImage const& recovered) {
   auto const mappings = LinuxProcessMemory::ReadMappings(pid);
-  for (auto const& header : recovered.layout.programHeaders) {
-    if (header.type != LoadProgramHeader || header.fileSize == 0) continue;
-    auto const begin = recovered.loadBias + header.virtualAddress;
-    auto const end = begin + header.fileSize;
-    if (!RangeCovered(mappings, begin, end, header.flags)) return false;
-  }
-  return true;
+  auto const bias = RecoveredElfLoadBiasResolver::Resolve(
+      recovered.layout, recovered.headerAddress, mappings);
+  return bias && *bias == recovered.loadBias;
 }
 
 std::optional<engine::elf::CapturedElfImage> RecoveredElfImageLocator::Capture(
@@ -164,7 +117,13 @@ bool RecoveredElfImageLocator::HasCompleteDynamicLinkage(
                                 return header.type == DynamicProgramHeader;
                               });
   if (dynamic == captured.layout.programHeaders.end()) return true;
-  if (dynamic->fileSize < 16 || dynamic->fileSize % 16 != 0) return false;
+  auto const wordSize = captured.layout.imageClass == engine::elf::ElfClass::Bits32
+                            ? 4U
+                            : 8U;
+  auto const entrySize = wordSize * 2U;
+  if (dynamic->fileSize < entrySize ||
+      dynamic->fileSize % entrySize != 0)
+    return false;
   for (auto const& segment : captured.segments) {
     if (segment.programHeaderIndex >= captured.layout.programHeaders.size())
       continue;
@@ -182,10 +141,12 @@ bool RecoveredElfImageLocator::HasCompleteDynamicLinkage(
     bool hasSymbolTable{};
     bool hasTerminator{};
     for (std::size_t cursor = 0;
-         cursor + 16 <= static_cast<std::size_t>(dynamic->fileSize);
-         cursor += 16) {
-      auto const tag = ReadU64(segment.fileBytes, offset + cursor);
-      auto const value = ReadU64(segment.fileBytes, offset + cursor + 8);
+         cursor + entrySize <= static_cast<std::size_t>(dynamic->fileSize);
+         cursor += entrySize) {
+      auto const tag =
+          ReadUnsigned(segment.fileBytes, offset + cursor, wordSize);
+      auto const value = ReadUnsigned(segment.fileBytes,
+                                      offset + cursor + wordSize, wordSize);
       if (tag == 0) {
         hasTerminator = true;
         break;

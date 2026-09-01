@@ -10,7 +10,6 @@ using namespace upx_killer::engine::elf;
 constexpr std::uint16_t ExecutableType = 2;
 constexpr std::uint16_t DynamicType = 3;
 constexpr std::uint32_t LoadProgramHeader = 1;
-constexpr std::uint32_t InterpreterProgramHeader = 3;
 constexpr std::uint32_t ExecutableFlag = 1;
 constexpr std::uint16_t MaximumProgramHeaders = 128;
 
@@ -114,7 +113,6 @@ ElfParseResult ElfParser::Parse(std::span<std::byte const> bytes,
   layout.sectionHeaderCount = shCount;
   layout.flags = flags;
   layout.programHeaders.reserve(phCount);
-  bool hasInterpreter{};
   bool entryIsExecutable{};
   bool hasLoad{};
 
@@ -137,7 +135,6 @@ ElfParseResult ElfParser::Parse(std::span<std::byte const> bytes,
         !ReadAddress(bytes, offset + traits->programAlignmentOffset,
                      traits->addressWidth, header.alignment))
       return {{}, ElfParseError::InvalidProgramHeaders};
-    if (header.type == InterpreterProgramHeader) hasInterpreter = true;
     if (header.type == LoadProgramHeader) {
       hasLoad = true;
       if (header.fileSize > header.memorySize ||
@@ -155,15 +152,16 @@ ElfParseResult ElfParser::Parse(std::span<std::byte const> bytes,
     layout.programHeaders.push_back(header);
   }
   if (!hasLoad) return {{}, ElfParseError::InvalidLoadSegment};
-  if (entry == 0 || !entryIsExecutable)
-    return {{}, ElfParseError::InvalidEntryPoint};
-
   if (type == ExecutableType) {
+    if (entry == 0 || !entryIsExecutable)
+      return {{}, ElfParseError::InvalidEntryPoint};
     layout.imageType = ElfImageType::Executable;
-  } else if (hasInterpreter || entry != 0) {
+  } else if (entry == 0) {
+    layout.imageType = ElfImageType::SharedObject;
+  } else if (entryIsExecutable) {
     layout.imageType = ElfImageType::PositionIndependentExecutable;
   } else {
-    layout.imageType = ElfImageType::SharedObject;
+    return {{}, ElfParseError::InvalidEntryPoint};
   }
   return {std::move(layout), ElfParseError::None};
 }

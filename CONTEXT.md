@@ -122,7 +122,7 @@ The use case that stages a reconstructed image, performs structural and loader v
 _Avoid_: Fixer write, direct output stream
 
 **ELF Target Image**:
-An ELF64 little-endian x86-64 executable selected for unpacking. Both fixed-address `ET_EXEC` and position-independent `ET_DYN` executables are valid; shared objects remain outside the current production capability.
+An ELF little-endian executable selected for unpacking. Production capability includes ELF32 x86 and ELF64 x86-64 fixed-address `ET_EXEC`, dynamically linked PIE, and static PIE images. ELF shared objects remain outside the current production capability.
 _Avoid_: Linux file, extensionless executable
 
 **ELF Image Class**:
@@ -138,8 +138,12 @@ The runtime displacement between an ELF image's program-header virtual addresses
 _Avoid_: PIE base guess, first mapping address
 
 **Captured ELF Image**:
-The bounded bytes read from the target's validated `PT_LOAD` mappings after UPX has restored the original ELF header and dynamic metadata and immediately before control reaches the recovered entry point.
+The bounded bytes read from the target's validated `PT_LOAD` mappings after UPX has restored the original ELF header. Dynamic images retain the last complete pre-entry dynamic-metadata snapshot and still require a confirmed recovered-entry breakpoint; static images are captured only after that breakpoint is hit so writable data initialization is not observed prematurely.
 _Avoid_: `/proc` dump, packed file copy
+
+**ELF Execution Breakpoint**:
+The Linux adapter's class-neutral OEP stop mechanism. It uses a one-byte software breakpoint when the recovered code mapping is private and writable through ptrace, and falls back internally to an x86 debug-register execution breakpoint for UPX read-only shared `memfd` mappings. Callers observe only install, hit, and restore semantics.
+_Avoid_: always-software breakpoint, OEP polling
 
 **Reconstructed ELF Image**:
 A loader-valid ELF disk image rebuilt from the Captured ELF Image. Program headers preserve runtime loading semantics while synthesized section headers expose semantic regions and recovered dynamic-linking tables to static-analysis tools.

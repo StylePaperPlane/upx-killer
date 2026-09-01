@@ -19,15 +19,20 @@
     <Filter Include="Tests\Integration\Debugging"><UniqueIdentifier>{ED5CE245-A5D9-4E53-9597-3E6B9B313370}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Fixtures"><UniqueIdentifier>{F197A92A-7EDF-47CD-A2AD-71462E873D29}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Fixtures\Debugging"><UniqueIdentifier>{DF486645-F455-4403-9E83-1E0083871352}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures\ELF32"><UniqueIdentifier>{17A28A99-C4E9-4B36-BFA1-023D3EAA3101}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Fixtures\ELF32\PIE"><UniqueIdentifier>{60B4B56A-E8D3-48D6-BB55-268088E9A61B}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\ELF32"><UniqueIdentifier>{15E1A79F-EFD2-4382-9120-D36FB8632DA2}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\ELF32\PIE"><UniqueIdentifier>{428F6F2B-8A4D-4355-8FB4-57283E1F8E13}</UniqueIdentifier></Filter>
     <Filter Include="Build"><UniqueIdentifier>{A3E009B6-D7BB-4A1E-9853-F69B7EC75191}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\ElfHostMain.cpp"><Filter>Application\Host</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.cpp"><Filter>Infrastructure\Linux\Debugging</Filter></ClCompile>
-    <ClCompile Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.cpp"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxExecutionBreakpoint.cpp"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.cpp"><Filter>Infrastructure\Linux\Debugging\Memory</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.cpp"><Filter>Infrastructure\Linux\Debugging\Process</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.cpp"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfLoadBiasResolver.cpp"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\ThreadContext\LinuxThreadContext.cpp"><Filter>Infrastructure\Linux\Debugging\ThreadContext</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp"><Filter>Infrastructure\Linux\Pipes</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
@@ -37,10 +42,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.h"><Filter>Infrastructure\Linux\Debugging</Filter></ClInclude>
-    <ClInclude Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxSoftwareBreakpoint.h"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxExecutionBreakpoint.h"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.h"><Filter>Infrastructure\Linux\Debugging\Memory</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.h"><Filter>Infrastructure\Linux\Debugging\Process</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfImageLocator.h"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfLoadBiasResolver.h"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\ThreadContext\LinuxThreadContext.h"><Filter>Infrastructure\Linux\Debugging\ThreadContext</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Pipes\PosixPipeTransport.h"><Filter>Infrastructure\Linux\Pipes</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
@@ -52,5 +58,12 @@
     <None Include="CMakeLists.txt"><Filter>Build</Filter></None>
     <None Include="Tests\Fixtures\Debugging\Tracee.c"><Filter>Tests\Fixtures\Debugging</Filter></None>
     <None Include="Tests\Fixtures\Debugging\Tracee32.S"><Filter>Tests\Fixtures\Debugging</Filter></None>
+    <None Include="Tests\Fixtures\ELF32\BehaviorTracee32.S"><Filter>Tests\Fixtures\ELF32</Filter></None>
+    <None Include="Tests\Fixtures\ELF32\PIE\DynamicPieTracee32.c"><Filter>Tests\Fixtures\ELF32\PIE</Filter></None>
+    <None Include="Tests\Fixtures\ELF32\PIE\StaticPieTracee32.S"><Filter>Tests\Fixtures\ELF32\PIE</Filter></None>
+    <None Include="Tests\Integration\ELF32\Test-Elf32Unpacking.ps1"><Filter>Tests\Integration\ELF32</Filter></None>
+    <None Include="Tests\Integration\ELF32\VerifyBehavior.sh"><Filter>Tests\Integration\ELF32</Filter></None>
+    <None Include="Tests\Integration\ELF32\PIE\Test-Elf32PieUnpacking.ps1"><Filter>Tests\Integration\ELF32\PIE</Filter></None>
+    <None Include="Tests\Integration\ELF32\PIE\VerifyPieBehavior.sh"><Filter>Tests\Integration\ELF32\PIE</Filter></None>
   </ItemGroup>
 </Project>

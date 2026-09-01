@@ -1,4 +1,6 @@
 #include "Application/ELF/Capabilities/ElfBackendCapabilities.h"
+#include "Application/ELF/Preparation/ElfTargetPreparationUseCase.h"
+#include "Core/ELF/DynamicLinking/ElfDynamicMetadataAnalyzer.h"
 #include "Core/ELF/OepDiscovery/UpxElfOepLocator.h"
 #include "Core/ELF/Parsing/ElfParser.h"
 #include "Core/ELF/Reconstruction/ElfImageRebuilder.h"
@@ -11,6 +13,24 @@
 #include <vector>
 
 namespace {
+class MemoryElfSourceReader final
+    : public upx_killer::engine::application::elf_preparation::IElfSourceReader {
+ public:
+  explicit MemoryElfSourceReader(std::vector<std::byte> bytes)
+      : bytes_(std::move(bytes)) {}
+
+  [[nodiscard]] upx_killer::engine::application::elf_preparation::
+      ElfSourceReadResult
+      Read(std::filesystem::path const&,
+           std::uint64_t maximumSize) const noexcept override {
+    if (bytes_.size() > maximumSize) return {};
+    return {bytes_, 0};
+  }
+
+ private:
+  std::vector<std::byte> bytes_;
+};
+
 template <typename T>
 void Write(std::vector<std::byte>& bytes, std::size_t offset, T value) {
   for (std::size_t index = 0; index < sizeof(T); ++index) {
@@ -91,6 +111,7 @@ std::vector<std::byte> MakeElf32() {
 
 int RunElf32ParsingTests() {
   using namespace upx_killer::engine;
+  namespace contracts = upx_killer::contracts;
   int failures{};
   auto expect = [&](bool condition, std::string_view message) {
     if (condition) return;
@@ -111,15 +132,66 @@ int RunElf32ParsingTests() {
              parsed.layout->programHeaders[1].fileOffset == 0x2000,
          "ELF32 program headers use class-specific field offsets");
   expect(parsed.layout &&
-             !application::ElfBackendCapabilities::Supports(*parsed.layout),
-         "ELF32 remains gated until capture and reconstruction are complete");
-  expect(parsed.layout &&
-             !application::ElfBackendCapabilities::DescriptorFor(
-                  *parsed.layout),
-         "ELF32 has no production descriptor before capability registration");
+             application::ElfBackendCapabilities::Supports(*parsed.layout),
+         "ELF32 production support is selected through the shared capability table");
+  auto descriptor = parsed.layout
+                        ? application::ElfBackendCapabilities::DescriptorFor(
+                              *parsed.layout)
+                        : std::nullopt;
+  auto manifest = application::ElfBackendCapabilities::Manifest();
+  expect(descriptor && manifest.capabilities.size() == 2 &&
+             manifest.capabilities[1] == *descriptor,
+         "ELF32 descriptor and manifest use the same capability source");
   expect(parsed.layout && elf::oep::UpxElfOepLocator::Analyze(
                               source, *parsed.layout).plan.has_value(),
          "ELF32 UPX evidence uses the class-neutral OEP interface");
+
+  auto pieSource = source;
+  Write<std::uint16_t>(pieSource, 16, 3);
+  auto pie = elf::ElfParser::Parse(pieSource);
+  expect(pie.layout &&
+             pie.layout->imageType == elf::ElfImageType::PositionIndependentExecutable,
+         "ELF32 ET_DYN executable remains representable through the shared model");
+  expect(pie.layout &&
+             application::ElfBackendCapabilities::Supports(*pie.layout),
+         "ELF32 PIE is selected through the shared executable capability");
+
+  auto sharedObjectSource = pieSource;
+  Write<std::uint32_t>(sharedObjectSource, 24, 0);
+  auto sharedObject = elf::ElfParser::Parse(sharedObjectSource);
+  expect(sharedObject.layout &&
+             sharedObject.layout->imageType == elf::ElfImageType::SharedObject,
+         "ELF32 ET_DYN without an entry remains a shared object");
+  expect(sharedObject.layout &&
+             !application::ElfBackendCapabilities::Supports(
+                 *sharedObject.layout),
+         "ELF32 shared objects remain outside the production capability");
+
+  MemoryElfSourceReader pieReader{pieSource};
+  application::elf_preparation::ElfTargetPreparationUseCase preparation{
+      pieReader};
+  contracts::UnpackJobRequest pieRequest{};
+  pieRequest.targetPath = L"elf32-pie";
+  pieRequest.maximumImageSize = 1ull << 20;
+  pieRequest.entryPoint = contracts::EntryPointHint{
+      contracts::EntryPointAddressKind::RelativeVirtualAddress, 0x08049000};
+  expect(preparation.Execute(pieRequest).target.has_value(),
+         "ELF32 PIE accepts an explicit relative entry point");
+  pieRequest.entryPoint->kind =
+      contracts::EntryPointAddressKind::VirtualAddress;
+  auto wrongEntryKind = preparation.Execute(pieRequest);
+  expect(!wrongEntryKind.target &&
+             wrongEntryKind.failure.category ==
+                 contracts::ErrorCategory::InvalidRequest,
+         "ELF32 PIE rejects an explicit virtual-address entry point");
+
+  auto damagedDynamic = source;
+  Write<std::uint32_t>(damagedDynamic, 0x2500 + 7 * 8, 1);
+  expect(parsed.layout &&
+             !elf::dynamic_linking::ElfDynamicMetadataAnalyzer::Analyze(
+                  damagedDynamic, *parsed.layout)
+                  .valid,
+         "ELF32 rejects a dynamic table without a terminator");
 
   if (parsed.layout) {
     elf::CapturedElfImage captured{};
