@@ -18,10 +18,9 @@ namespace {
 using namespace upx_killer;
 
 engine::application::elf_capture::ElfCaptureResult Failure(
-    contracts::JobOutcome outcome, contracts::ErrorCategory category,
+    engine::application::elf_capture::ElfCaptureError error,
     std::string code, std::uint32_t native = 0) {
-  return {std::nullopt, 0,
-          {outcome, category, std::move(code), std::nullopt, native}};
+  return {std::nullopt, 0, error, std::move(code), native};
 }
 }  // namespace
 
@@ -32,27 +31,23 @@ PtraceElfSharedObjectSnapshotCapture::Capture(
     std::stop_token stopToken) const noexcept {
   try {
     if (request.target.explicitEntryPoint)
-      return Failure(contracts::JobOutcome::Failed,
-                     contracts::ErrorCategory::InvalidRequest,
+      return Failure(engine::application::elf_capture::ElfCaptureError::InvalidRequest,
                      "elf.shared_object.explicit_entry_unsupported");
     auto recoveredLayout =
         engine::elf::shared_objects::UpxSharedObjectLayoutRecoverer::Recover(
             request.target.sourceBytes, request.target.packedLayout);
     if (!recoveredLayout.layout)
-      return Failure(contracts::JobOutcome::Failed,
-                     contracts::ErrorCategory::Execution,
+      return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                      std::move(recoveredLayout.detailCode));
     auto loader = loaders_.Resolve(request.target.packedLayout.imageClass);
     if (!loader)
-      return Failure(contracts::JobOutcome::Failed,
-                     contracts::ErrorCategory::Configuration,
+      return Failure(engine::application::elf_capture::ElfCaptureError::ConfigurationFailed,
                      "elf.shared_object.loader_missing");
     auto launch = LinuxTraceLauncher::Launch(
         {*loader, request.target.dependencyDirectory,
          {request.target.sourcePath.string()}, LinuxTraceStartMode::Continue});
     if (!launch.process)
-      return Failure(contracts::JobOutcome::Failed,
-                     contracts::ErrorCategory::Execution,
+      return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                      "elf.shared_object.loader_launch_failed",
                      launch.nativeCode);
     auto const pid = launch.process->Id();
@@ -61,11 +56,11 @@ PtraceElfSharedObjectSnapshotCapture::Capture(
     int status{};
     for (;;) {
       if (stopToken.stop_requested())
-        return Failure(contracts::JobOutcome::Cancelled,
-                       contracts::ErrorCategory::Cancelled, "job.cancelled");
+        return Failure(engine::application::elf_capture::ElfCaptureError::Cancelled,
+                       "job.cancelled");
       if (std::chrono::steady_clock::now() >= deadline)
-        return Failure(contracts::JobOutcome::TimedOut,
-                       contracts::ErrorCategory::TimedOut, "job.timed_out");
+        return Failure(engine::application::elf_capture::ElfCaptureError::TimedOut,
+                       "job.timed_out");
       auto const waited = waitpid(pid, &status, WNOHANG);
       if (waited == 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -73,13 +68,11 @@ PtraceElfSharedObjectSnapshotCapture::Capture(
       }
       if (waited < 0) {
         if (errno == EINTR) continue;
-        return Failure(contracts::JobOutcome::Failed,
-                       contracts::ErrorCategory::Execution,
+        return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                        "elf.capture.wait_failed", errno);
       }
       if (WIFEXITED(status) || WIFSIGNALED(status))
-        return Failure(contracts::JobOutcome::Failed,
-                       contracts::ErrorCategory::Execution,
+        return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                        "elf.shared_object.load_failed",
                        WIFEXITED(status) ? WEXITSTATUS(status)
                                          : 128u + WTERMSIG(status));
@@ -89,40 +82,36 @@ PtraceElfSharedObjectSnapshotCapture::Capture(
         auto recovered = RecoveredSharedObjectLocator::Find(
             pid, request.target.sourcePath, *recoveredLayout.layout);
         if (!recovered)
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Execution,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                          "elf.shared_object.recovery_failed");
         if (!RecoveredSharedObjectLocator::AllSegmentsReadable(pid,
                                                                 *recovered))
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Execution,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                          "elf.shared_object.segments_not_ready");
         auto captured = RecoveredElfImageLocator::Capture(
             pid, *recovered, request.maximumImageSize);
         if (!captured ||
             !RecoveredElfImageLocator::HasCompleteDynamicLinkage(*captured))
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Execution,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                          "elf.capture.read_failed", errno);
         auto normalized =
             engine::elf::shared_objects::LoadedSharedObjectNormalizer::Normalize(
                 *captured, request.target.packedLayout);
         if (!normalized.normalized)
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Reconstruction,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ReconstructionFailed,
                          std::move(normalized.detailCode));
-        return {std::move(captured), 0, {}};
+        return {std::move(captured), 0,
+                engine::application::elf_capture::ElfCaptureError::None,
+                {}, 0};
       }
       if (ptrace(PTRACE_CONT, pid, nullptr,
                  reinterpret_cast<void*>(static_cast<intptr_t>(
                      signal == SIGTRAP ? 0 : signal))) != 0)
-        return Failure(contracts::JobOutcome::Failed,
-                       contracts::ErrorCategory::Execution,
+        return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                        "elf.capture.continue_failed", errno);
     }
   } catch (...) {
-    return Failure(contracts::JobOutcome::Failed,
-                   contracts::ErrorCategory::Internal,
+    return Failure(engine::application::elf_capture::ElfCaptureError::UnexpectedFailure,
                    "elf.capture.unhandled_exception");
   }
 }

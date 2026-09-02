@@ -6,6 +6,8 @@ param(
     [string]$Platform = 'x64',
     [string]$Distribution = 'kali-linux',
     [string]$UpxPath = '',
+    [string]$SharedObjectFixtureDirectory =
+        'D:\Users\31007\Desktop\TXHook.Server\elf-shared-object-fixtures',
     [string]$WinApp = 'C:\Users\31007\AppData\Local\Microsoft\WindowsApps\winapp.exe',
     [switch]$SkipUi
 )
@@ -74,10 +76,19 @@ Invoke-Step 'ELF32 PIE CMake, CTest, default and LZMA acceptance' {
         -Distribution $Distribution -Configuration $Configuration -UpxPath $UpxPath
 }
 
+Invoke-Step 'ELF32 and ELF64 shared-object acceptance' {
+    & (Join-Path $repository `
+        'upx-killer-elf-host\Tests\Integration\ELF\SharedObject\Test-ElfSharedObjectUnpacking.ps1') `
+        -Distribution $Distribution -Configuration $Configuration `
+        -FixtureDirectory $SharedObjectFixtureDirectory
+}
+
 $requiredFiles = @(
     'upx_killer.exe',
     'upx_killer_engine_host.exe',
     'upx_killer_elf_host',
+    'upx_killer_elf_so_loader_x86',
+    'upx_killer_elf_so_loader_x64',
     'upx_killer_dll_loader_x86.exe',
     'upx_killer_dll_loader_x64.exe'
 )

@@ -64,6 +64,16 @@ foreach ($project in $projects) {
         if ($LASTEXITCODE -eq 0) {
             $failures.Add("Project item is hidden by .gitignore in $($project.Name): $($item.Include)")
         }
+
+        $normalizedInclude = $item.Include.Replace('/', '\')
+        if ($normalizedInclude -match '^(Application|Core|Infrastructure|UI|Tests)\\') {
+            $expectedFilter = [System.IO.Path]::GetDirectoryName($normalizedInclude)
+            if ($matchingFilter[0].Filter -ne $expectedFilter) {
+                $failures.Add(
+                    "Physical directory and Filter differ in $($project.Name): " +
+                    "$($item.Include) is in '$($matchingFilter[0].Filter)', expected '$expectedFilter'")
+            }
+        }
     }
     foreach ($group in $filterItems | Group-Object Key) {
         if ($group.Count -ne 1 -or -not ($projectItems.Key -contains $group.Name)) {
@@ -95,6 +105,53 @@ foreach ($project in $projects) {
         $hasChild = @($defined | Where-Object { $_.StartsWith("$filter\", [StringComparison]::Ordinal) }).Count -gt 0
         if (-not $hasItem -and -not $hasChild) {
             $failures.Add("Empty leaf Filter in $($project.Name): $filter")
+        }
+    }
+}
+
+$cmakeSourceSets = @(
+    @{
+        Root = Join-Path $RepositoryRoot 'upx-killer-contracts'
+        Include = @('Application', 'Core', 'Protocol')
+        Extra = @()
+    },
+    @{
+        Root = Join-Path $RepositoryRoot 'upx-killer-engine'
+        Include = @('Application\ELF', 'Core\ELF')
+        Extra = @('Application\Artifacts\ArtifactPublicationUseCase.cpp')
+    },
+    @{
+        Root = Join-Path $RepositoryRoot 'upx-killer-elf-host'
+        Include = @('Application\Host', 'Application\SharedObjectLoader',
+                    'Infrastructure\Linux')
+        Extra = @()
+    }
+)
+foreach ($sourceSet in $cmakeSourceSets) {
+    $cmakePath = Join-Path $sourceSet.Root 'CMakeLists.txt'
+    if (-not (Test-Path -LiteralPath $cmakePath -PathType Leaf)) {
+        $failures.Add("Missing CMake source list: $cmakePath")
+        continue
+    }
+    $cmakeText = (Get-Content -LiteralPath $cmakePath -Raw).Replace('\', '/')
+    $expectedSources = [System.Collections.Generic.List[string]]::new()
+    foreach ($relativeRoot in $sourceSet.Include) {
+        $physicalRoot = Join-Path $sourceSet.Root $relativeRoot
+        if (-not (Test-Path -LiteralPath $physicalRoot -PathType Container)) { continue }
+        Get-ChildItem -LiteralPath $physicalRoot -Recurse -File |
+            Where-Object { $_.Extension -in @('.cpp', '.c', '.S') } |
+            ForEach-Object {
+                $relativeSource = [System.IO.Path]::GetRelativePath(
+                    $sourceSet.Root, $_.FullName).Replace('\', '/')
+                $expectedSources.Add($relativeSource)
+            }
+    }
+    foreach ($extra in $sourceSet.Extra) {
+        $expectedSources.Add($extra.Replace('\', '/'))
+    }
+    foreach ($source in $expectedSources | Sort-Object -Unique) {
+        if (-not $cmakeText.Contains($source)) {
+            $failures.Add("CMake source registration missing in $cmakePath`: $source")
         }
     }
 }

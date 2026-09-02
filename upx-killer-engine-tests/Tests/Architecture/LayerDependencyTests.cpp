@@ -131,9 +131,27 @@ int RunLayerDependencyTests() {
        "LinuxProcessMemory"},
       "ELF backend must only coordinate use cases");
   failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Application" / "ELF" / "Preparation",
+      {"contracts::JobResult"},
+      "ELF preparation must expose a module-local failure model");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Application" / "ELF" / "Capture",
+      {"contracts::JobResult"},
+      "ELF capture must expose a module-local failure model");
+  failures += RequireAbsent(
+      *root / "upx-killer-engine" / "Application" / "ELF" /
+          "Reconstruction",
+      {"contracts::JobResult"},
+      "ELF reconstruction must expose a module-local failure model");
+  failures += RequireAbsent(
       *root / "upx-killer-engine" / "Application" / "Artifacts",
-      {"Core/PE/", "PreparedPeTarget", "ReconstructedPeImage", "PeImageKind"},
+      {"Core/PE/", "Core/ELF/", "Core/Unpacking/", "PreparedPeTarget",
+       "ReconstructedPeImage", "PeImageKind"},
       "Artifact publication must remain format-neutral");
+  failures += RequireAbsent(
+      *root / "upx-killer" / "UI" / "Windows" / "MainWindow",
+      {"Application/"},
+      "MainWindow must remain a navigation shell without use-case dependencies");
   failures += RequireAbsent(
       *root / "upx-killer" / "Infrastructure" / "EngineHost" /
           "EngineHostClient.cpp",

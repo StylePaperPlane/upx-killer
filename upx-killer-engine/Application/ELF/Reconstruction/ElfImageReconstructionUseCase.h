@@ -6,9 +6,17 @@
 
 namespace upx_killer::engine::application::elf_reconstruction {
 
+enum class ElfReconstructionError {
+  None,
+  RebuildFailed,
+  ValidationFailed,
+  UnexpectedFailure,
+};
+
 struct ElfReconstructionResult {
   std::optional<std::vector<std::byte>> bytes;
-  contracts::JobResult failure;
+  ElfReconstructionError error{ElfReconstructionError::None};
+  std::string detailCode;
 };
 
 class ElfImageReconstructionUseCase final {

@@ -69,17 +69,14 @@ void OverviewViewModel::PropertyChanged(winrt::event_token const& token) noexcep
 
 void OverviewViewModel::Initialize(
     winrt::Microsoft::UI::WindowId const& windowId,
-    std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
-    std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-    std::shared_ptr<::upx_killer::application::ITemporaryArtifactWorkspace> workspace,
+    std::unique_ptr<::upx_killer::application::TargetSelectionWorkflow>
+        targetSelectionWorkflow,
+    std::unique_ptr<::upx_killer::application::UnpackWorkflow> unpackWorkflow,
     std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
     std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore) {
   m_windowId = windowId;
-  m_targetSelectionWorkflow =
-      std::make_unique<::upx_killer::application::TargetSelectionWorkflow>(std::move(picker));
-  m_unpackWorkflow =
-      std::make_unique<::upx_killer::application::UnpackWorkflow>(
-          std::move(engineClient), std::move(workspace));
+  m_targetSelectionWorkflow = std::move(targetSelectionWorkflow);
+  m_unpackWorkflow = std::move(unpackWorkflow);
   m_artifactExporter = std::move(artifactExporter);
   m_settingsStore = std::move(settingsStore);
   RaiseCommandStates();

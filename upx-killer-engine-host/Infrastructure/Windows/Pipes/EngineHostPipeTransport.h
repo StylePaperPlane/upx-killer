@@ -5,6 +5,7 @@
 #include <Windows.h>
 
 #include <optional>
+#include <stop_token>
 
 namespace upx_killer::engine_host {
 class EngineHostPipeTransport final {
@@ -12,7 +13,8 @@ class EngineHostPipeTransport final {
   explicit EngineHostPipeTransport(HANDLE input, HANDLE output)
       : input_(input), output_(output) {}
 
-  [[nodiscard]] std::optional<contracts::protocol::EngineHostMessage> Read() const noexcept;
+  [[nodiscard]] std::optional<contracts::protocol::EngineHostMessage> Read(
+      std::stop_token stopToken = {}) const noexcept;
   [[nodiscard]] bool Write(
       contracts::protocol::EngineHostMessage const& message) const noexcept;
 

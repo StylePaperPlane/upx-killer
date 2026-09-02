@@ -163,7 +163,8 @@
     <ClInclude Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.h" />
     <ClInclude Include="UI\Navigation\NavigationPaneController.h" />
     <ClInclude Include="UI\Navigation\NavigationRouter.h" />
-    <ClInclude Include="UI\Navigation\NavigationRouteCatalog.h" />
+    <ClInclude Include="UI\Composition\OverviewRouteFactory.h" />
+    <ClInclude Include="UI\Composition\ConfigurationRouteFactory.h" />
     <ClInclude Include="UI\Pages\Overview\OverviewPage.xaml.h">
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
     </ClInclude>
@@ -213,7 +214,8 @@
     <ClCompile Include="Application\Runtime\WslRuntimeSettingsWorkflow.cpp" />
     <ClCompile Include="UI\Navigation\NavigationPaneController.cpp" />
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp" />
-    <ClCompile Include="UI\Navigation\NavigationRouteCatalog.cpp" />
+    <ClCompile Include="UI\Composition\OverviewRouteFactory.cpp" />
+    <ClCompile Include="UI\Composition\ConfigurationRouteFactory.cpp" />
     <ClCompile Include="UI\Pages\Overview\OverviewPage.xaml.cpp">
       <DependentUpon>UI\Pages\Overview\OverviewPage.xaml</DependentUpon>
     </ClCompile>
@@ -267,6 +269,7 @@
     <Text Include="..\docs\adr\0009-elf32-pie-production-support.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0010-exact-image-addressing-capabilities.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0011-isolated-elf-shared-object-loading.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0012-deep-backend-and-ui-boundaries.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf32-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf-shared-object-validation.md"><DeploymentContent>false</DeploymentContent></Text>

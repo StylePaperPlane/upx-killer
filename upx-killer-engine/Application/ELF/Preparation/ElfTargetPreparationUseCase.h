@@ -32,9 +32,21 @@ struct PreparedElfTarget {
   std::optional<contracts::EntryPointHint> explicitEntryPoint;
 };
 
+enum class ElfPreparationError {
+  None,
+  SourceReadFailed,
+  InvalidTarget,
+  UnsupportedTarget,
+  InvalidEntryPoint,
+  UnsupportedPacker,
+  UnexpectedFailure,
+};
+
 struct ElfPreparationResult {
   std::optional<PreparedElfTarget> target;
-  contracts::JobResult failure;
+  ElfPreparationError error{ElfPreparationError::None};
+  std::string detailCode;
+  std::uint32_t nativeCode{};
 };
 
 class ElfTargetPreparationUseCase final {

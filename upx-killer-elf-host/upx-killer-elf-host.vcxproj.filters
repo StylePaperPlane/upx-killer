@@ -31,7 +31,7 @@
     <Filter Include="Build"><UniqueIdentifier>{A3E009B6-D7BB-4A1E-9853-F69B7EC75191}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application\ElfHostMain.cpp"><Filter>Application\Host</Filter></ClCompile>
+    <ClCompile Include="Application\Host\ElfHostMain.cpp"><Filter>Application\Host</Filter></ClCompile>
     <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderMain.c"><Filter>Application\SharedObjectLoader</Filter></ClCompile>
     <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderEntry32.S"><Filter>Application\SharedObjectLoader</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.cpp"><Filter>Infrastructure\Linux\Debugging</Filter></ClCompile>
@@ -47,7 +47,7 @@
     <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp"><Filter>Infrastructure\Linux\Pipes</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Loading\ElfSharedObjectLoaderCatalog.cpp"><Filter>Infrastructure\Linux\Loading</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Loading\IsolatedElfLoadVerifier.cpp"><Filter>Infrastructure\Linux\Loading</Filter></ClCompile>
-    <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactStore.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.cpp"><Filter>Infrastructure\Linux\Verification</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Debugging\PtraceScenarioTests.cpp"><Filter>Tests\Integration\Debugging</Filter></ClCompile>
@@ -66,7 +66,7 @@
     <ClInclude Include="Infrastructure\Linux\Pipes\PosixPipeTransport.h"><Filter>Infrastructure\Linux\Pipes</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Loading\ElfSharedObjectLoaderCatalog.h"><Filter>Infrastructure\Linux\Loading</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Loading\IsolatedElfLoadVerifier.h"><Filter>Infrastructure\Linux\Loading</Filter></ClInclude>
-    <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactStore.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.h"><Filter>Infrastructure\Linux\Verification</Filter></ClInclude>
   </ItemGroup>

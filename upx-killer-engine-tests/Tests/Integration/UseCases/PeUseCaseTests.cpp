@@ -163,7 +163,8 @@ int RunPeUseCaseTests() {
        upx_killer::contracts::BinaryClass::Bits64,
        upx_killer::contracts::CpuArchitecture::X64,
        upx_killer::contracts::ImageKind::Executable},
-       prepared.target->dependencyDirectory, 3000, fixed.quality,
+       prepared.target->dependencyDirectory, 3000,
+       upx_killer::contracts::ArtifactQuality::Complete,
        std::move(fixed.warnings), request.retainFailedOutput});
   Expect(publicationResult.Succeeded() && store.promoted && !store.removed,
          "publication use case stages, validates, and promotes an artifact", failures);
@@ -178,7 +179,7 @@ int RunPeUseCaseTests() {
         upx_killer::contracts::BinaryClass::Bits64,
         upx_killer::contracts::CpuArchitecture::X64,
         upx_killer::contracts::ImageKind::Executable},
-       {}, 3000, ArtifactQuality::Complete, {}, false});
+       {}, 3000, upx_killer::contracts::ArtifactQuality::Complete, {}, false});
   Expect(!rejected.Succeeded() && rejectedStore.removed &&
              !rejectedStore.promoted,
          "publication removes a failed staged artifact regardless of format",
@@ -193,7 +194,7 @@ int RunPeUseCaseTests() {
         upx_killer::contracts::BinaryClass::Bits32,
         upx_killer::contracts::CpuArchitecture::X86,
         upx_killer::contracts::ImageKind::SharedLibrary},
-       {}, 3000, ArtifactQuality::Partial, {}, true});
+       {}, 3000, upx_killer::contracts::ArtifactQuality::Partial, {}, true});
   Expect(!retained.Succeeded() && !retainedStore.removed &&
              !retainedStore.promoted,
          "publication retains an explicitly requested failed diagnostic artifact",

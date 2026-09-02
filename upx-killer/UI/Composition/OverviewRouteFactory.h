@@ -2,36 +2,30 @@
 
 #include "Application/TargetSelection/TargetSelectionWorkflow.h"
 #include "Application/TemporaryFiles/ITemporaryArtifactWorkspace.h"
-#include "Application/TemporaryFiles/ITemporaryFolderPicker.h"
 #include "Application/TemporaryFiles/TemporaryFileSettings.h"
 #include "Application/Unpacking/IArtifactExporter.h"
 #include "Application/Unpacking/IUnpackEngineClient.h"
-#include "Application/Runtime/WslRuntimeSettings.h"
 #include "UI/Navigation/NavigationRouter.h"
 
-#include <cstdint>
 #include <memory>
-#include <vector>
 
 #include <winrt/Microsoft.UI.h>
 
-namespace upx_killer::ui {
-struct NavigationRouteDependencies {
+namespace upx_killer::ui::composition {
+
+struct OverviewRouteDependencies {
   winrt::Microsoft::UI::WindowId windowId{};
-  std::uintptr_t ownerWindowHandle{};
   std::shared_ptr<application::ITargetFilePicker> picker;
   std::shared_ptr<application::IUnpackEngineClient> engineClient;
   std::shared_ptr<application::ITemporaryArtifactWorkspace> workspace;
   std::shared_ptr<application::IArtifactExporter> artifactExporter;
   std::shared_ptr<application::ITemporaryFileSettingsStore> settingsStore;
-  std::shared_ptr<application::ITemporaryFolderPicker> folderPicker;
-  std::shared_ptr<application::IWslRuntimeSettingsStore> wslSettingsStore;
-  std::shared_ptr<application::IWslDistributionCatalog> wslDistributionCatalog;
 };
 
-class NavigationRouteCatalog final {
+class OverviewRouteFactory final {
  public:
-  [[nodiscard]] static std::vector<NavigationRouteRegistration> Create(
-      NavigationRouteDependencies dependencies);
+  [[nodiscard]] static NavigationRouteRegistration Create(
+      OverviewRouteDependencies dependencies);
 };
-}
+
+}  // namespace upx_killer::ui::composition

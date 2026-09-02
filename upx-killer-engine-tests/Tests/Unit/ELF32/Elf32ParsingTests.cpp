@@ -196,8 +196,8 @@ int RunElf32ParsingTests() {
       contracts::EntryPointAddressKind::VirtualAddress;
   auto wrongEntryKind = preparation.Execute(pieRequest);
   expect(!wrongEntryKind.target &&
-             wrongEntryKind.failure.category ==
-                 contracts::ErrorCategory::InvalidRequest,
+             wrongEntryKind.error == application::elf_preparation::
+                                         ElfPreparationError::InvalidEntryPoint,
          "ELF32 PIE rejects an explicit virtual-address entry point");
 
   auto damagedDynamic = source;

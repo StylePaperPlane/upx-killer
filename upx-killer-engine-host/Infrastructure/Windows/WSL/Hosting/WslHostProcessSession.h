@@ -21,8 +21,8 @@ class WslHostProcessSession final {
       std::wstring_view command) noexcept;
   [[nodiscard]] bool Write(
       contracts::protocol::EngineHostMessage const& message) const noexcept;
-  [[nodiscard]] std::optional<contracts::protocol::EngineHostMessage> Read()
-      const noexcept;
+  [[nodiscard]] std::optional<contracts::protocol::EngineHostMessage> Read(
+      std::stop_token stopToken = {}) const noexcept;
 
  private:
   WslHostProcessSession(HANDLE process, HANDLE inputWrite, HANDLE outputRead)

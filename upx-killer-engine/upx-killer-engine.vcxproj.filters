@@ -46,6 +46,7 @@
     <Filter Include="Application\ELF\Capture"><UniqueIdentifier>{7A71E0AA-C19A-4920-9DB3-E3E794884D7E}</UniqueIdentifier></Filter>
     <Filter Include="Application\ELF\Hosting"><UniqueIdentifier>{6E710B42-9003-4741-B939-F7571AD3EE74}</UniqueIdentifier></Filter>
     <Filter Include="Application\ELF\Reconstruction"><UniqueIdentifier>{CB3A3E01-21CC-467C-A608-73627C816098}</UniqueIdentifier></Filter>
+    <Filter Include="Application\ELF\Translation"><UniqueIdentifier>{A7BE6306-05D0-489E-8460-2924273DA069}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Capabilities"><UniqueIdentifier>{F522FB2B-65C8-4287-B9AF-B88402BC9877}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Preparation"><UniqueIdentifier>{3630059B-EAC6-47CC-A124-464861511B30}</UniqueIdentifier></Filter>
     <Filter Include="Application\PE\Capture"><UniqueIdentifier>{E0BB83BE-76C6-4091-B477-2F21B77E180E}</UniqueIdentifier></Filter>
@@ -79,7 +80,7 @@
     <ClInclude Include="Application\ELF\Hosting\RemoteElfUnpackBackend.h"><Filter>Application\ELF\Hosting</Filter></ClInclude>
     <ClInclude Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.h"><Filter>Application\ELF\Reconstruction</Filter></ClInclude>
     <ClInclude Include="Application\ELF\ElfUnpackBackend.h"><Filter>Application\ELF</Filter></ClInclude>
-    <ClInclude Include="Application\Artifacts\IArtifactPublisher.h"><Filter>Application\Artifacts</Filter></ClInclude>
+    <ClInclude Include="Application\ELF\Translation\ElfJobContractTranslator.h"><Filter>Application\ELF\Translation</Filter></ClInclude>
     <ClInclude Include="Core\PE\Format\PeFormat.h"><Filter>Core\PE\Format</Filter></ClInclude>
     <ClInclude Include="Core\PE\Format\PeFormatTraits.h"><Filter>Core\PE\Format</Filter></ClInclude>
     <ClInclude Include="Core\PE\Exports\ExportDirectoryAnalyzer.h"><Filter>Core\PE\Exports</Filter></ClInclude>
@@ -142,6 +143,7 @@
     <ClCompile Include="Application\ELF\Hosting\RemoteElfUnpackBackend.cpp"><Filter>Application\ELF\Hosting</Filter></ClCompile>
     <ClCompile Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.cpp"><Filter>Application\ELF\Reconstruction</Filter></ClCompile>
     <ClCompile Include="Application\ELF\ElfUnpackBackend.cpp"><Filter>Application\ELF</Filter></ClCompile>
+    <ClCompile Include="Application\ELF\Translation\ElfJobContractTranslator.cpp"><Filter>Application\ELF\Translation</Filter></ClCompile>
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp"><Filter>Core\PE\Parsing</Filter></ClCompile>
     <ClCompile Include="Core\PE\Exports\ExportDirectoryAnalyzer.cpp"><Filter>Core\PE\Exports</Filter></ClCompile>
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp"><Filter>Core\PE\OepDiscovery</Filter></ClCompile>

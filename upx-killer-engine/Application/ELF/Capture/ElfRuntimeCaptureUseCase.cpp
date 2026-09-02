@@ -15,9 +15,7 @@ ElfCaptureResult ElfRuntimeCaptureUseCase::Execute(
                 : 0;
   if (result.resolvedEntryPoint != expected) {
     return {std::nullopt, result.resolvedEntryPoint,
-            {contracts::JobOutcome::Failed,
-             contracts::ErrorCategory::Execution,
-             "elf.oep.mismatch", std::nullopt, 0}};
+            ElfCaptureError::EntryPointMismatch, "elf.oep.mismatch"};
   }
   return result;
 }

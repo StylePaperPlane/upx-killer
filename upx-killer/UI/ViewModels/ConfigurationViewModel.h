@@ -34,11 +34,12 @@ struct ConfigurationViewModel : ConfigurationViewModelT<ConfigurationViewModel> 
       winrt::Microsoft::UI::Xaml::Data::PropertyChangedEventHandler const& handler);
   void PropertyChanged(winrt::event_token const& token) noexcept;
 
-  void Initialize(std::uintptr_t ownerWindowHandle,
-                  std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> store,
-                  std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker,
-                  std::shared_ptr<::upx_killer::application::IWslRuntimeSettingsStore> wslStore,
-                  std::shared_ptr<::upx_killer::application::IWslDistributionCatalog> wslCatalog);
+  void Initialize(
+      std::uintptr_t ownerWindowHandle,
+      std::unique_ptr<::upx_killer::application::TemporaryFileSettingsWorkflow>
+          temporaryFilesWorkflow,
+      std::unique_ptr<::upx_killer::application::WslRuntimeSettingsWorkflow>
+          wslWorkflow);
 
  private:
   winrt::fire_and_forget SelectTemporaryDirectoryAsync();

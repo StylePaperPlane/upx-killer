@@ -34,6 +34,9 @@
     <Filter Include="UI\Presentation">
       <UniqueIdentifier>{CE65C7E0-E670-4B5B-9E65-6319629273F0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UI\Composition">
+      <UniqueIdentifier>{8FEE0CD8-BCAD-43D6-90DA-B7C728CFD747}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Application\Unpacking">
       <UniqueIdentifier>{A089481B-5663-4E45-B56B-AFE2622F2518}</UniqueIdentifier>
     </Filter>
@@ -145,11 +148,17 @@
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp">
       <Filter>UI\Navigation</Filter>
     </ClCompile>
-    <ClInclude Include="UI\Navigation\NavigationRouteCatalog.h">
-      <Filter>UI\Navigation</Filter>
+    <ClInclude Include="UI\Composition\OverviewRouteFactory.h">
+      <Filter>UI\Composition</Filter>
     </ClInclude>
-    <ClCompile Include="UI\Navigation\NavigationRouteCatalog.cpp">
-      <Filter>UI\Navigation</Filter>
+    <ClCompile Include="UI\Composition\OverviewRouteFactory.cpp">
+      <Filter>UI\Composition</Filter>
+    </ClCompile>
+    <ClInclude Include="UI\Composition\ConfigurationRouteFactory.h">
+      <Filter>UI\Composition</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Composition\ConfigurationRouteFactory.cpp">
+      <Filter>UI\Composition</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -376,6 +385,9 @@
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\adr\0011-isolated-elf-shared-object-loading.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\adr\0012-deep-backend-and-ui-boundaries.md">
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md">

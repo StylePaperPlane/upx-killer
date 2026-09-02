@@ -75,7 +75,11 @@ contracts::JobResult WslElfHostClient::Execute(
     return Failure(contracts::ErrorCategory::Protocol,
                    "elf.wsl.protocol_write_failed", GetLastError());
   for (;;) {
-    auto message = session.session->Read();
+    auto message = session.session->Read(stopToken);
+    if (!message && stopToken.stop_requested())
+      return {contracts::JobOutcome::Cancelled,
+              contracts::ErrorCategory::Cancelled, "job.cancelled",
+              std::nullopt, ERROR_CANCELLED};
     if (!message)
       return Failure(contracts::ErrorCategory::Protocol,
                      "elf.wsl.protocol_read_failed", GetLastError());

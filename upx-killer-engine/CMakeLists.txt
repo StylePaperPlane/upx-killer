@@ -29,13 +29,15 @@ target_compile_options(upx_killer_elf_core PRIVATE
   -Wall -Wextra -Wpedantic -Werror)
 
 add_library(upx_killer_elf_application STATIC
+  Application/Artifacts/ArtifactPublicationUseCase.cpp
   Application/ELF/Capabilities/ElfBackendCapabilities.cpp
   Application/ELF/Capture/ElfRuntimeCaptureUseCase.cpp
   Application/ELF/ElfUnpackBackend.cpp
   Application/ELF/Hosting/RemoteElfUnpackBackend.cpp
   Application/ELF/Preparation/ElfTargetPreparationUseCase.cpp
   Application/ELF/Preparation/ElfTargetProbe.cpp
-  Application/ELF/Reconstruction/ElfImageReconstructionUseCase.cpp)
+  Application/ELF/Reconstruction/ElfImageReconstructionUseCase.cpp
+  Application/ELF/Translation/ElfJobContractTranslator.cpp)
 add_library(upx_killer::elf_application ALIAS upx_killer_elf_application)
 
 target_include_directories(upx_killer_elf_application PUBLIC

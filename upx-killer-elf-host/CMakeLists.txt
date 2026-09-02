@@ -28,7 +28,7 @@ add_library(upx_killer_elf_linux STATIC
   Infrastructure/Linux/Loading/ElfSharedObjectLoaderCatalog.cpp
   Infrastructure/Linux/Loading/IsolatedElfLoadVerifier.cpp
   Infrastructure/Linux/Pipes/PosixPipeTransport.cpp
-  Infrastructure/Linux/Storage/LinuxArtifactPublisher.cpp
+  Infrastructure/Linux/Storage/LinuxArtifactStore.cpp
   Infrastructure/Linux/Storage/LinuxElfSourceReader.cpp
   Infrastructure/Linux/Verification/LinuxElfImageValidator.cpp)
 add_library(upx_killer::elf_linux ALIAS upx_killer_elf_linux)
@@ -43,7 +43,7 @@ target_link_libraries(upx_killer_elf_linux PUBLIC
   upx_killer::elf_core
   upx_killer::elf_application)
 
-add_executable(upx_killer_elf_host Application/ElfHostMain.cpp)
+add_executable(upx_killer_elf_host Application/Host/ElfHostMain.cpp)
 target_compile_features(upx_killer_elf_host PRIVATE cxx_std_20)
 target_compile_options(upx_killer_elf_host PRIVATE
   -Wall -Wextra -Wpedantic -Werror)

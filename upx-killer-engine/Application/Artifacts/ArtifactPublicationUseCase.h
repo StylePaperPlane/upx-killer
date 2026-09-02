@@ -1,7 +1,8 @@
 #pragma once
 
+#include "Application/Backends/IUnpackBackend.h"
+#include "Core/Images/Artifact.h"
 #include "Core/Targets/TargetDescriptor.h"
-#include "Core/Unpacking/UnpackTypes.h"
 
 #include <filesystem>
 #include <functional>
@@ -21,7 +22,7 @@ enum class ArtifactPublicationError {
 
 struct PublishedArtifact {
   std::filesystem::path path;
-  ArtifactQuality quality{ArtifactQuality::Partial};
+  contracts::ArtifactQuality quality{contracts::ArtifactQuality::Partial};
   bool loaderMappable{};
   std::vector<std::string> warnings;
 };
@@ -72,7 +73,7 @@ struct ArtifactPublicationRequest {
   contracts::TargetDescriptor target;
   std::filesystem::path dependencyDirectory;
   std::uint32_t validationTimeoutMilliseconds{3000};
-  ArtifactQuality quality{ArtifactQuality::Partial};
+  contracts::ArtifactQuality quality{contracts::ArtifactQuality::Partial};
   std::vector<std::string> warnings;
   bool retainFailedOutput{};
 };
@@ -93,7 +94,7 @@ class ArtifactPublicationUseCase final {
 
   [[nodiscard]] ArtifactPublicationResult Execute(
       ArtifactPublicationRequest request,
-      std::function<void(EngineStage)> const& progress = {}) const noexcept;
+      contracts::ProgressCallback const& progress = {}) const noexcept;
 
  private:
   IArtifactStore const& store_;

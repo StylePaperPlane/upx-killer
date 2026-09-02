@@ -29,6 +29,7 @@
     <Filter Include="Tests\Unit\ELF32"><UniqueIdentifier>{DBD8B4D6-84C7-4BE4-8AC0-C0D3173EA92F}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\ELF"><UniqueIdentifier>{F8A8C243-0A5F-49E1-81BB-8EC42CB1138F}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\ELF\SharedObject"><UniqueIdentifier>{4E0105EF-B05E-43FD-8EA3-E1BBE395D16B}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\ELF\Translation"><UniqueIdentifier>{E2497311-E259-49CE-904D-A70A81A00AC8}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\BinaryInspection"><UniqueIdentifier>{950A347D-0644-4D51-B17D-BA45E53F33BD}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Contracts"><UniqueIdentifier>{14E5EC74-2B0C-4D2F-85AC-5F494E567D52}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\WOW64"><UniqueIdentifier>{21FA6867-DA1D-4E5E-B804-36A6C51D5814}</UniqueIdentifier></Filter>
@@ -47,7 +48,7 @@
     <ClCompile Include="Tests\Unit\PE\Translation\PeJobContractTranslatorTests.cpp"><Filter>Tests\Unit\PE\Translation</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Host\EngineHostIntegrationTests.cpp"><Filter>Tests\Integration\Host</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\ELF64\ElfHostIntegrationValidation.cpp"><Filter>Tests\Integration\ELF64</Filter></ClCompile>
-    <ClCompile Include="Tests\Unit\OepDiscoveryTests.cpp"><Filter>Tests\Unit\OepDiscovery</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\OepDiscovery\OepDiscoveryTests.cpp"><Filter>Tests\Unit\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Imports\ImportDiscoveryTests.cpp"><Filter>Tests\Unit\Imports</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Sections\SectionLayoutRebuilderTests.cpp"><Filter>Tests\Unit\Sections</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Rebasing\PeFileRebaserTests.cpp"><Filter>Tests\Unit\Rebasing</Filter></ClCompile>
@@ -59,6 +60,7 @@
     <ClCompile Include="Tests\Unit\ELF64\ElfCoreTests.cpp"><Filter>Tests\Unit\ELF64</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\ELF32\Elf32ParsingTests.cpp"><Filter>Tests\Unit\ELF32</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\ELF\SharedObject\ElfSharedObjectTests.cpp"><Filter>Tests\Unit\ELF\SharedObject</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\ELF\Translation\ElfJobContractTranslatorTests.cpp"><Filter>Tests\Unit\ELF\Translation</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\BinaryInspection\TargetBinaryInspectorTests.cpp"><Filter>Tests\Unit\BinaryInspection</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
@@ -66,7 +68,7 @@
     <ClCompile Include="Tests\Integration\UseCases\PeUseCaseTests.cpp"><Filter>Tests\Integration\UseCases</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\WOW64\Wow64DebugSessionTests.cpp"><Filter>Tests\Integration\WOW64</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Native64\DLL\Pe64DllIntegrationTests.cpp"><Filter>Tests\Integration\Native64\DLL</Filter></ClCompile>
-    <ClCompile Include="Tests\Integration\OepDiscoveryIntegrationTests.cpp"><Filter>Tests\Integration\OepDiscovery</Filter></ClCompile>
+    <ClCompile Include="Tests\Integration\OepDiscovery\OepDiscoveryIntegrationTests.cpp"><Filter>Tests\Integration\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Tests\Integration\Sections\SemanticSectionRebuildTests.cpp"><Filter>Tests\Integration\Sections</Filter></ClCompile>
     <ClCompile Include="Tests\Support\EngineHostTestClient.cpp"><Filter>Tests\Support</Filter></ClCompile>
   </ItemGroup>

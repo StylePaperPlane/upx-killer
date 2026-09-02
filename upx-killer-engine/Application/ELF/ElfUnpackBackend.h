@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application/Artifacts/IArtifactPublisher.h"
+#include "Application/Artifacts/ArtifactPublicationUseCase.h"
 #include "Application/ELF/Capture/ElfRuntimeCaptureUseCase.h"
 #include "Application/ELF/Preparation/ElfTargetProbe.h"
 #include "Application/ELF/Reconstruction/ElfImageReconstructionUseCase.h"
@@ -14,12 +14,12 @@ class ElfUnpackBackend final : public contracts::IUnpackBackend {
       elf_preparation::ElfTargetPreparationUseCase const& preparation,
       elf_capture::ElfRuntimeCaptureUseCase const& capture,
       elf_reconstruction::ElfImageReconstructionUseCase const& reconstruction,
-      artifacts::IArtifactPublisher const& publisher)
+      artifacts::ArtifactPublicationUseCase const& publication)
       : probe_(probe),
         preparation_(preparation),
         capture_(capture),
         reconstruction_(reconstruction),
-        publisher_(publisher) {}
+        publication_(publication) {}
 
   [[nodiscard]] contracts::BackendManifest Manifest() const override;
   [[nodiscard]] contracts::BackendProbeResult Probe(
@@ -34,7 +34,7 @@ class ElfUnpackBackend final : public contracts::IUnpackBackend {
   elf_preparation::ElfTargetPreparationUseCase const& preparation_;
   elf_capture::ElfRuntimeCaptureUseCase const& capture_;
   elf_reconstruction::ElfImageReconstructionUseCase const& reconstruction_;
-  artifacts::IArtifactPublisher const& publisher_;
+  artifacts::ArtifactPublicationUseCase const& publication_;
 };
 
 }  // namespace upx_killer::engine::application

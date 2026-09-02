@@ -6,7 +6,6 @@
 #endif
 
 #include "UI/Navigation/NavigationPaneController.h"
-#include "UI/Navigation/NavigationRouteCatalog.h"
 #include "UI/Navigation/NavigationRouter.h"
 
 #include <microsoft.ui.xaml.window.h>
@@ -69,25 +68,13 @@ MainWindow::MainWindow() {
 MainWindow::~MainWindow() = default;
 
 void MainWindow::InitializeShell(
-    std::shared_ptr<::upx_killer::application::ITargetFilePicker> picker,
-    std::shared_ptr<::upx_killer::application::IUnpackEngineClient> engineClient,
-    std::shared_ptr<::upx_killer::application::ITemporaryArtifactWorkspace> workspace,
-    std::shared_ptr<::upx_killer::application::IArtifactExporter> artifactExporter,
-    std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> settingsStore,
-    std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker,
-    std::shared_ptr<::upx_killer::application::IWslRuntimeSettingsStore> wslSettingsStore,
-    std::shared_ptr<::upx_killer::application::IWslDistributionCatalog> wslDistributionCatalog) {
+    std::vector<::upx_killer::ui::NavigationRouteRegistration> routes) {
   if (m_navigationRouter) {
     return;
   }
 
   m_navigationRouter = std::make_unique<::upx_killer::ui::NavigationRouter>(
-      ContentFrame(), ::upx_killer::ui::NavigationRouteCatalog::Create(
-                          {AppWindow().Id(), m_windowHandle, std::move(picker),
-                           std::move(engineClient), std::move(workspace),
-                           std::move(artifactExporter), std::move(settingsStore),
-                           std::move(folderPicker), std::move(wslSettingsStore),
-                           std::move(wslDistributionCatalog)}));
+      ContentFrame(), std::move(routes));
 
   RootNavigationView().SelectionChanged({this, &MainWindow::OnNavigationSelectionChanged});
 

@@ -12,10 +12,24 @@ struct ElfCaptureRequest {
   std::uint64_t maximumImageSize{};
 };
 
+enum class ElfCaptureError {
+  None,
+  InvalidRequest,
+  ConfigurationFailed,
+  ExecutionFailed,
+  ReconstructionFailed,
+  EntryPointMismatch,
+  Cancelled,
+  TimedOut,
+  UnexpectedFailure,
+};
+
 struct ElfCaptureResult {
   std::optional<elf::CapturedElfImage> image;
   std::uint64_t resolvedEntryPoint{};
-  contracts::JobResult failure;
+  ElfCaptureError error{ElfCaptureError::None};
+  std::string detailCode;
+  std::uint32_t nativeCode{};
 };
 
 class IElfSnapshotCapture {

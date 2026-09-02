@@ -2,10 +2,12 @@
 
 namespace upx_killer::engine::application::artifacts {
 ArtifactPublicationResult ArtifactPublicationUseCase::Execute(
-    ArtifactPublicationRequest request,
-    std::function<void(EngineStage)> const& progress) const noexcept {
+  ArtifactPublicationRequest request,
+    contracts::ProgressCallback const& progress) const noexcept {
   try {
-    if (progress) progress(EngineStage::ValidatingOutput);
+    if (progress)
+      progress({contracts::JobStage::ValidatingArtifact,
+                "artifact.progress.validating"});
     auto staged = store_.Stage(request.finalPath, request.bytes);
     if (!staged.temporaryPath) {
       return {std::nullopt, ArtifactPublicationError::StageFailed,
@@ -39,7 +41,8 @@ ArtifactPublicationResult ArtifactPublicationUseCase::Execute(
       return {std::nullopt, ArtifactPublicationError::PromoteFailed,
               promoteError};
     }
-    if (progress) progress(EngineStage::Completed);
+    if (progress)
+      progress({contracts::JobStage::Completed, "job.completed"});
     PublishedArtifact artifact{request.finalPath, request.quality, true,
                                std::move(request.warnings)};
     return {std::move(artifact), ArtifactPublicationError::None};

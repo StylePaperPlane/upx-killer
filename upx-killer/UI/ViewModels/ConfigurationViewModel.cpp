@@ -76,16 +76,13 @@ void ConfigurationViewModel::PropertyChanged(winrt::event_token const& token) no
 
 void ConfigurationViewModel::Initialize(
     std::uintptr_t ownerWindowHandle,
-    std::shared_ptr<::upx_killer::application::ITemporaryFileSettingsStore> store,
-    std::shared_ptr<::upx_killer::application::ITemporaryFolderPicker> folderPicker,
-    std::shared_ptr<::upx_killer::application::IWslRuntimeSettingsStore> wslStore,
-    std::shared_ptr<::upx_killer::application::IWslDistributionCatalog> wslCatalog) {
+    std::unique_ptr<::upx_killer::application::TemporaryFileSettingsWorkflow>
+        temporaryFilesWorkflow,
+    std::unique_ptr<::upx_killer::application::WslRuntimeSettingsWorkflow>
+        wslWorkflow) {
   m_ownerWindowHandle = ownerWindowHandle;
-  m_workflow = std::make_unique<::upx_killer::application::TemporaryFileSettingsWorkflow>(
-      std::move(store), std::move(folderPicker));
-  m_wslWorkflow =
-      std::make_unique<::upx_killer::application::WslRuntimeSettingsWorkflow>(
-          std::move(wslStore), std::move(wslCatalog));
+  m_workflow = std::move(temporaryFilesWorkflow);
+  m_wslWorkflow = std::move(wslWorkflow);
   Reload();
   RefreshWslDistributionsAsync();
   m_selectTemporaryDirectoryCommand->RaiseCanExecuteChanged();

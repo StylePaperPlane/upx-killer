@@ -25,7 +25,7 @@
     <NMakeOutput>$(SolutionDir)upx-killer\x64\$(Configuration)\upx-killer\upx_killer_elf_host</NMakeOutput>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="Application\ElfHostMain.cpp" />
+    <ClCompile Include="Application\Host\ElfHostMain.cpp" />
     <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderMain.c" />
     <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderEntry32.S" />
     <ClCompile Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxExecutionBreakpoint.cpp" />
@@ -41,7 +41,7 @@
     <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp" />
     <ClCompile Include="Infrastructure\Linux\Loading\ElfSharedObjectLoaderCatalog.cpp" />
     <ClCompile Include="Infrastructure\Linux\Loading\IsolatedElfLoadVerifier.cpp" />
-    <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp" />
+    <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactStore.cpp" />
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.cpp" />
     <ClCompile Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.cpp" />
     <ClCompile Include="Tests\Integration\Debugging\PtraceScenarioTests.cpp" />
@@ -58,7 +58,7 @@
     <ClInclude Include="Infrastructure\Linux\Pipes\PosixPipeTransport.h" />
     <ClInclude Include="Infrastructure\Linux\Loading\ElfSharedObjectLoaderCatalog.h" />
     <ClInclude Include="Infrastructure\Linux\Loading\IsolatedElfLoadVerifier.h" />
-    <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h" />
+    <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactStore.h" />
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.h" />
     <ClInclude Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.h" />
     <None Include="Tests\Fixtures\Debugging\Tracee.c" />

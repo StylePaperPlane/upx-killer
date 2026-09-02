@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Application/Artifacts/ArtifactPublicationUseCase.h"
 #include "Infrastructure/Linux/Loading/IsolatedElfLoadVerifier.h"
 
 #include <cstdint>
@@ -7,22 +8,16 @@
 
 namespace upx_killer::elf_host::verification {
 
-struct LinuxElfValidationResult {
-  bool structurallyValid{};
-  bool loaderAccepted{};
-  std::uint32_t nativeCode{};
-};
-
-class LinuxElfImageValidator final {
+class LinuxElfImageValidator final
+    : public engine::application::artifacts::IArtifactValidator {
  public:
   explicit LinuxElfImageValidator(
       loading::IsolatedElfLoadVerifier const& loaderVerifier)
       : loaderVerifier_(loaderVerifier) {}
 
-  [[nodiscard]] LinuxElfValidationResult Validate(
-      std::filesystem::path const& imagePath,
-      std::filesystem::path const& dependencyDirectory,
-      std::uint32_t timeoutMilliseconds) const noexcept;
+  [[nodiscard]] engine::application::artifacts::ArtifactValidationResult
+  Validate(engine::application::artifacts::ArtifactValidationRequest const&
+               request) const noexcept override;
 
  private:
   loading::IsolatedElfLoadVerifier const& loaderVerifier_;

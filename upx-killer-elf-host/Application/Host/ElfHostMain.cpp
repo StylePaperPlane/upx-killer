@@ -1,4 +1,5 @@
 #include "Application/Coordination/UnpackCoordinator.h"
+#include "Application/Artifacts/ArtifactPublicationUseCase.h"
 #include "Application/ELF/Capture/ElfRuntimeCaptureUseCase.h"
 #include "Application/ELF/ElfUnpackBackend.h"
 #include "Application/ELF/Preparation/ElfTargetPreparationUseCase.h"
@@ -10,7 +11,7 @@
 #include "Infrastructure/Linux/Loading/ElfSharedObjectLoaderCatalog.h"
 #include "Infrastructure/Linux/Loading/IsolatedElfLoadVerifier.h"
 #include "Infrastructure/Linux/Pipes/PosixPipeTransport.h"
-#include "Infrastructure/Linux/Storage/LinuxArtifactPublisher.h"
+#include "Infrastructure/Linux/Storage/LinuxArtifactStore.h"
 #include "Infrastructure/Linux/Storage/LinuxElfSourceReader.h"
 #include "Infrastructure/Linux/Verification/LinuxElfImageValidator.h"
 
@@ -51,9 +52,11 @@ int main() {
       reconstruction;
   elf_host::loading::IsolatedElfLoadVerifier loadVerifier{loaderCatalog};
   elf_host::verification::LinuxElfImageValidator validator{loadVerifier};
-  elf_host::storage::LinuxArtifactPublisher publisher{validator};
+  elf_host::storage::LinuxArtifactStore artifactStore;
+  engine::application::artifacts::ArtifactPublicationUseCase publication{
+      artifactStore, validator};
   auto backend = std::make_shared<engine::application::ElfUnpackBackend>(
-      probe, preparation, capture, reconstruction, publisher);
+      probe, preparation, capture, reconstruction, publication);
   contracts::UnpackCoordinator coordinator;
   coordinator.Register(std::move(backend));
 

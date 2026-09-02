@@ -45,12 +45,16 @@ contracts::JobResult PeUnpackBackend::Execute(
 
   auto reconstructed = std::move(*reconstruction.image);
   auto fixed = std::move(reconstructed.image);
+  auto const artifactQuality =
+      fixed.quality == ArtifactQuality::Complete
+          ? contracts::ArtifactQuality::Complete
+          : contracts::ArtifactQuality::Partial;
   auto publication = publication_.Execute(
       {engineRequest.outputPath, std::move(fixed.bytes),
        PeBackendCapabilities::Describe(prepared.layout),
-       prepared.dependencyDirectory, 3000, fixed.quality,
+       prepared.dependencyDirectory, 3000, artifactQuality,
        std::move(fixed.warnings), engineRequest.retainFailedOutput},
-      engineProgress);
+      progress);
   return pe_translation::PeJobContractTranslator::Publication(
       std::move(publication));
 }

@@ -246,15 +246,13 @@ contracts::JobResult PeJobContractTranslator::Publication(
   try {
     if (result.artifact) {
       contracts::JobResult mapped{};
-      mapped.outcome = result.artifact->quality == ArtifactQuality::Complete
+      mapped.outcome = result.artifact->quality == contracts::ArtifactQuality::Complete
                            ? contracts::JobOutcome::Completed
                            : contracts::JobOutcome::Partial;
       mapped.category = contracts::ErrorCategory::None;
       mapped.artifact = contracts::JobArtifact{
           std::move(result.artifact->path),
-          result.artifact->quality == ArtifactQuality::Complete
-              ? contracts::ArtifactQuality::Complete
-              : contracts::ArtifactQuality::Partial,
+          result.artifact->quality,
           result.artifact->loaderMappable,
           std::move(result.artifact->warnings)};
       return mapped;

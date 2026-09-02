@@ -54,7 +54,7 @@
     <ClInclude Include="Application\ELF\Hosting\RemoteElfUnpackBackend.h" />
     <ClInclude Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.h" />
     <ClInclude Include="Application\ELF\ElfUnpackBackend.h" />
-    <ClInclude Include="Application\Artifacts\IArtifactPublisher.h" />
+    <ClInclude Include="Application\ELF\Translation\ElfJobContractTranslator.h" />
     <ClInclude Include="Core\PE\Format\PeFormat.h" />
     <ClInclude Include="Core\PE\Format\PeFormatTraits.h" />
     <ClInclude Include="Core\PE\Exports\ExportDirectoryAnalyzer.h" />
@@ -117,6 +117,7 @@
     <ClCompile Include="Application\ELF\Hosting\RemoteElfUnpackBackend.cpp" />
     <ClCompile Include="Application\ELF\Reconstruction\ElfImageReconstructionUseCase.cpp" />
     <ClCompile Include="Application\ELF\ElfUnpackBackend.cpp" />
+    <ClCompile Include="Application\ELF\Translation\ElfJobContractTranslator.cpp" />
     <ClCompile Include="Core\PE\Parsing\PeParser.cpp" />
     <ClCompile Include="Core\PE\Exports\ExportDirectoryAnalyzer.cpp" />
     <ClCompile Include="Core\PE\OepDiscovery\UpxOepLocator.cpp" />

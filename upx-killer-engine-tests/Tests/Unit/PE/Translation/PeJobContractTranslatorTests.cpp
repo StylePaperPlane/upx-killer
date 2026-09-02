@@ -73,7 +73,7 @@ int RunPeJobContractTranslatorTests() {
          "snapshot timeout remains local until contract translation", failures);
 
   engine::application::artifacts::PublishedArtifact artifact{
-      L"sample.dumped.exe", engine::ArtifactQuality::Complete, true, {}};
+      L"sample.dumped.exe", contracts::ArtifactQuality::Complete, true, {}};
   auto published = PeJobContractTranslator::Publication(
       {std::move(artifact),
        engine::application::artifacts::ArtifactPublicationError::None});

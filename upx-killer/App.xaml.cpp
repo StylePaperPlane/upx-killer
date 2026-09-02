@@ -8,9 +8,15 @@
 #include "Infrastructure/WSL/Discovery/WslDistributionCatalog.h"
 #include "Infrastructure/Storage/TemporaryFolderPicker.h"
 #include "Infrastructure/Storage/LocalTemporaryArtifactWorkspace.h"
+#include "UI/Composition/ConfigurationRouteFactory.h"
+#include "UI/Composition/OverviewRouteFactory.h"
 #include "UI/Windows/MainWindow/MainWindow.xaml.h"
 
+#include <microsoft.ui.xaml.window.h>
 #include <memory>
+#include <vector>
+
+#include <winrt/Microsoft.UI.Windowing.h>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
@@ -50,18 +56,36 @@ void App::OnLaunched([[maybe_unused]] LaunchActivatedEventArgs const& e) {
   auto const workspace =
       std::make_shared<::upx_killer::infrastructure::LocalTemporaryArtifactWorkspace>(
           temporaryFileSettings);
-  get_self<MainWindow>(mainWindow)
-      ->InitializeShell(std::make_shared<::upx_killer::infrastructure::TargetFilePicker>(),
-                        std::make_shared<::upx_killer::infrastructure::EngineHostClient>(
-                            ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath(),
-                            wslSettings),
-                        workspace,
-                        std::make_shared<::upx_killer::infrastructure::ArtifactFileExporter>(
-                            temporaryFileSettings),
-                        temporaryFileSettings,
-                        std::make_shared<::upx_killer::infrastructure::TemporaryFolderPicker>(),
-                        wslSettings,
-                        std::make_shared<::upx_killer::infrastructure::WslDistributionCatalog>());
+  auto const picker =
+      std::make_shared<::upx_killer::infrastructure::TargetFilePicker>();
+  auto const engineClient =
+      std::make_shared<::upx_killer::infrastructure::EngineHostClient>(
+          ::upx_killer::infrastructure::EngineHostClient::AdjacentHostPath(),
+          wslSettings);
+  auto const artifactExporter =
+      std::make_shared<::upx_killer::infrastructure::ArtifactFileExporter>(
+          temporaryFileSettings);
+  auto const folderPicker =
+      std::make_shared<::upx_killer::infrastructure::TemporaryFolderPicker>();
+  auto const wslDistributionCatalog =
+      std::make_shared<::upx_killer::infrastructure::WslDistributionCatalog>();
+
+  auto const nativeWindow = mainWindow.as<::IWindowNative>();
+  HWND ownerWindow{};
+  winrt::check_hresult(nativeWindow->get_WindowHandle(&ownerWindow));
+  auto const ownerWindowHandle = reinterpret_cast<std::uintptr_t>(ownerWindow);
+  auto const windowId = mainWindow.AppWindow().Id();
+
+  std::vector<::upx_killer::ui::NavigationRouteRegistration> routes;
+  routes.emplace_back(
+      ::upx_killer::ui::composition::OverviewRouteFactory::Create(
+          {windowId, picker, engineClient, workspace, artifactExporter,
+           temporaryFileSettings}));
+  routes.emplace_back(
+      ::upx_killer::ui::composition::ConfigurationRouteFactory::Create(
+          {ownerWindowHandle, temporaryFileSettings, folderPicker, wslSettings,
+           wslDistributionCatalog}));
+  get_self<MainWindow>(mainWindow)->InitializeShell(std::move(routes));
 
   window = mainWindow;
   window.Activate();

@@ -19,10 +19,9 @@ using namespace upx_killer;
 using namespace upx_killer::elf_host::debugging;
 
 engine::application::elf_capture::ElfCaptureResult Failure(
-    contracts::JobOutcome outcome, contracts::ErrorCategory category,
+    engine::application::elf_capture::ElfCaptureError error,
     std::string code, std::uint32_t native = 0) {
-  return {std::nullopt, 0,
-          {outcome, category, std::move(code), std::nullopt, native}};
+  return {std::nullopt, 0, error, std::move(code), native};
 }
 
 engine::application::elf_capture::ElfCaptureResult LaunchFailure(
@@ -32,8 +31,7 @@ engine::application::elf_capture::ElfCaptureResult LaunchFailure(
     code = "elf.capture.fork_failed";
   else if (launch.error == LinuxTraceLaunchError::Ptrace)
     code = "elf.capture.ptrace_failed";
-  return Failure(contracts::JobOutcome::Failed,
-                 contracts::ErrorCategory::Execution, code,
+  return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed, code,
                  launch.nativeCode);
 }
 
@@ -73,11 +71,11 @@ PtraceElfSnapshotCapture::Capture(
 
     for (;;) {
       if (stopToken.stop_requested())
-        return Failure(contracts::JobOutcome::Cancelled,
-                       contracts::ErrorCategory::Cancelled, "job.cancelled");
+        return Failure(engine::application::elf_capture::ElfCaptureError::Cancelled,
+                       "job.cancelled");
       if (std::chrono::steady_clock::now() >= deadline)
-        return Failure(contracts::JobOutcome::TimedOut,
-                       contracts::ErrorCategory::TimedOut, "job.timed_out");
+        return Failure(engine::application::elf_capture::ElfCaptureError::TimedOut,
+                       "job.timed_out");
       auto const waited = waitpid(pid, &status, WNOHANG);
       if (waited == 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -85,13 +83,11 @@ PtraceElfSnapshotCapture::Capture(
       }
       if (waited < 0) {
         if (errno == EINTR) continue;
-        return Failure(contracts::JobOutcome::Failed,
-                       contracts::ErrorCategory::Execution,
+        return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                        "elf.capture.wait_failed", errno);
       }
       if (WIFEXITED(status) || WIFSIGNALED(status))
-        return Failure(contracts::JobOutcome::Failed,
-                       contracts::ErrorCategory::Execution,
+        return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                        "elf.oep.not_found",
                        WIFEXITED(status) ? WEXITSTATUS(status)
                                          : 128u + WTERMSIG(status));
@@ -103,8 +99,7 @@ PtraceElfSnapshotCapture::Capture(
             signal, request.target.packedLayout.imageClass);
         if (restore == BreakpointRestoreResult::Restored) {
           if (!recovered)
-            return Failure(contracts::JobOutcome::Failed,
-                           contracts::ErrorCategory::Internal,
+            return Failure(engine::application::elf_capture::ElfCaptureError::UnexpectedFailure,
                            "elf.capture.state_invalid");
           std::optional<engine::elf::CapturedElfImage> captured;
           if (RequiresDynamicLinkerPreEntryCapture(recovered->layout)) {
@@ -114,18 +109,17 @@ PtraceElfSnapshotCapture::Capture(
                 pid, *recovered, request.maximumImageSize);
           }
           if (!captured)
-            return Failure(contracts::JobOutcome::Failed,
-                           contracts::ErrorCategory::Execution,
+            return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                            "elf.capture.read_failed", errno);
-          return {std::move(captured), resolvedEntry, {}};
+          return {std::move(captured), resolvedEntry,
+                  engine::application::elf_capture::ElfCaptureError::None,
+                  {}, 0};
         }
         if (restore == BreakpointRestoreResult::Failed)
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Execution,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                          "elf.oep.breakpoint_restore_failed", errno);
         if (!Continue(pid, PTRACE_CONT, signal == SIGTRAP ? 0 : signal))
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Execution,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                          "elf.capture.continue_failed", errno);
         continue;
       }
@@ -142,16 +136,14 @@ PtraceElfSnapshotCapture::Capture(
             preEntryCapture = RecoveredElfImageLocator::Capture(
                 pid, *recovered, request.maximumImageSize);
             if (!preEntryCapture)
-              return Failure(contracts::JobOutcome::Failed,
-                             contracts::ErrorCategory::Execution,
+              return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                              "elf.capture.read_failed", errno);
             if (!RecoveredElfImageLocator::HasCompleteDynamicLinkage(
                     *preEntryCapture)) {
               preEntryCapture.reset();
               enteringSyscall = !enteringSyscall;
               if (!Continue(pid, PTRACE_SYSCALL))
-                return Failure(contracts::JobOutcome::Failed,
-                               contracts::ErrorCategory::Execution,
+                return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                                "elf.capture.continue_failed", errno);
               continue;
             }
@@ -159,32 +151,27 @@ PtraceElfSnapshotCapture::Capture(
           auto const relativeEntry = recovered->layout.entryPoint;
           if (request.target.explicitEntryPoint &&
               request.target.explicitEntryPoint->value != relativeEntry)
-            return Failure(contracts::JobOutcome::Failed,
-                           contracts::ErrorCategory::Execution,
+            return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                            "elf.oep.explicit_mismatch");
           resolvedEntry = recovered->loadBias + relativeEntry;
           breakpoint = LinuxExecutionBreakpoint::Install(pid, resolvedEntry);
           if (!breakpoint) {
-            return Failure(contracts::JobOutcome::Failed,
-                           contracts::ErrorCategory::Execution,
+            return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                            "elf.oep.breakpoint_failed", errno);
           }
         }
         enteringSyscall = !enteringSyscall;
         if (!Continue(pid, breakpoint ? PTRACE_CONT : PTRACE_SYSCALL))
-          return Failure(contracts::JobOutcome::Failed,
-                         contracts::ErrorCategory::Execution,
+          return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                          "elf.capture.continue_failed", errno);
         continue;
       }
       if (!Continue(pid, PTRACE_SYSCALL, signal == SIGTRAP ? 0 : signal))
-        return Failure(contracts::JobOutcome::Failed,
-                       contracts::ErrorCategory::Execution,
+        return Failure(engine::application::elf_capture::ElfCaptureError::ExecutionFailed,
                        "elf.capture.continue_failed", errno);
     }
   } catch (...) {
-    return Failure(contracts::JobOutcome::Failed,
-                   contracts::ErrorCategory::Internal,
+    return Failure(engine::application::elf_capture::ElfCaptureError::UnexpectedFailure,
                    "elf.capture.unhandled_exception");
   }
 }

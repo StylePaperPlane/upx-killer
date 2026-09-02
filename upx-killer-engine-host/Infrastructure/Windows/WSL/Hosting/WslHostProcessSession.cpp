@@ -62,8 +62,8 @@ bool WslHostProcessSession::Write(
 }
 
 std::optional<contracts::protocol::EngineHostMessage>
-WslHostProcessSession::Read() const noexcept {
+WslHostProcessSession::Read(std::stop_token stopToken) const noexcept {
   EngineHostPipeTransport transport{outputRead_, inputWrite_};
-  return transport.Read();
+  return transport.Read(stopToken);
 }
 }  // namespace upx_killer::engine_host::wsl
