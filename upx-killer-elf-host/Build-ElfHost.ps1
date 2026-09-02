@@ -32,3 +32,7 @@ if ($LASTEXITCODE -ne 0) { throw "ELF Host build failed with exit code $LASTEXIT
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 $source = "\\wsl.localhost\$Distribution$buildDirectory\upx_killer_elf_host"
 Copy-Item -LiteralPath $source -Destination (Join-Path $OutputDirectory "upx_killer_elf_host") -Force
+foreach ($loader in @("upx_killer_elf_so_loader_x86", "upx_killer_elf_so_loader_x64")) {
+    $loaderSource = "\\wsl.localhost\$Distribution$buildDirectory\$loader"
+    Copy-Item -LiteralPath $loaderSource -Destination (Join-Path $OutputDirectory $loader) -Force
+}

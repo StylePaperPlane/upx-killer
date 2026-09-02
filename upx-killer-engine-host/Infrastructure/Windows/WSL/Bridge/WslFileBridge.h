@@ -22,6 +22,8 @@ class WslStagedJob final {
   std::string linuxTarget;
   std::string linuxOutput;
   std::string linuxHost;
+  std::string linuxLoader32;
+  std::string linuxLoader64;
 
   [[nodiscard]] std::uint32_t CopyOutputTo(
       std::filesystem::path const& destination) const noexcept;

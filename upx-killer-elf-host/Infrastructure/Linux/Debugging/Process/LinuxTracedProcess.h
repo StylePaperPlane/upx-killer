@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace upx_killer::elf_host::debugging {
 
@@ -35,11 +37,22 @@ struct LinuxTraceLaunchResult {
   std::uint32_t nativeCode{};
 };
 
+enum class LinuxTraceStartMode : std::uint8_t {
+  Continue,
+  SystemCalls,
+};
+
+struct LinuxTraceLaunchRequest {
+  std::filesystem::path executable;
+  std::filesystem::path workingDirectory;
+  std::vector<std::string> arguments;
+  LinuxTraceStartMode startMode{LinuxTraceStartMode::SystemCalls};
+};
+
 class LinuxTraceLauncher final {
  public:
   [[nodiscard]] static LinuxTraceLaunchResult Launch(
-      std::filesystem::path const& target,
-      std::filesystem::path const& workingDirectory) noexcept;
+      LinuxTraceLaunchRequest const& request) noexcept;
 };
 
 }  // namespace upx_killer::elf_host::debugging

@@ -122,8 +122,8 @@ The use case that stages a reconstructed image, performs structural and loader v
 _Avoid_: Fixer write, direct output stream
 
 **ELF Target Image**:
-An ELF little-endian executable selected for unpacking. Production capability includes ELF32 x86 and ELF64 x86-64 fixed-address `ET_EXEC`, dynamically linked PIE, and static PIE images. ELF shared objects remain outside the current production capability.
-_Avoid_: Linux file, extensionless executable
+An ELF little-endian executable or shared object selected for unpacking. Production capability includes ELF32 x86 and ELF64 x86-64 fixed-address `ET_EXEC`, dynamically linked PIE, static PIE, and the validated UPX shared-object slice. Image Kind and Image Addressing remain format-neutral capability dimensions.
+_Avoid_: Linux file, extensionless executable, file-extension classification
 
 **ELF Image Class**:
 The neutral 32-bit or 64-bit address-width classification retained in `ElfImageLayout`. Class-specific field offsets and widths are private Core implementation details and never expose native `Elf32_*` or `Elf64_*` structures across a module interface.
@@ -138,8 +138,20 @@ The runtime displacement between an ELF image's program-header virtual addresses
 _Avoid_: PIE base guess, first mapping address
 
 **Captured ELF Image**:
-The bounded bytes read from the target's validated `PT_LOAD` mappings after UPX has restored the original ELF header. Dynamic images retain the last complete pre-entry dynamic-metadata snapshot and still require a confirmed recovered-entry breakpoint; static images are captured only after that breakpoint is hit so writable data initialization is not observed prematurely.
+The bounded bytes read from the target's validated `PT_LOAD` mappings. Executables are captured after a confirmed recovered-entry breakpoint. Shared objects are captured after the isolated same-class Loader has completed `dlopen`, their preserved UPX program-header evidence has been recovered, and every recovered load range has become readable. Both paths return the same class-neutral Core model.
 _Avoid_: `/proc` dump, packed file copy
+
+**ELF Shared Object Loader**:
+The isolated same-class Linux helper that calls `dlopen` and `dlclose` for a staged ELF shared object without invoking unknown exports. ELF32 and ELF64 helpers share one source-level implementation and are selected through the Linux Loader Catalog; the ELF Host remains the ptrace owner.
+_Avoid_: SO runner, exported-function harness, in-process Host load
+
+**Recovered Shared Object Layout**:
+The bounded ELF program-header layout inferred from UPX-preserved metadata before reading the loaded object. It restores only program headers supported by explicit evidence, resets the shared object's synthetic packer entry to zero, and fails closed when segment or dynamic-table boundaries are inconsistent.
+_Avoid_: guessed original section table, packed header reuse
+
+**Loaded Shared Object Normalization**:
+The pure Core transformation that converts loader-adjusted dynamic pointers in a captured shared object back to image-relative ELF values, clears process-local `DT_DEBUG`, and restores constructor metadata supported by the recovered layout. Linux process state and `dlopen` handles never cross this boundary.
+_Avoid_: runtime pointer dump, Linux loader patching
 
 **ELF Execution Breakpoint**:
 The Linux adapter's class-neutral OEP stop mechanism. It uses a one-byte software breakpoint when the recovered code mapping is private and writable through ptrace, and falls back internally to an x86 debug-register execution breakpoint for UPX read-only shared `memfd` mappings. The breakpoint owns its armed state and restores prior instruction bytes or DR0/DR6/DR7 state after a hit and during unhit scope cleanup. Callers observe only install, hit, and restore semantics.

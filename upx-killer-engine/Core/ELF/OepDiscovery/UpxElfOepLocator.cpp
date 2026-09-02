@@ -7,7 +7,6 @@ namespace upx_killer::engine::elf::oep {
 ElfOepDiscoveryResult UpxElfOepLocator::Analyze(
     std::span<std::byte const> source,
     ElfImageLayout const& layout) noexcept {
-  if (!layout.IsExecutableTarget()) return {{}, "elf.target.kind_unsupported"};
   constexpr std::array<std::byte, 4> marker{
       std::byte{0x55}, std::byte{0x50}, std::byte{0x58}, std::byte{0x21}};
   auto const hasMarker = std::search(source.begin(), source.end(),

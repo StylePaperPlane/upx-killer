@@ -34,6 +34,8 @@ $requiredFiles = @(
     'upx_killer.exe',
     'upx_killer_engine_host.exe',
     'upx_killer_elf_host',
+    'upx_killer_elf_so_loader_x86',
+    'upx_killer_elf_so_loader_x64',
     'upx_killer_dll_loader_x86.exe',
     'upx_killer_dll_loader_x64.exe',
     'upx_killer.pri',

@@ -3,6 +3,7 @@
   <ItemGroup>
     <Filter Include="Application"><UniqueIdentifier>{4541AA45-6811-436B-A353-3AB4FDB95C24}</UniqueIdentifier></Filter>
     <Filter Include="Application\Host"><UniqueIdentifier>{97C686A8-C34E-4C51-9BA1-C918BF1A66AD}</UniqueIdentifier></Filter>
+    <Filter Include="Application\SharedObjectLoader"><UniqueIdentifier>{8A4AC5EB-2B8B-4D29-8A48-BA3769208D41}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure"><UniqueIdentifier>{C32709A9-766C-47D2-BB16-1EBC623351DD}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux"><UniqueIdentifier>{CB8B17A9-4489-4132-B249-85B9904D5480}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux\Debugging"><UniqueIdentifier>{D713BDF4-F3CC-410D-A374-47435251ED46}</UniqueIdentifier></Filter>
@@ -11,6 +12,8 @@
     <Filter Include="Infrastructure\Linux\Debugging\Process"><UniqueIdentifier>{9AD6F41F-A169-442C-BA31-74EC02B09F7B}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux\Debugging\Recovery"><UniqueIdentifier>{BEA9F28F-B53C-47BE-BE68-2A28E9F86F33}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux\Debugging\ThreadContext"><UniqueIdentifier>{EC254B09-AF3F-4A4F-9267-20B9DF9D5EB8}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Debugging\SharedObjects"><UniqueIdentifier>{071F6E79-5B61-4BA9-B43E-7763B47D7C91}</UniqueIdentifier></Filter>
+    <Filter Include="Infrastructure\Linux\Loading"><UniqueIdentifier>{8FE50FA1-44B1-4144-833E-E65ED9D304FC}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux\Pipes"><UniqueIdentifier>{F6722E1D-BB79-4E02-B477-C73E7989D65C}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux\Storage"><UniqueIdentifier>{0C67ED63-0DAB-4E7F-A82C-70FBCB7889E6}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Linux\Verification"><UniqueIdentifier>{FAEACD4F-7CB9-4525-BEDA-05E613FF502A}</UniqueIdentifier></Filter>
@@ -23,11 +26,18 @@
     <Filter Include="Tests\Fixtures\ELF32\PIE"><UniqueIdentifier>{60B4B56A-E8D3-48D6-BB55-268088E9A61B}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\ELF32"><UniqueIdentifier>{15E1A79F-EFD2-4382-9120-D36FB8632DA2}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\ELF32\PIE"><UniqueIdentifier>{428F6F2B-8A4D-4355-8FB4-57283E1F8E13}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\ELF"><UniqueIdentifier>{BD61978F-96EB-49B7-B333-53122B56B58A}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Integration\ELF\SharedObject"><UniqueIdentifier>{2A4373CF-23D3-4ED2-951A-5A5F4A29FB25}</UniqueIdentifier></Filter>
     <Filter Include="Build"><UniqueIdentifier>{A3E009B6-D7BB-4A1E-9853-F69B7EC75191}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\ElfHostMain.cpp"><Filter>Application\Host</Filter></ClCompile>
+    <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderMain.c"><Filter>Application\SharedObjectLoader</Filter></ClCompile>
+    <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderEntry32.S"><Filter>Application\SharedObjectLoader</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.cpp"><Filter>Infrastructure\Linux\Debugging</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\ElfSnapshotCaptureRouter.cpp"><Filter>Infrastructure\Linux\Debugging</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\SharedObjects\PtraceElfSharedObjectSnapshotCapture.cpp"><Filter>Infrastructure\Linux\Debugging\SharedObjects</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Debugging\SharedObjects\RecoveredSharedObjectLocator.cpp"><Filter>Infrastructure\Linux\Debugging\SharedObjects</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxExecutionBreakpoint.cpp"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.cpp"><Filter>Infrastructure\Linux\Debugging\Memory</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.cpp"><Filter>Infrastructure\Linux\Debugging\Process</Filter></ClCompile>
@@ -35,6 +45,8 @@
     <ClCompile Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfLoadBiasResolver.cpp"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Debugging\ThreadContext\LinuxThreadContext.cpp"><Filter>Infrastructure\Linux\Debugging\ThreadContext</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Pipes\PosixPipeTransport.cpp"><Filter>Infrastructure\Linux\Pipes</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Loading\ElfSharedObjectLoaderCatalog.cpp"><Filter>Infrastructure\Linux\Loading</Filter></ClCompile>
+    <ClCompile Include="Infrastructure\Linux\Loading\IsolatedElfLoadVerifier.cpp"><Filter>Infrastructure\Linux\Loading</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.cpp"><Filter>Infrastructure\Linux\Storage</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.cpp"><Filter>Infrastructure\Linux\Verification</Filter></ClCompile>
@@ -42,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Infrastructure\Linux\Debugging\PtraceElfSnapshotCapture.h"><Filter>Infrastructure\Linux\Debugging</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\ElfSnapshotCaptureRouter.h"><Filter>Infrastructure\Linux\Debugging</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\SharedObjects\PtraceElfSharedObjectSnapshotCapture.h"><Filter>Infrastructure\Linux\Debugging\SharedObjects</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Debugging\SharedObjects\RecoveredSharedObjectLocator.h"><Filter>Infrastructure\Linux\Debugging\SharedObjects</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\Breakpoints\LinuxExecutionBreakpoint.h"><Filter>Infrastructure\Linux\Debugging\Breakpoints</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\Memory\LinuxProcessMemory.h"><Filter>Infrastructure\Linux\Debugging\Memory</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\Process\LinuxTracedProcess.h"><Filter>Infrastructure\Linux\Debugging\Process</Filter></ClInclude>
@@ -49,6 +64,8 @@
     <ClInclude Include="Infrastructure\Linux\Debugging\Recovery\RecoveredElfLoadBiasResolver.h"><Filter>Infrastructure\Linux\Debugging\Recovery</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Debugging\ThreadContext\LinuxThreadContext.h"><Filter>Infrastructure\Linux\Debugging\ThreadContext</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Pipes\PosixPipeTransport.h"><Filter>Infrastructure\Linux\Pipes</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Loading\ElfSharedObjectLoaderCatalog.h"><Filter>Infrastructure\Linux\Loading</Filter></ClInclude>
+    <ClInclude Include="Infrastructure\Linux\Loading\IsolatedElfLoadVerifier.h"><Filter>Infrastructure\Linux\Loading</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxArtifactPublisher.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Storage\LinuxElfSourceReader.h"><Filter>Infrastructure\Linux\Storage</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Linux\Verification\LinuxElfImageValidator.h"><Filter>Infrastructure\Linux\Verification</Filter></ClInclude>
@@ -65,5 +82,6 @@
     <None Include="Tests\Integration\ELF32\VerifyBehavior.sh"><Filter>Tests\Integration\ELF32</Filter></None>
     <None Include="Tests\Integration\ELF32\PIE\Test-Elf32PieUnpacking.ps1"><Filter>Tests\Integration\ELF32\PIE</Filter></None>
     <None Include="Tests\Integration\ELF32\PIE\VerifyPieBehavior.sh"><Filter>Tests\Integration\ELF32\PIE</Filter></None>
+    <None Include="Tests\Integration\ELF\SharedObject\Test-ElfSharedObjectUnpacking.ps1"><Filter>Tests\Integration\ELF\SharedObject</Filter></None>
   </ItemGroup>
 </Project>

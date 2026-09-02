@@ -56,6 +56,7 @@
     <ClCompile Include="Tests\Unit\PE64\DLL\Pe64DllOepTests.cpp" />
     <ClCompile Include="Tests\Unit\ELF64\ElfCoreTests.cpp" />
     <ClCompile Include="Tests\Unit\ELF32\Elf32ParsingTests.cpp" />
+    <ClCompile Include="Tests\Unit\ELF\SharedObject\ElfSharedObjectTests.cpp" />
     <ClCompile Include="Tests\Unit\BinaryInspection\TargetBinaryInspectorTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp" />
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp" />

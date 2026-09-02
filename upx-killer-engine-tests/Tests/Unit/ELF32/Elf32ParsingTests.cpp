@@ -142,7 +142,7 @@ int RunElf32ParsingTests() {
   auto manifest = application::ElfBackendCapabilities::Manifest();
   expect(descriptor &&
              descriptor->addressing == contracts::ImageAddressing::FixedAddress &&
-             manifest.capabilities.size() == 4 &&
+             manifest.capabilities.size() == 6 &&
              std::find(manifest.capabilities.begin(), manifest.capabilities.end(),
                        *descriptor) != manifest.capabilities.end(),
          "ELF32 fixed-address descriptor has an exact manifest capability");
@@ -178,9 +178,9 @@ int RunElf32ParsingTests() {
              sharedObject.layout->imageType == elf::ElfImageType::SharedObject,
          "ELF32 ET_DYN without an entry remains a shared object");
   expect(sharedObject.layout &&
-             !application::ElfBackendCapabilities::Supports(
+             application::ElfBackendCapabilities::Supports(
                  *sharedObject.layout),
-         "ELF32 shared objects remain outside the production capability");
+         "ELF32 shared objects use an exact production capability");
 
   MemoryElfSourceReader pieReader{pieSource};
   application::elf_preparation::ElfTargetPreparationUseCase preparation{

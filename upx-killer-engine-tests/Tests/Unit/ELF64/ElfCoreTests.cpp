@@ -82,7 +82,7 @@ int RunElfCoreTests() {
   expect(descriptor &&
              descriptor->addressing ==
                  upx_killer::contracts::ImageAddressing::FixedAddress &&
-             manifest.capabilities.size() == 4 &&
+             manifest.capabilities.size() == 6 &&
              std::find(manifest.capabilities.begin(), manifest.capabilities.end(),
                        *descriptor) != manifest.capabilities.end(),
          "ELF64 fixed-address descriptor has an exact manifest capability");

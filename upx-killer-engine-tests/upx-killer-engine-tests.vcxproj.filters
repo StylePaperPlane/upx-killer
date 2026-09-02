@@ -27,6 +27,8 @@
     <Filter Include="Tests\Unit\PE64\DLL"><UniqueIdentifier>{3D93B275-8247-42AA-8544-074900883D55}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\ELF64"><UniqueIdentifier>{21725285-1E4F-4C44-A8A5-61BA33393D75}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\ELF32"><UniqueIdentifier>{DBD8B4D6-84C7-4BE4-8AC0-C0D3173EA92F}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\ELF"><UniqueIdentifier>{F8A8C243-0A5F-49E1-81BB-8EC42CB1138F}</UniqueIdentifier></Filter>
+    <Filter Include="Tests\Unit\ELF\SharedObject"><UniqueIdentifier>{4E0105EF-B05E-43FD-8EA3-E1BBE395D16B}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\BinaryInspection"><UniqueIdentifier>{950A347D-0644-4D51-B17D-BA45E53F33BD}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Unit\Contracts"><UniqueIdentifier>{14E5EC74-2B0C-4D2F-85AC-5F494E567D52}</UniqueIdentifier></Filter>
     <Filter Include="Tests\Integration\WOW64"><UniqueIdentifier>{21FA6867-DA1D-4E5E-B804-36A6C51D5814}</UniqueIdentifier></Filter>
@@ -56,6 +58,7 @@
     <ClCompile Include="Tests\Unit\PE64\DLL\Pe64DllOepTests.cpp"><Filter>Tests\Unit\PE64\DLL</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\ELF64\ElfCoreTests.cpp"><Filter>Tests\Unit\ELF64</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\ELF32\Elf32ParsingTests.cpp"><Filter>Tests\Unit\ELF32</Filter></ClCompile>
+    <ClCompile Include="Tests\Unit\ELF\SharedObject\ElfSharedObjectTests.cpp"><Filter>Tests\Unit\ELF\SharedObject</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\BinaryInspection\TargetBinaryInspectorTests.cpp"><Filter>Tests\Unit\BinaryInspection</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Contracts\UnpackCoordinatorTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>
     <ClCompile Include="Tests\Unit\Contracts\EngineHostCodecTests.cpp"><Filter>Tests\Unit\Contracts</Filter></ClCompile>

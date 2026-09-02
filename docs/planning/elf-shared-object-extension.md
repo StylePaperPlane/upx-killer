@@ -1,10 +1,13 @@
 # ELF Shared Object vertical-slice plan
 
+> Implemented by ADR 0011 and the ELF32/ELF64 shared-object validation gate.
+> This document is retained as the original design checklist; the accepted
+> architecture and verified scope are recorded in those documents.
+
 ## Scope
 
 Extend the current ELF executable backend to little-endian x86 and x86-64
-shared objects only after the ELF32 PIE release gate remains stable. This is a
-future vertical slice, not part of the current production capability.
+shared objects after the ELF32 PIE release gate remains stable.
 
 ## Required boundary
 

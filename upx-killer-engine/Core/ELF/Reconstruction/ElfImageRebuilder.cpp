@@ -1,6 +1,7 @@
 #include "Core/ELF/Reconstruction/ElfImageRebuilder.h"
 #include "Core/ELF/DynamicLinking/ElfDynamicMetadataAnalyzer.h"
 #include "Core/ELF/Format/Internal/ElfClassTraits.h"
+#include "Core/ELF/Reconstruction/Internal/ElfHeaderWriter.h"
 
 #include <algorithm>
 #include <array>
@@ -109,6 +110,9 @@ ElfRebuildResult ElfImageRebuilder::Rebuild(
       std::copy(data.begin(), data.end(),
                 bytes.begin() + static_cast<std::size_t>(header.fileOffset));
     }
+    if (!reconstruction::internal::ElfHeaderWriter::Write(bytes,
+                                                           captured.layout))
+      return {{}, "elf.reconstruction.header_invalid"};
 
     std::vector<Section> sections;
     sections.push_back({});
@@ -228,6 +232,8 @@ ElfRebuildResult ElfImageRebuilder::Rebuild(
               bytes, offset + traits.sectionLinkOffset,
               static_cast<std::uint32_t>(linked - sections.begin()));
       }
+      if (section.name == ".dynsym")
+        Write<std::uint32_t>(bytes, offset + traits.sectionLinkOffset + 4, 1);
       return WriteWidth(bytes, offset + traits.sectionAlignmentOffset,
                         traits.addressWidth, section.alignment) &&
              WriteWidth(bytes, offset + traits.sectionEntrySizeOffset,

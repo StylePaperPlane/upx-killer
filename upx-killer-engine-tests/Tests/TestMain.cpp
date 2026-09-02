@@ -27,6 +27,7 @@ int RunPe32DllExportTests();
 int RunWow64DebugSessionTests();
 int RunElfCoreTests();
 int RunElf32ParsingTests();
+int RunElfSharedObjectTests();
 int RunBinaryInspectionTests();
 int ValidateElfTargetThroughHost(std::filesystem::path const& target,
                                  std::filesystem::path const& output);
@@ -70,6 +71,7 @@ int wmain(int argc, wchar_t** argv) {
   failures += RunWow64DebugSessionTests();
   failures += RunElfCoreTests();
   failures += RunElf32ParsingTests();
+  failures += RunElfSharedObjectTests();
   failures += RunBinaryInspectionTests();
   if (failures == 0) std::cout << "All engine module tests passed.\n";
   return failures == 0 ? 0 : 1;

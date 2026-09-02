@@ -32,9 +32,11 @@ constexpr std::uint16_t ElfTypeSharedObject = 3;
 constexpr std::uint16_t ElfMachineX86 = 3;
 constexpr std::uint16_t ElfMachineX64 = 62;
 constexpr std::uint32_t ElfProgramTypeLoad = 1;
+constexpr std::uint32_t ElfProgramTypeDynamic = 2;
 constexpr std::uint32_t ElfProgramFlagExecute = 1;
 constexpr std::uint32_t ElfProgramFlagWrite = 2;
 constexpr std::uint16_t MaximumElfProgramHeaders = 128;
+constexpr std::uint64_t ElfDynamicTagSoname = 14;
 
 constexpr std::uint64_t InspectionWindowSize = 1024 * 1024;
 
@@ -250,10 +252,7 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
 
   auto const entryPoint = elfClass == ElfClass64 ? ReadUInt64(header.data() + 24)
                                                   : ReadUInt32(header.data() + 24);
-  auto const executable = objectType == ElfTypeExecutable ||
-                          (objectType == ElfTypeSharedObject && entryPoint != 0);
-  auto const sharedObject = objectType == ElfTypeSharedObject && entryPoint == 0;
-  if (!executable && !sharedObject)
+  if (objectType != ElfTypeExecutable && objectType != ElfTypeSharedObject)
     return {std::nullopt, InspectionError::UnsupportedFormat};
 
   auto const programHeaderOffset = elfClass == ElfClass64 ? ReadUInt64(header.data() + 32)
@@ -271,13 +270,23 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
   std::size_t loadCount{};
   bool entryInExecutableLoad{};
   bool sparseWritableLoad{};
+  std::optional<std::pair<std::uint64_t, std::uint64_t>> dynamicRange;
   for (std::uint16_t index = 0; index < programHeaderCount; ++index) {
     auto const offset = programHeaderOffset +
                         static_cast<std::uint64_t>(index) * programHeaderSize;
     std::array<std::uint8_t, 56> programHeader{};
     if (!ReadAt(stream, fileSize, offset, programHeader.data(), requiredProgramHeaderSize))
       return {std::nullopt, InspectionError::TruncatedFile};
-    if (ReadUInt32(programHeader.data()) != ElfProgramTypeLoad) continue;
+    auto const programType = ReadUInt32(programHeader.data());
+    auto const programFileOffset =
+        elfClass == ElfClass64 ? ReadUInt64(programHeader.data() + 8)
+                               : ReadUInt32(programHeader.data() + 4);
+    auto const programFileSize =
+        elfClass == ElfClass64 ? ReadUInt64(programHeader.data() + 32)
+                               : ReadUInt32(programHeader.data() + 16);
+    if (programType == ElfProgramTypeDynamic)
+      dynamicRange = std::pair{programFileOffset, programFileSize};
+    if (programType != ElfProgramTypeLoad) continue;
 
     ++loadCount;
     auto const flags = ReadUInt32(programHeader.data() + (elfClass == ElfClass64 ? 4 : 24));
@@ -294,6 +303,36 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
         entryPoint - virtualAddress < memoryBytes)
       entryInExecutableLoad = true;
   }
+
+  bool hasSoname{};
+  if (dynamicRange) {
+    auto const entrySize = elfClass == ElfClass64 ? 16U : 8U;
+    auto const wordSize = elfClass == ElfClass64 ? 8U : 4U;
+    if (dynamicRange->first <= fileSize &&
+        dynamicRange->second <= fileSize - dynamicRange->first &&
+        dynamicRange->second <= InspectionWindowSize &&
+        dynamicRange->second % entrySize == 0) {
+      std::array<std::uint8_t, 16> entry{};
+      for (std::uint64_t cursor = 0; cursor < dynamicRange->second;
+           cursor += entrySize) {
+        if (!ReadAt(stream, fileSize, dynamicRange->first + cursor,
+                    entry.data(), entrySize))
+          break;
+        auto const tag = wordSize == 8 ? ReadUInt64(entry.data())
+                                       : ReadUInt32(entry.data());
+        if (tag == 0) break;
+        if (tag == ElfDynamicTagSoname) {
+          hasSoname = true;
+          break;
+        }
+      }
+    }
+  }
+  auto const sharedObject = objectType == ElfTypeSharedObject &&
+                            (entryPoint == 0 || hasSoname);
+  auto const executable = objectType == ElfTypeExecutable ||
+                          (objectType == ElfTypeSharedObject && !sharedObject &&
+                           entryPoint != 0);
 
   BinaryFormat format{};
   if (elfClass == ElfClass32)

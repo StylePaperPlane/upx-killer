@@ -8,6 +8,9 @@
     <Filter Include="Core\ELF\Format\Internal"><UniqueIdentifier>{5DF26418-BE1C-44F5-A7E2-A6EF46A62275}</UniqueIdentifier></Filter>
     <Filter Include="Core\ELF\DynamicLinking"><UniqueIdentifier>{73E77884-42D3-42CA-AF71-C0541310B663}</UniqueIdentifier></Filter>
     <Filter Include="Core\ELF\Parsing"><UniqueIdentifier>{AC783D38-20D3-4115-A815-E29A85107A88}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\Parsing\Internal"><UniqueIdentifier>{8EEB1FD6-408F-4A6C-A2E5-1A5C12AFA719}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\Reconstruction\Internal"><UniqueIdentifier>{C99E976B-57CA-46EA-8AC6-522039A8C734}</UniqueIdentifier></Filter>
+    <Filter Include="Core\ELF\SharedObjects"><UniqueIdentifier>{4755CE4F-2F7D-4CD3-B21B-1BC32052D51A}</UniqueIdentifier></Filter>
     <Filter Include="Core\ELF\OepDiscovery"><UniqueIdentifier>{6CA55FD7-4D17-43A6-8150-EFCA03BD9394}</UniqueIdentifier></Filter>
     <Filter Include="Core\ELF\Reconstruction"><UniqueIdentifier>{AA07660F-1D14-4B18-AC9F-AE96B94C5523}</UniqueIdentifier></Filter>
     <Filter Include="Core\ELF\Validation"><UniqueIdentifier>{F2D9485C-A447-42D3-A634-39FD77750514}</UniqueIdentifier></Filter>
@@ -61,6 +64,10 @@
     <ClInclude Include="Core\ELF\Format\Internal\ElfClassTraits.h"><Filter>Core\ELF\Format\Internal</Filter></ClInclude>
     <ClInclude Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.h"><Filter>Core\ELF\DynamicLinking</Filter></ClInclude>
     <ClInclude Include="Core\ELF\Parsing\ElfParser.h"><Filter>Core\ELF\Parsing</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\Parsing\Internal\ElfImageTypeClassifier.h"><Filter>Core\ELF\Parsing\Internal</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\Reconstruction\Internal\ElfHeaderWriter.h"><Filter>Core\ELF\Reconstruction\Internal</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\SharedObjects\UpxSharedObjectLayoutRecoverer.h"><Filter>Core\ELF\SharedObjects</Filter></ClInclude>
+    <ClInclude Include="Core\ELF\SharedObjects\LoadedSharedObjectNormalizer.h"><Filter>Core\ELF\SharedObjects</Filter></ClInclude>
     <ClInclude Include="Core\ELF\OepDiscovery\UpxElfOepLocator.h"><Filter>Core\ELF\OepDiscovery</Filter></ClInclude>
     <ClInclude Include="Core\ELF\Reconstruction\ElfImageRebuilder.h"><Filter>Core\ELF\Reconstruction</Filter></ClInclude>
     <ClInclude Include="Core\ELF\Validation\ElfImageValidator.h"><Filter>Core\ELF\Validation</Filter></ClInclude>
@@ -120,6 +127,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\ELF\Parsing\ElfParser.cpp"><Filter>Core\ELF\Parsing</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\Parsing\Internal\ElfImageTypeClassifier.cpp"><Filter>Core\ELF\Parsing\Internal</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\Reconstruction\Internal\ElfHeaderWriter.cpp"><Filter>Core\ELF\Reconstruction\Internal</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\SharedObjects\UpxSharedObjectLayoutRecoverer.cpp"><Filter>Core\ELF\SharedObjects</Filter></ClCompile>
+    <ClCompile Include="Core\ELF\SharedObjects\LoadedSharedObjectNormalizer.cpp"><Filter>Core\ELF\SharedObjects</Filter></ClCompile>
     <ClCompile Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.cpp"><Filter>Core\ELF\DynamicLinking</Filter></ClCompile>
     <ClCompile Include="Core\ELF\OepDiscovery\UpxElfOepLocator.cpp"><Filter>Core\ELF\OepDiscovery</Filter></ClCompile>
     <ClCompile Include="Core\ELF\Reconstruction\ElfImageRebuilder.cpp"><Filter>Core\ELF\Reconstruction</Filter></ClCompile>

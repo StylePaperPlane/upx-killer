@@ -24,6 +24,9 @@ ElfPreparationResult ElfTargetPreparationUseCase::Execute(
              "elf.target.kind_unsupported", std::nullopt, 0}};
   }
   if (request.entryPoint) {
+    if (parsed.layout->imageType == elf::ElfImageType::SharedObject)
+      return fail(contracts::ErrorCategory::InvalidRequest,
+                  "elf.shared_object.explicit_entry_unsupported");
     auto const expected = parsed.layout->imageType == elf::ElfImageType::Executable
                               ? contracts::EntryPointAddressKind::VirtualAddress
                               : contracts::EntryPointAddressKind::RelativeVirtualAddress;

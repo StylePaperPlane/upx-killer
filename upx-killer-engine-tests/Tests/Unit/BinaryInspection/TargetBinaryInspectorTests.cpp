@@ -135,6 +135,24 @@ std::vector<std::byte> MakeElf64(bool officialBanner) {
   }
   return bytes;
 }
+
+std::vector<std::byte> MakePackedElf64SharedObject() {
+  auto bytes = MakeElf64(false);
+  Write16(bytes, 56, 3);
+  auto const dynamic = 64u + 2u * 56u;
+  Write32(bytes, dynamic, 2);
+  Write32(bytes, dynamic + 4, 6);
+  Write64(bytes, dynamic + 8, 0x800);
+  Write64(bytes, dynamic + 16, 0x800);
+  Write64(bytes, dynamic + 24, 0x800);
+  Write64(bytes, dynamic + 32, 32);
+  Write64(bytes, dynamic + 40, 32);
+  Write64(bytes, dynamic + 48, 8);
+  Write64(bytes, 0x800, 14);
+  Write64(bytes, 0x808, 1);
+  Write64(bytes, 0x810, 0);
+  return bytes;
+}
 }  // namespace
 
 int RunBinaryInspectionTests() {
@@ -213,6 +231,13 @@ int RunBinaryInspectionTests() {
     expect(result.info && result.info->packerInformation.assessment ==
                               UpxPackingAssessment::LikelyModified,
            "bannerless canonical packed ELF is reported as possibly modified");
+  }
+  {
+    TemporaryBinary target{MakePackedElf64SharedObject()};
+    auto const result = TargetBinaryInspector::Inspect(target.Path());
+    expect(result.info && result.info->descriptor.imageKind ==
+                              upx_killer::contracts::ImageKind::SharedLibrary,
+           "ELF SO with a nonzero UPX stub entry is not misclassified as PIE");
   }
   return failures;
 }

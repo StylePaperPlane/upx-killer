@@ -39,6 +39,8 @@ WslStagedJob::WslStagedJob(WslStagedJob&& other) noexcept
       linuxTarget(std::move(other.linuxTarget)),
       linuxOutput(std::move(other.linuxOutput)),
       linuxHost(std::move(other.linuxHost)),
+      linuxLoader32(std::move(other.linuxLoader32)),
+      linuxLoader64(std::move(other.linuxLoader64)),
       ownsRoot_(std::exchange(other.ownsRoot_, false)) {}
 
 WslStagedJob& WslStagedJob::operator=(WslStagedJob&& other) noexcept {
@@ -49,6 +51,8 @@ WslStagedJob& WslStagedJob::operator=(WslStagedJob&& other) noexcept {
   linuxTarget = std::move(other.linuxTarget);
   linuxOutput = std::move(other.linuxOutput);
   linuxHost = std::move(other.linuxHost);
+  linuxLoader32 = std::move(other.linuxLoader32);
+  linuxLoader64 = std::move(other.linuxLoader64);
   ownsRoot_ = std::exchange(other.ownsRoot_, false);
   return *this;
 }
@@ -120,7 +124,13 @@ WslStageResult WslFileBridge::Stage(
               "elf.wsl.distribution_invalid"};
     if (auto const error = EnsureRunning(distribution); error != 0)
       return {std::nullopt, error, "elf.wsl.distribution_unavailable"};
+    auto const loader32Source =
+        linuxHostSource.parent_path() / L"upx_killer_elf_so_loader_x86";
+    auto const loader64Source =
+        linuxHostSource.parent_path() / L"upx_killer_elf_so_loader_x64";
     if (!std::filesystem::is_regular_file(linuxHostSource) ||
+        !std::filesystem::is_regular_file(loader32Source) ||
+        !std::filesystem::is_regular_file(loader64Source) ||
         !std::filesystem::is_regular_file(targetSource))
       return {std::nullopt, ERROR_FILE_NOT_FOUND, "elf.wsl.host_missing"};
     static std::atomic_uint64_t sequence{};
@@ -142,11 +152,25 @@ WslStageResult WslFileBridge::Stage(
     job.linuxTarget = linuxRoot + "/target.elf";
     job.linuxOutput = linuxRoot + "/output.elf";
     job.linuxHost = linuxRoot + "/upx_killer_elf_host";
+    job.linuxLoader32 = linuxRoot + "/upx_killer_elf_so_loader_x86";
+    job.linuxLoader64 = linuxRoot + "/upx_killer_elf_so_loader_x64";
     job.ownsRoot_ = true;
     std::filesystem::copy_file(linuxHostSource,
                                windowsRoot / L"upx_killer_elf_host",
                                std::filesystem::copy_options::overwrite_existing,
                                error);
+    if (error)
+      return {std::nullopt, static_cast<std::uint32_t>(error.value()),
+              "elf.wsl.host_stage_failed"};
+    std::filesystem::copy_file(
+        loader32Source, windowsRoot / L"upx_killer_elf_so_loader_x86",
+        std::filesystem::copy_options::overwrite_existing, error);
+    if (error)
+      return {std::nullopt, static_cast<std::uint32_t>(error.value()),
+              "elf.wsl.host_stage_failed"};
+    std::filesystem::copy_file(
+        loader64Source, windowsRoot / L"upx_killer_elf_so_loader_x64",
+        std::filesystem::copy_options::overwrite_existing, error);
     if (error)
       return {std::nullopt, static_cast<std::uint32_t>(error.value()),
               "elf.wsl.host_stage_failed"};

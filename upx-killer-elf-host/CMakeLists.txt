@@ -18,10 +18,15 @@ add_library(upx_killer_elf_linux STATIC
   Infrastructure/Linux/Debugging/Breakpoints/LinuxExecutionBreakpoint.cpp
   Infrastructure/Linux/Debugging/Memory/LinuxProcessMemory.cpp
   Infrastructure/Linux/Debugging/Process/LinuxTracedProcess.cpp
+  Infrastructure/Linux/Debugging/ElfSnapshotCaptureRouter.cpp
   Infrastructure/Linux/Debugging/PtraceElfSnapshotCapture.cpp
   Infrastructure/Linux/Debugging/Recovery/RecoveredElfLoadBiasResolver.cpp
   Infrastructure/Linux/Debugging/Recovery/RecoveredElfImageLocator.cpp
+  Infrastructure/Linux/Debugging/SharedObjects/PtraceElfSharedObjectSnapshotCapture.cpp
+  Infrastructure/Linux/Debugging/SharedObjects/RecoveredSharedObjectLocator.cpp
   Infrastructure/Linux/Debugging/ThreadContext/LinuxThreadContext.cpp
+  Infrastructure/Linux/Loading/ElfSharedObjectLoaderCatalog.cpp
+  Infrastructure/Linux/Loading/IsolatedElfLoadVerifier.cpp
   Infrastructure/Linux/Pipes/PosixPipeTransport.cpp
   Infrastructure/Linux/Storage/LinuxArtifactPublisher.cpp
   Infrastructure/Linux/Storage/LinuxElfSourceReader.cpp
@@ -47,6 +52,55 @@ target_link_libraries(upx_killer_elf_host PRIVATE
   upx_killer::elf_application
   upx_killer::elf_linux)
 
+add_executable(upx_killer_elf_so_loader_x64
+  Application/SharedObjectLoader/ElfSharedObjectLoaderMain.c)
+target_compile_options(upx_killer_elf_so_loader_x64 PRIVATE
+  -Wall -Wextra -Wpedantic -Werror)
+target_link_libraries(upx_killer_elf_so_loader_x64 PRIVATE dl)
+
+find_program(UPX_KILLER_AS_EXECUTABLE as REQUIRED)
+find_program(UPX_KILLER_LD_EXECUTABLE ld REQUIRED)
+find_file(UPX_KILLER_ELF32_LIBC
+  NAMES libc.so.6
+  PATHS
+    /lib32
+    /usr/lib32
+    /lib/i386-linux-gnu
+    /usr/lib/i386-linux-gnu
+  NO_DEFAULT_PATH
+  REQUIRED)
+set(UPX_KILLER_ELF_SO_LOADER32_C_OBJECT
+  "${CMAKE_CURRENT_BINARY_DIR}/ElfSharedObjectLoaderMain32.o")
+set(UPX_KILLER_ELF_SO_LOADER32_ENTRY_OBJECT
+  "${CMAKE_CURRENT_BINARY_DIR}/ElfSharedObjectLoaderEntry32.o")
+set(UPX_KILLER_ELF_SO_LOADER32
+  "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_so_loader_x86")
+add_custom_command(
+  OUTPUT "${UPX_KILLER_ELF_SO_LOADER32}"
+  COMMAND "${CMAKE_C_COMPILER}" -m32 -fno-pie -fno-stack-protector
+    -DUPX_KILLER_CUSTOM_ENTRY -Wall -Wextra -Wpedantic -Werror
+    -c
+    "${CMAKE_CURRENT_SOURCE_DIR}/Application/SharedObjectLoader/ElfSharedObjectLoaderMain.c"
+    -o "${UPX_KILLER_ELF_SO_LOADER32_C_OBJECT}"
+  COMMAND "${UPX_KILLER_AS_EXECUTABLE}" --32
+    "${CMAKE_CURRENT_SOURCE_DIR}/Application/SharedObjectLoader/ElfSharedObjectLoaderEntry32.S"
+    -o "${UPX_KILLER_ELF_SO_LOADER32_ENTRY_OBJECT}"
+  COMMAND "${UPX_KILLER_LD_EXECUTABLE}" -m elf_i386
+    --dynamic-linker /lib/ld-linux.so.2 -e _start
+    "${UPX_KILLER_ELF_SO_LOADER32_ENTRY_OBJECT}"
+    "${UPX_KILLER_ELF_SO_LOADER32_C_OBJECT}"
+    "${UPX_KILLER_ELF32_LIBC}"
+    -o "${UPX_KILLER_ELF_SO_LOADER32}"
+  DEPENDS
+    Application/SharedObjectLoader/ElfSharedObjectLoaderMain.c
+    Application/SharedObjectLoader/ElfSharedObjectLoaderEntry32.S
+  VERBATIM)
+add_custom_target(upx_killer_elf_so_loader_x86_target ALL
+  DEPENDS "${UPX_KILLER_ELF_SO_LOADER32}")
+add_dependencies(upx_killer_elf_host
+  upx_killer_elf_so_loader_x64
+  upx_killer_elf_so_loader_x86_target)
+
 option(UPX_KILLER_BUILD_ELF_TESTS
   "Build Linux ptrace integration tests" OFF)
 if(UPX_KILLER_BUILD_ELF_TESTS)
@@ -59,8 +113,6 @@ if(UPX_KILLER_BUILD_ELF_TESTS)
     -Wall -Wextra -Wpedantic -Werror)
   target_link_libraries(upx_killer_elf_tracee_x64 PRIVATE Threads::Threads)
 
-  find_program(UPX_KILLER_AS_EXECUTABLE as REQUIRED)
-  find_program(UPX_KILLER_LD_EXECUTABLE ld REQUIRED)
   set(UPX_KILLER_ELF_TRACEE32_OBJECT
     "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_tracee_x86.o")
   set(UPX_KILLER_ELF_TRACEE32
@@ -101,15 +153,6 @@ if(UPX_KILLER_BUILD_ELF_TESTS)
   add_custom_target(upx_killer_elf_behavior_x86_fixture
     DEPENDS "${UPX_KILLER_ELF_BEHAVIOR32}")
 
-  find_file(UPX_KILLER_ELF32_LIBC
-    NAMES libc.so.6
-    PATHS
-      /lib32
-      /usr/lib32
-      /lib/i386-linux-gnu
-      /usr/lib/i386-linux-gnu
-    NO_DEFAULT_PATH
-    REQUIRED)
   set(UPX_KILLER_ELF_DYNAMIC_PIE32_OBJECT
     "${CMAKE_CURRENT_BINARY_DIR}/upx_killer_elf_dynamic_pie_x86.o")
   set(UPX_KILLER_ELF_DYNAMIC_PIE32

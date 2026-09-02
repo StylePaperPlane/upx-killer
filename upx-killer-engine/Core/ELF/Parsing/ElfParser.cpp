@@ -1,5 +1,6 @@
 #include "Core/ELF/Parsing/ElfParser.h"
 #include "Core/ELF/Format/Internal/ElfClassTraits.h"
+#include "Core/ELF/Parsing/Internal/ElfImageTypeClassifier.h"
 
 #include <algorithm>
 #include <limits>
@@ -156,12 +157,11 @@ ElfParseResult ElfParser::Parse(std::span<std::byte const> bytes,
     if (entry == 0 || !entryIsExecutable)
       return {{}, ElfParseError::InvalidEntryPoint};
     layout.imageType = ElfImageType::Executable;
-  } else if (entry == 0) {
-    layout.imageType = ElfImageType::SharedObject;
-  } else if (entryIsExecutable) {
-    layout.imageType = ElfImageType::PositionIndependentExecutable;
   } else {
-    return {{}, ElfParseError::InvalidEntryPoint};
+    auto const imageType = parsing::internal::ClassifyDynamicImage(
+        bytes, layout, entryIsExecutable, extent);
+    if (!imageType) return {{}, ElfParseError::InvalidEntryPoint};
+    layout.imageType = *imageType;
   }
   return {std::move(layout), ElfParseError::None};
 }

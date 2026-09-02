@@ -375,10 +375,16 @@
     <Text Include="..\docs\adr\0010-exact-image-addressing-capabilities.md">
       <Filter>Documentation</Filter>
     </Text>
+    <Text Include="..\docs\adr\0011-isolated-elf-shared-object-loading.md">
+      <Filter>Documentation</Filter>
+    </Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md">
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\testing\elf32-wsl-validation.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\testing\elf-shared-object-validation.md">
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\planning\elf32-extension.md">

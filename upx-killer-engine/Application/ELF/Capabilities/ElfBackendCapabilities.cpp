@@ -5,7 +5,7 @@
 namespace {
 using namespace upx_killer;
 
-constexpr std::array<contracts::TargetDescriptor, 4> SupportedTargets{{
+constexpr std::array<contracts::TargetDescriptor, 6> SupportedTargets{{
     {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits64,
      contracts::CpuArchitecture::X64, contracts::ImageKind::Executable,
      contracts::ImageAddressing::FixedAddress},
@@ -17,12 +17,17 @@ constexpr std::array<contracts::TargetDescriptor, 4> SupportedTargets{{
      contracts::ImageAddressing::FixedAddress},
     {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits32,
      contracts::CpuArchitecture::X86, contracts::ImageKind::Executable,
+     contracts::ImageAddressing::PositionIndependent},
+    {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits64,
+     contracts::CpuArchitecture::X64, contracts::ImageKind::SharedLibrary,
+     contracts::ImageAddressing::PositionIndependent},
+    {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits32,
+     contracts::CpuArchitecture::X86, contracts::ImageKind::SharedLibrary,
      contracts::ImageAddressing::PositionIndependent},
 }};
 
 std::optional<contracts::TargetDescriptor> Describe(
     engine::elf::ElfImageLayout const& layout) noexcept {
-  if (!layout.IsExecutableTarget()) return std::nullopt;
   contracts::TargetDescriptor descriptor{
       contracts::BinaryFamily::Elf,
       layout.imageClass == engine::elf::ElfClass::Bits32
@@ -31,8 +36,10 @@ std::optional<contracts::TargetDescriptor> Describe(
       layout.machine == engine::elf::ElfMachine::X86
           ? contracts::CpuArchitecture::X86
           : contracts::CpuArchitecture::X64,
-      contracts::ImageKind::Executable,
-      layout.imageType == engine::elf::ElfImageType::PositionIndependentExecutable
+      layout.imageType == engine::elf::ElfImageType::SharedObject
+          ? contracts::ImageKind::SharedLibrary
+          : contracts::ImageKind::Executable,
+      layout.imageType != engine::elf::ElfImageType::Executable
           ? contracts::ImageAddressing::PositionIndependent
           : contracts::ImageAddressing::FixedAddress};
   return descriptor;

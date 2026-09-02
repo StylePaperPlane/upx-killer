@@ -39,6 +39,10 @@
     <ClInclude Include="Core\ELF\Format\Internal\ElfClassTraits.h" />
     <ClInclude Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.h" />
     <ClInclude Include="Core\ELF\Parsing\ElfParser.h" />
+    <ClInclude Include="Core\ELF\Parsing\Internal\ElfImageTypeClassifier.h" />
+    <ClInclude Include="Core\ELF\Reconstruction\Internal\ElfHeaderWriter.h" />
+    <ClInclude Include="Core\ELF\SharedObjects\UpxSharedObjectLayoutRecoverer.h" />
+    <ClInclude Include="Core\ELF\SharedObjects\LoadedSharedObjectNormalizer.h" />
     <ClInclude Include="Core\ELF\OepDiscovery\UpxElfOepLocator.h" />
     <ClInclude Include="Core\ELF\Reconstruction\ElfImageRebuilder.h" />
     <ClInclude Include="Core\ELF\Validation\ElfImageValidator.h" />
@@ -98,6 +102,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\ELF\Parsing\ElfParser.cpp" />
+    <ClCompile Include="Core\ELF\Parsing\Internal\ElfImageTypeClassifier.cpp" />
+    <ClCompile Include="Core\ELF\Reconstruction\Internal\ElfHeaderWriter.cpp" />
+    <ClCompile Include="Core\ELF\SharedObjects\UpxSharedObjectLayoutRecoverer.cpp" />
+    <ClCompile Include="Core\ELF\SharedObjects\LoadedSharedObjectNormalizer.cpp" />
     <ClCompile Include="Core\ELF\DynamicLinking\ElfDynamicMetadataAnalyzer.cpp" />
     <ClCompile Include="Core\ELF\OepDiscovery\UpxElfOepLocator.cpp" />
     <ClCompile Include="Core\ELF\Reconstruction\ElfImageRebuilder.cpp" />

@@ -58,7 +58,8 @@ PtraceElfSnapshotCapture::Capture(
     std::stop_token stopToken) const noexcept {
   try {
     auto launch = LinuxTraceLauncher::Launch(
-        request.target.sourcePath, request.target.dependencyDirectory);
+        {request.target.sourcePath, request.target.dependencyDirectory, {},
+         LinuxTraceStartMode::SystemCalls});
     if (!launch.process) return LaunchFailure(launch);
     auto const pid = launch.process->Id();
     auto const deadline = std::chrono::steady_clock::now() +

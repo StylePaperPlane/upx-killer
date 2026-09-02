@@ -20,15 +20,14 @@ LinuxTracedProcess::~LinuxTracedProcess() {
 }
 
 LinuxTraceLaunchResult LinuxTraceLauncher::Launch(
-    std::filesystem::path const& target,
-    std::filesystem::path const& workingDirectory) noexcept {
+    LinuxTraceLaunchRequest const& request) noexcept {
   auto const pid = fork();
   if (pid < 0)
     return {nullptr, LinuxTraceLaunchError::Fork,
             static_cast<std::uint32_t>(errno)};
   if (pid == 0) {
     (void)setpgid(0, 0);
-    (void)chdir(workingDirectory.c_str());
+    (void)chdir(request.workingDirectory.c_str());
     auto const nullHandle = open("/dev/null", O_RDWR | O_CLOEXEC);
     if (nullHandle >= 0) {
       (void)dup2(nullHandle, STDIN_FILENO);
@@ -37,9 +36,15 @@ LinuxTraceLaunchResult LinuxTraceLauncher::Launch(
       if (nullHandle > STDERR_FILENO) (void)close(nullHandle);
     }
     if (ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) != 0) _exit(126);
-    auto executable = target.string();
-    char* arguments[] = {executable.data(), nullptr};
-    execv(executable.c_str(), arguments);
+    auto executable = request.executable.string();
+    auto argumentStorage = request.arguments;
+    argumentStorage.insert(argumentStorage.begin(), executable);
+    std::vector<char*> arguments;
+    arguments.reserve(argumentStorage.size() + 1);
+    for (auto& argument : argumentStorage)
+      arguments.push_back(argument.data());
+    arguments.push_back(nullptr);
+    execv(executable.c_str(), arguments.data());
     _exit(127);
   }
 
@@ -50,9 +55,13 @@ LinuxTraceLaunchResult LinuxTraceLauncher::Launch(
     return {nullptr, LinuxTraceLaunchError::Exec,
             static_cast<std::uint32_t>(errno)};
   auto const options = PTRACE_O_EXITKILL | PTRACE_O_TRACESYSGOOD;
+  auto const startRequest =
+      request.startMode == LinuxTraceStartMode::SystemCalls
+          ? PTRACE_SYSCALL
+          : PTRACE_CONT;
   if (ptrace(PTRACE_SETOPTIONS, pid, nullptr,
              reinterpret_cast<void*>(options)) != 0 ||
-      ptrace(PTRACE_SYSCALL, pid, nullptr, nullptr) != 0)
+      ptrace(startRequest, pid, nullptr, nullptr) != 0)
     return {nullptr, LinuxTraceLaunchError::Ptrace,
             static_cast<std::uint32_t>(errno)};
   return {std::move(process), LinuxTraceLaunchError::None, 0};

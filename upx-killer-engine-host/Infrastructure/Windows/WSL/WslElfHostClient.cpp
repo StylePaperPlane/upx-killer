@@ -22,6 +22,10 @@ std::uint32_t WslElfHostClient::MakeExecutable(
   auto command = L"/bin/chmod 700 " +
                  std::wstring{staged.linuxHost.begin(), staged.linuxHost.end()} +
                  L" " +
+                 std::wstring{staged.linuxLoader32.begin(), staged.linuxLoader32.end()} +
+                 L" " +
+                 std::wstring{staged.linuxLoader64.begin(), staged.linuxLoader64.end()} +
+                 L" " +
                  std::wstring{staged.linuxTarget.begin(),
                               staged.linuxTarget.end()};
   auto launched = api_.Launch(distribution_, command, nullHandle, nullHandle,

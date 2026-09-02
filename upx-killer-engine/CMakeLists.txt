@@ -14,7 +14,11 @@ add_library(upx_killer_elf_core STATIC
   Core/ELF/DynamicLinking/ElfDynamicMetadataAnalyzer.cpp
   Core/ELF/OepDiscovery/UpxElfOepLocator.cpp
   Core/ELF/Parsing/ElfParser.cpp
+  Core/ELF/Parsing/Internal/ElfImageTypeClassifier.cpp
   Core/ELF/Reconstruction/ElfImageRebuilder.cpp
+  Core/ELF/Reconstruction/Internal/ElfHeaderWriter.cpp
+  Core/ELF/SharedObjects/UpxSharedObjectLayoutRecoverer.cpp
+  Core/ELF/SharedObjects/LoadedSharedObjectNormalizer.cpp
   Core/ELF/Validation/ElfImageValidator.cpp)
 add_library(upx_killer::elf_core ALIAS upx_killer_elf_core)
 
