@@ -99,7 +99,7 @@ PtraceElfSnapshotCapture::Capture(
 
       if (breakpoint) {
         auto const restore = breakpoint->RestoreIfHit(
-            pid, signal, request.target.packedLayout.imageClass);
+            signal, request.target.packedLayout.imageClass);
         if (restore == BreakpointRestoreResult::Restored) {
           if (!recovered)
             return Failure(contracts::JobOutcome::Failed,

@@ -74,3 +74,21 @@ Command:
 The available UPX 4.2.4 build produces ELF32 PIE files that exit `127` before
 the engine runs, so those outputs are not accepted as engine evidence. The
 engine itself does not reject targets by UPX version.
+
+## Stabilization regression
+
+The Linux CTest suite additionally covers timeout cleanup, an early crash,
+forwarded `SIGSEGV` and `SIGILL`, clone events, and real x86 debug-register
+fallback. The hardware-breakpoint test forces a read-only shared executable
+`memfd`, verifies DR0/DR7 are armed, and verifies DR0, DR6, and DR7 are restored
+both after a hit and when an unhit breakpoint is destroyed.
+
+The complete release gate is:
+
+```powershell
+.\scripts\stabilization-regression.ps1 -Distribution kali-linux -UpxPath C:\Users\31007\scoop\shims\upx.exe
+```
+
+It performs the Windows `Release|x64` build, native tests, project/Filter audit,
+Linux CMake build and CTest, all four ELF32 PIE acceptance variants, direct
+unpackaged EXE launch, bilingual-resource/package checks, and WinUI automation.

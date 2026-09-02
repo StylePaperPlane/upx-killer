@@ -10,7 +10,7 @@ Add Linux ELF32 x86 executable unpacking without changing Coordinator, Host prot
 - `ElfParser` dispatches once through the internal `ElfClassTraits` strategy and parses bounded ELF32/I386 and ELF64/x86-64 headers into the same widened model.
 - Native `Elf32_*`/`Elf64_*` structures and the internal traits are not exposed to Application, Infrastructure, or UI.
 - Linux ptrace register access now crosses one class-neutral `ThreadControlContext` interface. `PTRACE_GETREGSET`/`PTRACE_SETREGSET`, `eip/esp`, and `rip/rsp` remain private to the Linux adapter. The execution-breakpoint module hides software and hardware breakpoint strategies from the capture state machine.
-- Linux integration tests now exercise 64-bit and IA32 context round trips plus timeout cleanup, early `SIGSEGV`, forwarded exceptional signals, and clone events. The IA32 fixture is linked directly with `as`/`ld`, so the test does not require a 32-bit libc development package.
+- Linux integration tests now exercise 64-bit and IA32 context round trips, timeout cleanup, early `SIGSEGV`, forwarded `SIGSEGV`/`SIGILL`, clone events, and both hit and unhit hardware-breakpoint cleanup. The IA32 fixture is linked directly with `as`/`ld`, so the test does not require a 32-bit libc development package.
 - Dynamic metadata analysis and image reconstruction now use the same internal Traits for 32/64-bit dynamic entries, symbols, `REL`/`RELA`, section headers, alignment, and address-width overflow checks. Synthetic ELF32 reconstruction passes the shared Parser and Validator.
 - Backend capability selection resolves descriptors from one registered capability table. `ELF + Bits32 + X86 + Executable` is now registered for production.
 - Production ELF32 support includes little-endian x86 `ET_EXEC`, dynamically linked PIE, and static PIE. ELF32 shared objects remain recognized but unsupported.
@@ -73,3 +73,4 @@ Add Linux ELF32 x86 executable unpacking without changing Coordinator, Host prot
 - Cancellation, timeout, malformed headers, unsupported machine, and missing IA32 runtime tests.
 - ELF64 `distorted` continues to produce `Completed`, Loader verification, identical stdout/stderr, and exit `0`.
 - Project/Filter audit keeps new files under `Core\ELF\...`, `Infrastructure\Linux\Debugging\Breakpoints`, `Tests\Unit\ELF32`, `Tests\Fixtures\ELF32\PIE`, and `Tests\Integration\ELF32\PIE`.
+- `scripts/stabilization-regression.ps1` provides one release gate for the Windows Release build, native tests, Filter audit, Linux CMake/CTest, all four UPX 5.2.0 PIE fixtures, direct unpackaged launch, language/package checks, and WinUI automation.

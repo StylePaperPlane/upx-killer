@@ -142,7 +142,7 @@ The bounded bytes read from the target's validated `PT_LOAD` mappings after UPX 
 _Avoid_: `/proc` dump, packed file copy
 
 **ELF Execution Breakpoint**:
-The Linux adapter's class-neutral OEP stop mechanism. It uses a one-byte software breakpoint when the recovered code mapping is private and writable through ptrace, and falls back internally to an x86 debug-register execution breakpoint for UPX read-only shared `memfd` mappings. Callers observe only install, hit, and restore semantics.
+The Linux adapter's class-neutral OEP stop mechanism. It uses a one-byte software breakpoint when the recovered code mapping is private and writable through ptrace, and falls back internally to an x86 debug-register execution breakpoint for UPX read-only shared `memfd` mappings. The breakpoint owns its armed state and restores prior instruction bytes or DR0/DR6/DR7 state after a hit and during unhit scope cleanup. Callers observe only install, hit, and restore semantics.
 _Avoid_: always-software breakpoint, OEP polling
 
 **Reconstructed ELF Image**:

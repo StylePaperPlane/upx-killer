@@ -268,6 +268,8 @@
     <Text Include="..\docs\testing\elf64-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf32-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\planning\elf32-extension.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\planning\elf-shared-object-extension.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\releases\v0.00.2.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\real-sample-baseline.md"><DeploymentContent>false</DeploymentContent></Text>
   </ItemGroup>
   <ItemGroup>
@@ -277,6 +279,7 @@
     <None Include="..\scripts\test-pe64-dll.ps1" />
     <None Include="..\scripts\audit-project-filters.ps1" />
     <None Include="..\scripts\package-dist.ps1" />
+    <None Include="..\scripts\stabilization-regression.ps1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <!-- The self-contained Windows App SDK payload contains satellite MUI files

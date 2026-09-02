@@ -35,6 +35,12 @@ ELF 脱壳依赖 **WSL2** 提供真实的 Linux 加载与 `ptrace` 调试环境�
 <br>
 <br>
 
+### 发布回归
+
+发布前使用 `scripts/stabilization-regression.ps1` 执行统一稳定化回归。该入口覆盖 Release 构建、原生测试、CMake/CTest、Filter 审计、四组 ELF32 PIE UPX fixture、双击启动约束、双语资源和 WinUI 基础自动化。
+
+<br>
+
 ### 温馨提示
 
 

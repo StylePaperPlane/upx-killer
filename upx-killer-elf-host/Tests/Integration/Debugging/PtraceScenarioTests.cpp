@@ -1,17 +1,23 @@
+#include "Infrastructure/Linux/Debugging/Breakpoints/LinuxExecutionBreakpoint.h"
+#include "Infrastructure/Linux/Debugging/Memory/LinuxProcessMemory.h"
 #include "Infrastructure/Linux/Debugging/ThreadContext/LinuxThreadContext.h"
 #include "Infrastructure/Linux/Debugging/Recovery/RecoveredElfImageLocator.h"
 #include "Infrastructure/Linux/Debugging/Recovery/RecoveredElfLoadBiasResolver.h"
 
 #include <sys/ptrace.h>
+#include <sys/user.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
 #include <cstdint>
 #include <filesystem>
 #include <iostream>
+#include <optional>
+#include <string>
 #include <string_view>
 #include <thread>
 #include <vector>
@@ -19,6 +25,10 @@
 namespace {
 using upx_killer::elf_host::debugging::LinuxThreadContext;
 using upx_killer::engine::elf::ElfClass;
+
+constexpr auto DebugAddressOffset = offsetof(user, u_debugreg[0]);
+constexpr auto DebugStatusOffset = offsetof(user, u_debugreg[6]);
+constexpr auto DebugControlOffset = offsetof(user, u_debugreg[7]);
 
 int failures{};
 
@@ -47,6 +57,28 @@ bool WaitStopped(pid_t pid, int expectedSignal, int* statusOut = nullptr) {
 bool Continue(pid_t pid, int signal = 0) {
   return ptrace(PTRACE_CONT, pid, nullptr,
                 reinterpret_cast<void*>(static_cast<intptr_t>(signal))) == 0;
+}
+
+std::optional<unsigned long> ReadDebugRegister(pid_t pid,
+                                               std::size_t offset) {
+  errno = 0;
+  auto const value = ptrace(PTRACE_PEEKUSER, pid,
+                            reinterpret_cast<void*>(offset), nullptr);
+  if (value == -1 && errno != 0) return std::nullopt;
+  return static_cast<unsigned long>(value);
+}
+
+std::optional<std::uint64_t> FindSharedExecutableMapping(pid_t pid) {
+  auto const mappings =
+      upx_killer::elf_host::debugging::LinuxProcessMemory::ReadMappings(pid);
+  auto const found = std::find_if(mappings.begin(), mappings.end(),
+                                  [](auto const& mapping) {
+    return mapping.execute &&
+           mapping.path.find("memfd:upx-killer-hardware-breakpoint") !=
+               std::string::npos;
+  });
+  if (found == mappings.end()) return std::nullopt;
+  return found->begin;
 }
 
 void KillAndReap(pid_t pid) {
@@ -124,6 +156,109 @@ void TestExceptionalSignal(std::filesystem::path const& executable) {
   Expect(waitpid(pid, &status, 0) == pid && WIFSIGNALED(status) &&
              WTERMSIG(status) == SIGUSR1,
          "signal tracee preserves termination signal");
+}
+
+void TestIllegalInstruction(std::filesystem::path const& executable) {
+  auto const pid = LaunchTraced(executable, "illegal");
+  Expect(pid > 0 && WaitStopped(pid, SIGTRAP),
+         "illegal-instruction tracee initial stop");
+  if (pid <= 0) return;
+  if (!Continue(pid) || !WaitStopped(pid, SIGILL)) {
+    Expect(false, "illegal instruction is surfaced as SIGILL");
+    KillAndReap(pid);
+    return;
+  }
+  Expect(Continue(pid, SIGILL), "forward illegal instruction");
+  int status{};
+  Expect(waitpid(pid, &status, 0) == pid && WIFSIGNALED(status) &&
+             WTERMSIG(status) == SIGILL,
+         "illegal-instruction tracee preserves SIGILL termination");
+}
+
+void TestHardwareBreakpointCleanup(std::filesystem::path const& executable) {
+  using upx_killer::elf_host::debugging::BreakpointRestoreResult;
+  using upx_killer::elf_host::debugging::LinuxExecutionBreakpoint;
+
+  auto launchReady = [&]() -> std::pair<pid_t, std::uint64_t> {
+    auto const pid = LaunchTraced(executable, "hardware-breakpoint");
+    if (pid <= 0 || !WaitStopped(pid, SIGTRAP) || !Continue(pid) ||
+        !WaitStopped(pid, SIGSTOP)) {
+      if (pid > 0) KillAndReap(pid);
+      return {-1, 0};
+    }
+    auto const address = FindSharedExecutableMapping(pid);
+    if (!address) {
+      KillAndReap(pid);
+      return {-1, 0};
+    }
+    return {pid, *address};
+  };
+
+  auto [hitPid, hitAddress] = launchReady();
+  Expect(hitPid > 0, "hardware-breakpoint tracee reaches shared code mapping");
+  if (hitPid > 0) {
+    auto const originalAddress = ReadDebugRegister(hitPid, DebugAddressOffset);
+    auto const originalStatus = ReadDebugRegister(hitPid, DebugStatusOffset);
+    auto const originalControl = ReadDebugRegister(hitPid, DebugControlOffset);
+    auto breakpoint = LinuxExecutionBreakpoint::Install(hitPid, hitAddress);
+    Expect(originalAddress && originalStatus && originalControl && breakpoint,
+           "hardware execution breakpoint installs on read-only shared code");
+    if (breakpoint) {
+      auto const armedAddress = ReadDebugRegister(hitPid, DebugAddressOffset);
+      auto const armedControl = ReadDebugRegister(hitPid, DebugControlOffset);
+      Expect(armedAddress && *armedAddress == hitAddress && armedControl &&
+                 (*armedControl & 1u) != 0,
+             "hardware execution breakpoint arms debug register zero");
+      if (!Continue(hitPid) || !WaitStopped(hitPid, SIGTRAP)) {
+        Expect(false, "hardware execution breakpoint is hit");
+        KillAndReap(hitPid);
+      } else {
+        Expect(breakpoint->RestoreIfHit(SIGTRAP, ElfClass::Bits64) ==
+                   BreakpointRestoreResult::Restored,
+               "hardware execution breakpoint restores after a hit");
+        Expect(ReadDebugRegister(hitPid, DebugAddressOffset) ==
+                       originalAddress &&
+                   ReadDebugRegister(hitPid, DebugStatusOffset) ==
+                       originalStatus &&
+                   ReadDebugRegister(hitPid, DebugControlOffset) ==
+                       originalControl,
+               "hardware breakpoint hit restores DR0, DR6, and DR7");
+        Expect(Continue(hitPid), "continue after hardware breakpoint hit");
+        int status{};
+        Expect(waitpid(hitPid, &status, 0) == hitPid && WIFEXITED(status) &&
+                   WEXITSTATUS(status) == 0,
+               "tracee exits after hardware breakpoint restoration");
+      }
+    } else {
+      KillAndReap(hitPid);
+    }
+  }
+
+  auto [cleanupPid, cleanupAddress] = launchReady();
+  Expect(cleanupPid > 0,
+         "hardware-breakpoint cleanup tracee reaches shared code mapping");
+  if (cleanupPid <= 0) return;
+  auto const originalAddress = ReadDebugRegister(cleanupPid, DebugAddressOffset);
+  auto const originalStatus = ReadDebugRegister(cleanupPid, DebugStatusOffset);
+  auto const originalControl = ReadDebugRegister(cleanupPid, DebugControlOffset);
+  {
+    auto breakpoint =
+        LinuxExecutionBreakpoint::Install(cleanupPid, cleanupAddress);
+    Expect(breakpoint.has_value(),
+           "hardware execution breakpoint installs for scope cleanup");
+  }
+  Expect(ReadDebugRegister(cleanupPid, DebugAddressOffset) == originalAddress &&
+             ReadDebugRegister(cleanupPid, DebugStatusOffset) ==
+                 originalStatus &&
+             ReadDebugRegister(cleanupPid, DebugControlOffset) ==
+                 originalControl,
+         "unhit hardware breakpoint restores DR0, DR6, and DR7 on cleanup");
+  Expect(Continue(cleanupPid), "continue after unhit breakpoint cleanup");
+  int status{};
+  Expect(waitpid(cleanupPid, &status, 0) == cleanupPid && WIFEXITED(status) &&
+             WEXITSTATUS(status) == 0,
+         "tracee runs without a stale hardware breakpoint");
+  if (!WIFEXITED(status)) KillAndReap(cleanupPid);
 }
 
 void TestTimeoutCleanup(std::filesystem::path const& executable) {
@@ -276,8 +411,10 @@ int main(int argc, char** argv) {
   TestThreadContext(argv[2], ElfClass::Bits32, false);
   TestEarlyCrash(argv[1]);
   TestExceptionalSignal(argv[1]);
+  TestIllegalInstruction(argv[1]);
   TestTimeoutCleanup(argv[1]);
   TestMultithreadEvent(argv[1]);
+  TestHardwareBreakpointCleanup(argv[1]);
   TestElf32DynamicLinkageReadiness();
   TestElf32PieLoadBiasResolution();
   if (failures != 0) {

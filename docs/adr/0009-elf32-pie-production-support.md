@@ -42,5 +42,7 @@ interpreter or dependency. GNU ld's minimal static-PIE dynamic table is source
 metadata and is preserved; it is not an engine-generated dependency surface.
 
 The hardware fallback consumes debug register zero only for the initial traced
-thread and restores its previous address/control values on the OEP hit. Failure
-to install either strategy remains a hard capture failure with no artifact.
+thread. The breakpoint owns its armed state and restores the previous DR0, DR6,
+and DR7 values both after an OEP hit and when an unhit breakpoint leaves scope.
+Failure to install or restore either strategy remains a hard capture failure
+with no artifact.

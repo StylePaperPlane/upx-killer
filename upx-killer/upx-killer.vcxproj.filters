@@ -321,6 +321,9 @@
     <None Include="..\scripts\audit-project-filters.ps1">
       <Filter>Build\Verification</Filter>
     </None>
+    <None Include="..\scripts\stabilization-regression.ps1">
+      <Filter>Build\Verification</Filter>
+    </None>
     <None Include="..\scripts\package-dist.ps1">
       <Filter>Build\Packaging</Filter>
     </None>
@@ -376,6 +379,12 @@
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\planning\elf32-extension.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\planning\elf-shared-object-extension.md">
+      <Filter>Documentation</Filter>
+    </Text>
+    <Text Include="..\docs\releases\v0.00.2.md">
       <Filter>Documentation</Filter>
     </Text>
     <Text Include="..\docs\testing\real-sample-baseline.md">
