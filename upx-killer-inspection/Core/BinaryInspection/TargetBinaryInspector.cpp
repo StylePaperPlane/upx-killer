@@ -312,7 +312,10 @@ upx_killer::core::InspectionResult InspectElf(std::ifstream& stream,
       elfClass == ElfClass32 ? contracts::BinaryClass::Bits32 : contracts::BinaryClass::Bits64,
       architecture == BinaryArchitecture::X86 ? contracts::CpuArchitecture::X86
                                                : contracts::CpuArchitecture::X64,
-      executable ? contracts::ImageKind::Executable : contracts::ImageKind::SharedLibrary};
+      executable ? contracts::ImageKind::Executable : contracts::ImageKind::SharedLibrary,
+      objectType == ElfTypeExecutable
+          ? contracts::ImageAddressing::FixedAddress
+          : contracts::ImageAddressing::PositionIndependent};
   return {TargetBinaryInfo{path, fileSize, format, architecture, descriptor, packerInformation},
           InspectionError::None};
 }

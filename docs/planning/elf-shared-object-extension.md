@@ -43,8 +43,8 @@ than by basename.
 ## Module and build constraints
 
 - Public Contracts continue to expose only `TargetDescriptor` with
-  `ImageKind::SharedLibrary`; no `Elf32_*`, `Elf64_*`, `link_map`, or ptrace type
-  crosses a public interface.
+  `ImageKind::SharedLibrary` and format-neutral `ImageAddressing`; no `ET_*`,
+  `Elf32_*`, `Elf64_*`, `link_map`, or ptrace type crosses a public interface.
 - ELF class differences remain behind the existing internal Class/Traits
   strategy.
 - The Linux Loader is a separate CMake target linked through target ownership;

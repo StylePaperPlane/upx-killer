@@ -5,11 +5,19 @@
 namespace {
 using namespace upx_killer;
 
-constexpr std::array<contracts::TargetDescriptor, 2> SupportedTargets{{
+constexpr std::array<contracts::TargetDescriptor, 4> SupportedTargets{{
     {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits64,
-     contracts::CpuArchitecture::X64, contracts::ImageKind::Executable},
+     contracts::CpuArchitecture::X64, contracts::ImageKind::Executable,
+     contracts::ImageAddressing::FixedAddress},
+    {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits64,
+     contracts::CpuArchitecture::X64, contracts::ImageKind::Executable,
+     contracts::ImageAddressing::PositionIndependent},
     {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits32,
-     contracts::CpuArchitecture::X86, contracts::ImageKind::Executable},
+     contracts::CpuArchitecture::X86, contracts::ImageKind::Executable,
+     contracts::ImageAddressing::FixedAddress},
+    {contracts::BinaryFamily::Elf, contracts::BinaryClass::Bits32,
+     contracts::CpuArchitecture::X86, contracts::ImageKind::Executable,
+     contracts::ImageAddressing::PositionIndependent},
 }};
 
 std::optional<contracts::TargetDescriptor> Describe(
@@ -23,7 +31,10 @@ std::optional<contracts::TargetDescriptor> Describe(
       layout.machine == engine::elf::ElfMachine::X86
           ? contracts::CpuArchitecture::X86
           : contracts::CpuArchitecture::X64,
-      contracts::ImageKind::Executable};
+      contracts::ImageKind::Executable,
+      layout.imageType == engine::elf::ElfImageType::PositionIndependentExecutable
+          ? contracts::ImageAddressing::PositionIndependent
+          : contracts::ImageAddressing::FixedAddress};
   return descriptor;
 }
 }  // namespace

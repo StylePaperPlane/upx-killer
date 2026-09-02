@@ -372,6 +372,9 @@
     <Text Include="..\docs\adr\0009-elf32-pie-production-support.md">
       <Filter>Documentation</Filter>
     </Text>
+    <Text Include="..\docs\adr\0010-exact-image-addressing-capabilities.md">
+      <Filter>Documentation</Filter>
+    </Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md">
       <Filter>Documentation</Filter>
     </Text>

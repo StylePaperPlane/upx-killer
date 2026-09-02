@@ -3,6 +3,7 @@
 #include "Core/ELF/Reconstruction/ElfImageRebuilder.h"
 #include "Core/ELF/Validation/ElfImageValidator.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <string_view>
@@ -78,13 +79,26 @@ int RunElfCoreTests() {
                         : std::nullopt;
   auto manifest =
       upx_killer::engine::application::ElfBackendCapabilities::Manifest();
-  expect(descriptor && manifest.capabilities.size() == 2 &&
-             manifest.capabilities.front() == *descriptor,
-         "ELF manifest and layout descriptor share one capability source");
+  expect(descriptor &&
+             descriptor->addressing ==
+                 upx_killer::contracts::ImageAddressing::FixedAddress &&
+             manifest.capabilities.size() == 4 &&
+             std::find(manifest.capabilities.begin(), manifest.capabilities.end(),
+                       *descriptor) != manifest.capabilities.end(),
+         "ELF64 fixed-address descriptor has an exact manifest capability");
   auto pie = ElfParser::Parse(MakeElf64(true));
   expect(pie.layout &&
              pie.layout->imageType == ElfImageType::PositionIndependentExecutable,
          "ET_DYN with entry is classified as PIE");
+  auto pieDescriptor = pie.layout
+                           ? upx_killer::engine::application::
+                                 ElfBackendCapabilities::DescriptorFor(*pie.layout)
+                           : std::nullopt;
+  expect(pieDescriptor &&
+             pieDescriptor->addressing ==
+                 upx_killer::contracts::ImageAddressing::PositionIndependent &&
+             descriptor && *pieDescriptor != *descriptor,
+         "ELF64 PIE and ET_EXEC expose distinct capabilities");
 
   auto structuralDiscovery =
       oep::UpxElfOepLocator::Analyze(source, *parsed.layout);

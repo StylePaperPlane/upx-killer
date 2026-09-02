@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace upx_killer::contracts::protocol {
-constexpr std::uint32_t ProtocolVersion = 6;
+constexpr std::uint32_t ProtocolVersion = 7;
 constexpr std::uint32_t ProtocolMagic = 0x4b585055;
 constexpr std::uint32_t MaximumFrameSize = 1u << 20;
 constexpr std::size_t FrameHeaderSize = 16;

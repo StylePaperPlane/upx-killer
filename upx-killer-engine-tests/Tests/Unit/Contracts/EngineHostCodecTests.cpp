@@ -31,14 +31,16 @@ std::optional<EngineHostMessage> RoundTrip(EngineHostMessage const& message) {
 int RunEngineHostCodecTests() {
   auto query = RoundTrip(QueryCapabilitiesMessage{});
   Expect(query && std::holds_alternative<QueryCapabilitiesMessage>(*query),
-         "capability queries round-trip through protocol v6");
+         "capability queries round-trip through protocol v7");
 
   CapabilitiesMessage capabilities{{
       {"pe.windows.upx",
        {{BinaryFamily::Pe, BinaryClass::Bits32, CpuArchitecture::X86,
          ImageKind::Executable},
         {BinaryFamily::Pe, BinaryClass::Bits32, CpuArchitecture::X86,
-         ImageKind::SharedLibrary}}},
+         ImageKind::SharedLibrary},
+        {BinaryFamily::Elf, BinaryClass::Bits32, CpuArchitecture::X86,
+         ImageKind::Executable, ImageAddressing::PositionIndependent}}},
   }};
   auto capabilityRoundTrip = RoundTrip(capabilities);
   auto const* decodedCapabilities =
@@ -46,8 +48,10 @@ int RunEngineHostCodecTests() {
           ? std::get_if<CapabilitiesMessage>(&*capabilityRoundTrip)
           : nullptr;
   Expect(decodedCapabilities && decodedCapabilities->manifests.size() == 1 &&
-             decodedCapabilities->manifests[0].capabilities.size() == 2,
-         "backend manifests preserve explicit target descriptors");
+             decodedCapabilities->manifests[0].capabilities.size() == 3 &&
+             decodedCapabilities->manifests[0].capabilities[2].addressing ==
+                 ImageAddressing::PositionIndependent,
+         "backend manifests preserve explicit target addressing descriptors");
 
   ExecuteJobMessage execute{};
   execute.request.targetPath = L"C:\\测试\\输入.exe";

@@ -102,7 +102,7 @@ A Repaired Image whose structural validation passed but whose imports have not b
 _Avoid_: Successful unpack, completed image
 
 **Target Descriptor**:
-A format-neutral tuple of binary family, bitness, CPU architecture, and image kind used for capability matching. It contains no PE headers, loader handles, or UI types.
+A format-neutral tuple of binary family, bitness, CPU architecture, image kind, and image addressing used for exact capability matching. Addressing distinguishes fixed-address images from position-independent images without exposing `ET_*`, PE headers, loader handles, or UI types; formats whose production capability does not vary by addressing use `PlatformDefault`.
 _Avoid_: PE support flag, file extension
 
 **Backend Manifest**:

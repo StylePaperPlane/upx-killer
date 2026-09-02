@@ -194,6 +194,18 @@ int RunBinaryInspectionTests() {
            "canonical ELF stub banner is standard UPX evidence");
     expect(result.info && result.info->packerInformation.releaseVersion == "4.22",
            "ELF UPX release version is extracted from the official stub banner");
+    expect(result.info && result.info->descriptor.addressing ==
+                              upx_killer::contracts::ImageAddressing::PositionIndependent,
+           "ELF ET_DYN inspection reports position-independent addressing");
+  }
+  {
+    auto bytes = MakeElf64(false);
+    Write16(bytes, 16, 2);
+    TemporaryBinary target{bytes};
+    auto const result = TargetBinaryInspector::Inspect(target.Path());
+    expect(result.info && result.info->descriptor.addressing ==
+                              upx_killer::contracts::ImageAddressing::FixedAddress,
+           "ELF ET_EXEC inspection reports fixed-address capability");
   }
   {
     TemporaryBinary target{MakeElf64(false)};

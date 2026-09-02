@@ -53,6 +53,14 @@ UnpackJobRequest ValidRequest() {
 int RunUnpackCoordinatorTests() {
   auto const pe32 = TargetDescriptor{BinaryFamily::Pe, BinaryClass::Bits32,
                                      CpuArchitecture::X86, ImageKind::Executable};
+  auto const elf32Fixed = TargetDescriptor{
+      BinaryFamily::Elf, BinaryClass::Bits32, CpuArchitecture::X86,
+      ImageKind::Executable, ImageAddressing::FixedAddress};
+  auto const elf32Pie = TargetDescriptor{
+      BinaryFamily::Elf, BinaryClass::Bits32, CpuArchitecture::X86,
+      ImageKind::Executable, ImageAddressing::PositionIndependent};
+  Expect(elf32Fixed != elf32Pie,
+         "fixed-address and position-independent capabilities are distinct");
   auto selected = std::make_shared<FakeBackend>(
       "pe", BackendProbeResult{true, true, pe32, {}},
       JobResult{JobOutcome::Completed, ErrorCategory::None, {}});

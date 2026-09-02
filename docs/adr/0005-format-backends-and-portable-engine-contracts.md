@@ -65,4 +65,6 @@ the neutral address values at their own boundary.
 - Each use case can be tested through a narrow I/O seam.
 - The Host remains a single-job isolation boundary and continues to own concrete
   Windows composition.
-- Protocol v6 is intentionally incompatible with older clients and hosts.
+- Protocol v6 was intentionally incompatible with older clients and hosts.
+  ADR 0010 subsequently advances the protocol to v7 so manifests can carry
+  exact fixed-address versus position-independent capabilities.

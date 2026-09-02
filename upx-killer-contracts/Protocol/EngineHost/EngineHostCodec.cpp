@@ -86,12 +86,21 @@ std::uint32_t EncodeArchitecture(CpuArchitecture value) {
 std::uint32_t EncodeKind(ImageKind value) {
   return value == ImageKind::Executable ? 0x01u : 0x02u;
 }
+std::uint32_t EncodeAddressing(ImageAddressing value) {
+  switch (value) {
+    case ImageAddressing::PlatformDefault: return 0x00u;
+    case ImageAddressing::FixedAddress: return 0x11u;
+    case ImageAddressing::PositionIndependent: return 0x12u;
+  }
+  return 0xffffffffu;
+}
 
 bool DecodeDescriptor(std::span<std::byte const> bytes, std::size_t& offset,
                       TargetDescriptor& descriptor) {
-  std::uint32_t family{}, imageClass{}, architecture{}, imageKind{};
+  std::uint32_t family{}, imageClass{}, architecture{}, imageKind{}, addressing{};
   if (!GetU32(bytes, offset, family) || !GetU32(bytes, offset, imageClass) ||
-      !GetU32(bytes, offset, architecture) || !GetU32(bytes, offset, imageKind))
+      !GetU32(bytes, offset, architecture) || !GetU32(bytes, offset, imageKind) ||
+      !GetU32(bytes, offset, addressing))
     return false;
   if (family == 0x10) descriptor.family = BinaryFamily::Pe;
   else if (family == 0x20) descriptor.family = BinaryFamily::Elf;
@@ -105,6 +114,14 @@ bool DecodeDescriptor(std::span<std::byte const> bytes, std::size_t& offset,
   if (imageKind == 0x01) descriptor.imageKind = ImageKind::Executable;
   else if (imageKind == 0x02) descriptor.imageKind = ImageKind::SharedLibrary;
   else return false;
+  if (addressing == 0x00)
+    descriptor.addressing = ImageAddressing::PlatformDefault;
+  else if (addressing == 0x11)
+    descriptor.addressing = ImageAddressing::FixedAddress;
+  else if (addressing == 0x12)
+    descriptor.addressing = ImageAddressing::PositionIndependent;
+  else
+    return false;
   return true;
 }
 
@@ -114,6 +131,7 @@ void PutDescriptor(std::vector<std::byte>& bytes,
   PutU32(bytes, EncodeClass(descriptor.imageClass));
   PutU32(bytes, EncodeArchitecture(descriptor.architecture));
   PutU32(bytes, EncodeKind(descriptor.imageKind));
+  PutU32(bytes, EncodeAddressing(descriptor.addressing));
 }
 
 std::uint32_t EncodeEntryKind(EntryPointAddressKind value) {

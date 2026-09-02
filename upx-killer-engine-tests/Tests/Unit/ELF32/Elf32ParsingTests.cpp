@@ -6,6 +6,7 @@
 #include "Core/ELF/Reconstruction/ElfImageRebuilder.h"
 #include "Core/ELF/Validation/ElfImageValidator.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -139,9 +140,12 @@ int RunElf32ParsingTests() {
                               *parsed.layout)
                         : std::nullopt;
   auto manifest = application::ElfBackendCapabilities::Manifest();
-  expect(descriptor && manifest.capabilities.size() == 2 &&
-             manifest.capabilities[1] == *descriptor,
-         "ELF32 descriptor and manifest use the same capability source");
+  expect(descriptor &&
+             descriptor->addressing == contracts::ImageAddressing::FixedAddress &&
+             manifest.capabilities.size() == 4 &&
+             std::find(manifest.capabilities.begin(), manifest.capabilities.end(),
+                       *descriptor) != manifest.capabilities.end(),
+         "ELF32 fixed-address descriptor has an exact manifest capability");
   expect(parsed.layout && elf::oep::UpxElfOepLocator::Analyze(
                               source, *parsed.layout).plan.has_value(),
          "ELF32 UPX evidence uses the class-neutral OEP interface");
@@ -154,7 +158,18 @@ int RunElf32ParsingTests() {
          "ELF32 ET_DYN executable remains representable through the shared model");
   expect(pie.layout &&
              application::ElfBackendCapabilities::Supports(*pie.layout),
-         "ELF32 PIE is selected through the shared executable capability");
+         "ELF32 PIE is selected through an exact addressing capability");
+  auto pieDescriptor = pie.layout
+                           ? application::ElfBackendCapabilities::DescriptorFor(
+                                 *pie.layout)
+                           : std::nullopt;
+  expect(pieDescriptor &&
+             pieDescriptor->addressing ==
+                 contracts::ImageAddressing::PositionIndependent &&
+             descriptor && *pieDescriptor != *descriptor &&
+             std::find(manifest.capabilities.begin(), manifest.capabilities.end(),
+                       *pieDescriptor) != manifest.capabilities.end(),
+         "ELF32 PIE cannot match the fixed-address executable descriptor");
 
   auto sharedObjectSource = pieSource;
   Write<std::uint32_t>(sharedObjectSource, 24, 0);
