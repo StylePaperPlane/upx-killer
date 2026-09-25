@@ -3,6 +3,7 @@
 #include "Application/Runtime/WslRuntimeSettings.h"
 #include "Application/TemporaryFiles/ITemporaryFolderPicker.h"
 #include "Application/TemporaryFiles/TemporaryFileSettings.h"
+#include "Application/Updates/UpdateCheckWorkflow.h"
 #include "UI/Navigation/NavigationRouter.h"
 
 #include <cstdint>
@@ -16,6 +17,7 @@ struct ConfigurationRouteDependencies {
   std::shared_ptr<application::ITemporaryFolderPicker> folderPicker;
   std::shared_ptr<application::IWslRuntimeSettingsStore> wslSettingsStore;
   std::shared_ptr<application::IWslDistributionCatalog> wslDistributionCatalog;
+  std::shared_ptr<application::IReleaseCatalog> releaseCatalog;
 };
 
 class ConfigurationRouteFactory final {

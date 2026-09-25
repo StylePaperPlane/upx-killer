@@ -49,6 +49,9 @@
     <Filter Include="Application\Runtime">
       <UniqueIdentifier>{9850553A-044A-497D-BB93-123549F34569}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\Updates">
+      <UniqueIdentifier>{06E62C85-42AA-4F01-995A-D61B8272E519}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Infrastructure">
       <UniqueIdentifier>{95C68E4B-E342-45DE-B674-8A2312F3B86E}</UniqueIdentifier>
     </Filter>
@@ -72,6 +75,9 @@
     </Filter>
     <Filter Include="Infrastructure\WSL\Discovery">
       <UniqueIdentifier>{5534F77B-5DF1-4121-8E3B-0503188D5009}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Infrastructure\Updates">
+      <UniqueIdentifier>{BDE0DF23-D9D1-4448-A408-D6642B5EC99A}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{A5F8FA93-581E-4182-83A1-1A6815CC0418}</UniqueIdentifier>
@@ -260,6 +266,12 @@
     <ClCompile Include="UI\Presentation\PackerInformationPresentation.cpp">
       <Filter>UI\Presentation</Filter>
     </ClCompile>
+    <ClInclude Include="UI\Presentation\UpdateCheckPresentation.h">
+      <Filter>UI\Presentation</Filter>
+    </ClInclude>
+    <ClCompile Include="UI\Presentation\UpdateCheckPresentation.cpp">
+      <Filter>UI\Presentation</Filter>
+    </ClCompile>
     <ClInclude Include="Application\TargetSelection\TargetSelectionWorkflow.h">
       <Filter>Application\TargetSelection</Filter>
     </ClInclude>
@@ -390,6 +402,9 @@
     <Text Include="..\docs\adr\0012-deep-backend-and-ui-boundaries.md">
       <Filter>Documentation</Filter>
     </Text>
+    <Text Include="..\docs\adr\0013-github-release-catalog-and-future-bootstrap.md">
+      <Filter>Documentation</Filter>
+    </Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md">
       <Filter>Documentation</Filter>
     </Text>
@@ -425,5 +440,9 @@
     <ClCompile Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.cpp"><Filter>Infrastructure\Settings</Filter></ClCompile>
     <ClInclude Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.h"><Filter>Infrastructure\WSL\Discovery</Filter></ClInclude>
     <ClCompile Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.cpp"><Filter>Infrastructure\WSL\Discovery</Filter></ClCompile>
+    <ClInclude Include="Application\Updates\UpdateCheckWorkflow.h"><Filter>Application\Updates</Filter></ClInclude>
+    <ClCompile Include="Application\Updates\UpdateCheckWorkflow.cpp"><Filter>Application\Updates</Filter></ClCompile>
+    <ClInclude Include="Infrastructure\Updates\GitHubReleaseCatalog.h"><Filter>Infrastructure\Updates</Filter></ClInclude>
+    <ClCompile Include="Infrastructure\Updates\GitHubReleaseCatalog.cpp"><Filter>Infrastructure\Updates</Filter></ClCompile>
   </ItemGroup>
 </Project>

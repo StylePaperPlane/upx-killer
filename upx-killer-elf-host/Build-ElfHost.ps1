@@ -1,20 +1,17 @@
 param(
-    [string]$Distribution = "kali-linux",
+    [string]$Distribution = "",
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
     [string]$OutputDirectory = "",
-    [switch]$RunTests
+    [switch]$RunTests,
+    [switch]$Clean
 )
 
 $ErrorActionPreference = "Stop"
-$wslExecutable = Join-Path $env:SystemRoot "System32\wsl.exe"
-if (-not (Test-Path -LiteralPath $wslExecutable)) {
-    $wslExecutable = Join-Path $env:SystemRoot "Sysnative\wsl.exe"
-}
-if (-not (Test-Path -LiteralPath $wslExecutable)) {
-    throw "wsl.exe was not found."
-}
 $projectDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+. (Join-Path $projectDirectory 'Resolve-WslDistribution.ps1')
+$wslExecutable = Get-WslExecutable
+$Distribution = Resolve-WslDistribution -RequestedName $Distribution
 $repositoryDirectory = Split-Path -Parent $projectDirectory
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $repositoryDirectory "upx-killer\x64\$Configuration\upx-killer"
@@ -23,6 +20,11 @@ $normalizedProject = $projectDirectory.Replace('\', '/')
 $drive = $normalizedProject.Substring(0, 1).ToLowerInvariant()
 $linuxProject = "/mnt/$drive" + $normalizedProject.Substring(2)
 $buildDirectory = "/tmp/upx-killer-elf-host-$($Configuration.ToLowerInvariant())"
+if ($Clean) {
+    & $wslExecutable -d $Distribution -- rm -rf -- $buildDirectory
+    if ($LASTEXITCODE -ne 0) { throw "ELF Host clean failed with exit code $LASTEXITCODE." }
+    return
+}
 $buildType = if ($Configuration -eq "Release") { "Release" } else { "Debug" }
 $testOption = if ($RunTests) { "ON" } else { "OFF" }
 

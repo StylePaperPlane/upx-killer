@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UI/ViewModels/ConfigurationViewModel.h"
+#include "UI/Presentation/UpdateCheckPresentation.h"
 #if __has_include("ConfigurationViewModel.g.cpp")
 #include "ConfigurationViewModel.g.cpp"
 #endif
@@ -14,6 +15,12 @@ ConfigurationViewModel::ConfigurationViewModel() : m_resources() {
           [this]() { RefreshWslDistributionsAsync(); },
           [this]() {
             return m_wslWorkflow != nullptr && !m_wslRefreshInProgress;
+          });
+  m_checkForUpdatesCommand =
+      winrt::make_self<::upx_killer::ui::RelayCommand>(
+          [this]() { CheckForUpdatesAsync(); },
+          [this]() {
+            return m_updateCheckWorkflow != nullptr && !m_updateCheckInProgress;
           });
 }
 
@@ -65,6 +72,16 @@ ConfigurationViewModel::RefreshWslDistributionsCommand() const {
       .as<winrt::Microsoft::UI::Xaml::Input::ICommand>();
 }
 
+winrt::hstring ConfigurationViewModel::VersionDisplayText() const {
+  return m_versionDisplayText;
+}
+
+winrt::Microsoft::UI::Xaml::Input::ICommand
+ConfigurationViewModel::CheckForUpdatesCommand() const {
+  return m_checkForUpdatesCommand
+      .as<winrt::Microsoft::UI::Xaml::Input::ICommand>();
+}
+
 winrt::event_token ConfigurationViewModel::PropertyChanged(
     winrt::Microsoft::UI::Xaml::Data::PropertyChangedEventHandler const& handler) {
   return m_propertyChanged.add(handler);
@@ -79,14 +96,44 @@ void ConfigurationViewModel::Initialize(
     std::unique_ptr<::upx_killer::application::TemporaryFileSettingsWorkflow>
         temporaryFilesWorkflow,
     std::unique_ptr<::upx_killer::application::WslRuntimeSettingsWorkflow>
-        wslWorkflow) {
+        wslWorkflow,
+    std::unique_ptr<::upx_killer::application::UpdateCheckWorkflow>
+        updateCheckWorkflow) {
   m_ownerWindowHandle = ownerWindowHandle;
   m_workflow = std::move(temporaryFilesWorkflow);
   m_wslWorkflow = std::move(wslWorkflow);
+  m_updateCheckWorkflow = std::move(updateCheckWorkflow);
+  if (m_updateCheckWorkflow) {
+    m_versionDisplayText =
+        ::upx_killer::ui::presentation::UpdateCheckPresentation::CurrentVersion(
+            m_updateCheckWorkflow->CurrentVersion());
+    RaisePropertyChanged(L"VersionDisplayText");
+  }
   Reload();
   RefreshWslDistributionsAsync();
   m_selectTemporaryDirectoryCommand->RaiseCanExecuteChanged();
   m_refreshWslDistributionsCommand->RaiseCanExecuteChanged();
+  m_checkForUpdatesCommand->RaiseCanExecuteChanged();
+}
+
+winrt::fire_and_forget ConfigurationViewModel::CheckForUpdatesAsync() {
+  auto lifetime = get_strong();
+  if (!m_updateCheckWorkflow || m_updateCheckInProgress) co_return;
+  m_updateCheckInProgress = true;
+  m_checkForUpdatesCommand->RaiseCanExecuteChanged();
+
+  winrt::apartment_context uiContext;
+  auto* workflow = m_updateCheckWorkflow.get();
+  co_await winrt::resume_background();
+  auto const result = workflow->Check();
+  co_await uiContext;
+
+  m_versionDisplayText =
+      ::upx_killer::ui::presentation::UpdateCheckPresentation::Result(
+          m_resources, result);
+  RaisePropertyChanged(L"VersionDisplayText");
+  m_updateCheckInProgress = false;
+  m_checkForUpdatesCommand->RaiseCanExecuteChanged();
 }
 
 winrt::fire_and_forget

@@ -74,6 +74,7 @@
     <ClInclude Include="Core\PE\Relocations\RelocationReconstructor.h" />
     <ClInclude Include="Core\PE\Imports\ImportTypes.h" />
     <ClInclude Include="Core\PE\Imports\ImportDiscovery.h" />
+    <ClInclude Include="Core\PE\Imports\Internal\SourceImportLayout.h" />
     <ClInclude Include="Core\PE\Imports\PeExportParser.h" />
     <ClInclude Include="Core\PE\Imports\ImportTableValidator.h" />
     <ClInclude Include="Infrastructure\Windows\Debugging\DebugProcess.h" />
@@ -131,6 +132,7 @@
     <ClCompile Include="Core\PE\Rebasing\NoSourceRelocations\UpxPe32StubAddressingRebaser.cpp" />
     <ClCompile Include="Core\PE\Relocations\RelocationReconstructor.cpp" />
     <ClCompile Include="Core\PE\Imports\ImportDiscovery.cpp" />
+    <ClCompile Include="Core\PE\Imports\Internal\SourceImportLayout.cpp" />
     <ClCompile Include="Core\PE\Imports\PeExportParser.cpp" />
     <ClCompile Include="Core\PE\Imports\ImportTableValidator.cpp" />
     <ClCompile Include="Infrastructure\Windows\Debugging\DebugProcess.cpp" />

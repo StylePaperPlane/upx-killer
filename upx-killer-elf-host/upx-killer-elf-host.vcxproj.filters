@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Build-ElfHost.ps1"><Filter>Build</Filter></None>
+    <None Include="Resolve-WslDistribution.ps1"><Filter>Build</Filter></None>
     <None Include="CMakeLists.txt"><Filter>Build</Filter></None>
     <None Include="Tests\Fixtures\Debugging\Tracee.c"><Filter>Tests\Fixtures\Debugging</Filter></None>
     <None Include="Tests\Fixtures\Debugging\Tracee32.S"><Filter>Tests\Fixtures\Debugging</Filter></None>

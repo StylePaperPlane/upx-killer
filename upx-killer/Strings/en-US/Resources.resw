@@ -195,6 +195,13 @@
   <data name="RefreshWslDistributionsButton.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="WslDistributionAutomationName" xml:space="preserve"><value>WSL2 distribution</value></data>
   <data name="RefreshWslDistributionsAutomationName" xml:space="preserve"><value>Refresh WSL2 distributions</value></data>
+  <data name="AboutTitle.Text" xml:space="preserve"><value>About upx-killer</value></data>
+  <data name="CurrentVersionLabel.Text" xml:space="preserve"><value>Current version</value></data>
+  <data name="CheckForUpdatesButton.Content" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="CheckForUpdatesAutomationName" xml:space="preserve"><value>Check for upx-killer updates</value></data>
+  <data name="VersionUpToDateFormat" xml:space="preserve"><value>v{0} · Up to date</value></data>
+  <data name="VersionUpdateAvailableFormat" xml:space="preserve"><value>v{0} · Latest v{1}</value></data>
+  <data name="VersionCheckFailedFormat" xml:space="preserve"><value>v{0} · Check failed</value></data>
   <data name="StatusEnginePeOnly" xml:space="preserve"><value>The unpacking engine does not support this target configuration</value></data>
   <data name="StatusRebuildingElf" xml:space="preserve"><value>Rebuilding ELF image</value></data>
   <data name="StatusValidatingElf" xml:space="preserve"><value>Validating ELF image</value></data>

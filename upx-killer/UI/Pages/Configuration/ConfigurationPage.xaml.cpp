@@ -30,6 +30,9 @@ ConfigurationPage::ConfigurationPage()
   AutomationProperties::SetName(
       RefreshWslDistributionsButton(),
       resources.GetString(L"RefreshWslDistributionsAutomationName"));
+  AutomationProperties::SetName(
+      CheckForUpdatesButton(),
+      resources.GetString(L"CheckForUpdatesAutomationName"));
 }
 
 winrt::upx_killer::ConfigurationViewModel ConfigurationPage::ViewModel() const {

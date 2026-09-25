@@ -1,11 +1,13 @@
 param(
-    [string]$Distribution = "kali-linux",
+    [string]$Distribution = "",
     [string]$Configuration = "Release",
     [string]$FixtureDirectory = "D:\Users\31007\Desktop\TXHook.Server\elf-shared-object-fixtures"
 )
 
 $ErrorActionPreference = "Stop"
 $repository = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..\..\..")).Path
+. (Join-Path $repository 'upx-killer-elf-host\Resolve-WslDistribution.ps1')
+$Distribution = Resolve-WslDistribution -RequestedName $Distribution
 $buildScript = Join-Path $repository "upx-killer-elf-host\Build-ElfHost.ps1"
 $testClient = Join-Path $repository "upx-killer-engine-tests\x64\$Configuration\upx-killer-engine-tests.exe"
 $wsl = Join-Path $env:SystemRoot "System32\wsl.exe"

@@ -1,12 +1,14 @@
 #include "Core/PE/Imports/ImportDiscovery.h"
 
 #include "Core/PE/Format/PeFormatTraits.h"
+#include "Core/PE/Imports/Internal/SourceImportLayout.h"
 
 #include <Windows.h>
 
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <set>
@@ -145,14 +147,41 @@ std::optional<Match> SelectMatch(AddressEntry const& entry,
 
 namespace upx_killer::engine::pe::imports {
 ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpedBytes,
+                                                std::span<std::byte const> sourceBytes,
                                                 PeImageLayout const& sourceLayout,
-                                                RuntimeModuleSnapshot const& runtime) noexcept {
+                                                RuntimeModuleSnapshot const& runtime,
+                                                RelativeVirtualAddress recoveredEntryPoint) noexcept {
   try {
     if (dumpedBytes.size() < sourceLayout.sizeOfImage || sourceLayout.sizeOfImage == 0)
       return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
     auto const pointerSize = sourceLayout.format == PeFormat::Pe32
                                  ? format::Pe32Traits::PointerSize
                                  : format::Pe64Traits::PointerSize;
+    auto const& importDirectory = sourceLayout.directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    auto const& iatDirectory = sourceLayout.directories[IMAGE_DIRECTORY_ENTRY_IAT];
+    // A source import table is loader residue only when execution has moved
+    // from the packed entry point to a recovered one. In an ordinary PE it is
+    // the program's own table even if the optional IAT Directory is absent.
+    auto const sourceImports =
+        sourceLayout.entryPoint.value != recoveredEntryPoint.value &&
+                iatDirectory.address.value == 0 && iatDirectory.size == 0
+            ? internal::SourceImportLayout::Analyze(sourceBytes, sourceLayout)
+            : internal::SourceImportLayoutResult{true, {}};
+    auto const isSourceImport = [&](std::uint32_t rva) {
+      return std::any_of(sourceImports.occupiedRanges.begin(),
+                         sourceImports.occupiedRanges.end(),
+                         [rva, pointerSize](auto const& range) {
+                           return range.Overlaps(rva, pointerSize);
+                         });
+    };
+    auto const unverifiedSourceDirectory = [&](std::uint32_t rva) {
+      return !sourceImports.complete && importDirectory.address.value != 0 &&
+             importDirectory.size <= sourceLayout.sizeOfImage -
+                                         std::min(importDirectory.address.value,
+                                                  sourceLayout.sizeOfImage) &&
+             rva >= importDirectory.address.value &&
+             rva - importDirectory.address.value < importDirectory.size;
+    };
 
     std::map<std::uint64_t, AddressEntry> addressIndex;
     for (auto const& module : runtime.modules) {
@@ -163,9 +192,8 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
     std::vector<ImportModulePlan> plans;
     std::set<std::uint32_t> acceptedSlots;
     std::size_t matchedSlots{};
+    bool unverifiedCandidate{};
     for (auto const& section : sourceLayout.sections) {
-      auto const& importDirectory = sourceLayout.directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
-      auto const& iatDirectory = sourceLayout.directories[IMAGE_DIRECTORY_ENTRY_IAT];
       auto const importSection =
           Contains(section, importDirectory.address) || Contains(section, iatDirectory.address);
       // Linkers commonly place the bound IAT in read-only .rdata;
@@ -201,89 +229,102 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
         declaredIatRange = true;
       }
       if (scanEnd - scanStart < pointerSize) continue;
-      // Runtime import tables are arrays of native pointers. A byte-wise
-      // probe creates overlapping pseudo-runs in executable data, especially
-      // for PE32 images where every valid slot is four-byte aligned.
+      // PE64 thunk arrays may start at either four-byte alignment. Scan the
+      // two independent native-width lanes so a run in one cannot hide an
+      // overlapping run in the other.
+      constexpr auto Alignment = static_cast<std::uint32_t>(sizeof(std::uint32_t));
       auto const scanStep = static_cast<std::uint32_t>(pointerSize);
-      auto rva = static_cast<std::uint32_t>(scanStart);
+      auto const alignedStart = static_cast<std::uint32_t>(
+          scanStart + ((Alignment - scanStart % Alignment) % Alignment));
       auto const end = static_cast<std::uint32_t>(scanEnd - pointerSize);
-      while (rva <= end) {
-        // UPX keeps its packed import descriptors and stale IAT
-        // in the import section while the unpacked image writes
-        // the real IAT elsewhere.  When the source has no IAT
-        // directory, ignore that metadata tail to avoid creating
-        // overlapping plans for both tables.
-        if (iatDirectory.address.value == 0 && importDirectory.address.value != 0 &&
-            Contains(section, importDirectory.address) && rva >= importDirectory.address.value) {
-          break;
-        }
-        std::uint64_t target{};
-        if (!ReadPointer(dumpedBytes, rva, pointerSize, target) || target == 0) {
-          rva += scanStep;
-          continue;
-        }
-        auto found = addressIndex.find(target);
-        if (found == addressIndex.end()) {
-          rva += scanStep;
-          continue;
-        }
-        auto runEnd = rva;
-        std::size_t runLength{};
-        while (runEnd <= end) {
-          std::uint64_t runTarget{};
-          if (!ReadPointer(dumpedBytes, runEnd, pointerSize, runTarget) || runTarget == 0)
-            break;
-          auto const runMatch = addressIndex.find(runTarget);
-          if (runMatch == addressIndex.end()) break;
-          ++runLength;
-          runEnd += static_cast<std::uint32_t>(pointerSize);
-        }
-
-        // A declared IAT directory is authoritative. Outside it, accept either
-        // a dense run or a single run bounded by native-width zero sentinels.
-        // Linkers routinely emit one-symbol import descriptors; dropping those
-        // leaves live runtime addresses in the repaired IAT and makes the image
-        // depend on the module layout of the capture process.
-        auto const zeroBounded =
-            rva >= section.virtualAddress.value + pointerSize && runEnd <= end &&
-            IsZeroPointer(dumpedBytes, rva - static_cast<std::uint32_t>(pointerSize),
-                          pointerSize) &&
-            IsZeroPointer(dumpedBytes, runEnd, pointerSize);
-        if (runLength == 0 || (!declaredIatRange && runLength < 2 && !zeroBounded)) {
-          rva += scanStep;
-          continue;
-        }
-        std::string previousModule;
-        for (auto slot = rva; slot < runEnd;
-             slot += static_cast<std::uint32_t>(pointerSize)) {
-          if (!acceptedSlots.insert(slot).second) continue;
-          std::uint64_t slotTarget{};
-          if (!ReadPointer(dumpedBytes, slot, pointerSize, slotTarget))
-            return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
-          auto const slotMatch = addressIndex.find(slotTarget);
-          auto selected = slotMatch != addressIndex.end()
-                              ? SelectMatch(slotMatch->second, previousModule)
-                              : std::nullopt;
-          if (!selected || !AddCandidate(plans, slot, *selected, pointerSize)) {
-            return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous, {}};
+      for (std::uint32_t lane = 0; lane < pointerSize / Alignment; ++lane) {
+        auto rva = alignedStart + lane * Alignment;
+        while (rva <= end) {
+          if (isSourceImport(rva)) {
+            rva += scanStep;
+            continue;
           }
-          previousModule = selected->module;
-          ++matchedSlots;
-          if (matchedSlots > MaximumSlots)
-            return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
-        }
+          std::uint64_t target{};
+          if (!ReadPointer(dumpedBytes, rva, pointerSize, target) || target == 0) {
+            rva += scanStep;
+            continue;
+          }
+          auto found = addressIndex.find(target);
+          if (found == addressIndex.end()) {
+            rva += scanStep;
+            continue;
+          }
+          if (unverifiedSourceDirectory(rva)) {
+            unverifiedCandidate = true;
+            rva += scanStep;
+            continue;
+          }
+          auto runEnd = rva;
+          std::size_t runLength{};
+          while (runEnd <= end) {
+            if (isSourceImport(runEnd) || unverifiedSourceDirectory(runEnd)) break;
+            std::uint64_t runTarget{};
+            if (!ReadPointer(dumpedBytes, runEnd, pointerSize, runTarget) || runTarget == 0) break;
+            auto const runMatch = addressIndex.find(runTarget);
+            if (runMatch == addressIndex.end()) break;
+            ++runLength;
+            runEnd += static_cast<std::uint32_t>(pointerSize);
+          }
 
-        rva = runEnd;
+          // A declared IAT directory is authoritative. Outside it, accept either
+          // a dense run or a single run bounded by native-width zero sentinels.
+          // Linkers routinely emit one-symbol import descriptors; dropping those
+          // leaves live runtime addresses in the repaired IAT and makes the image
+          // depend on the module layout of the capture process.
+          auto const zeroBounded =
+              rva >= section.virtualAddress.value + pointerSize && runEnd <= end &&
+              IsZeroPointer(dumpedBytes, rva - static_cast<std::uint32_t>(pointerSize),
+                            pointerSize) &&
+              IsZeroPointer(dumpedBytes, runEnd, pointerSize);
+          if (runLength == 0 || (!declaredIatRange && runLength < 2 && !zeroBounded)) {
+            rva += scanStep;
+            continue;
+          }
+          std::string previousModule;
+          for (auto slot = rva; slot < runEnd; slot += static_cast<std::uint32_t>(pointerSize)) {
+            auto const next = acceptedSlots.lower_bound(slot);
+            if (next != acceptedSlots.end() && *next == slot) continue;
+            if ((next != acceptedSlots.end() && *next - slot < pointerSize) ||
+                (next != acceptedSlots.begin() && slot - *std::prev(next) < pointerSize))
+              return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous, {}};
+            acceptedSlots.insert(slot);
+            std::uint64_t slotTarget{};
+            if (!ReadPointer(dumpedBytes, slot, pointerSize, slotTarget))
+              return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
+            auto const slotMatch = addressIndex.find(slotTarget);
+            auto selected = slotMatch != addressIndex.end()
+                                ? SelectMatch(slotMatch->second, previousModule)
+                                : std::nullopt;
+            if (!selected || !AddCandidate(plans, slot, *selected, pointerSize)) {
+              return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous, {}};
+            }
+            previousModule = selected->module;
+            ++matchedSlots;
+            if (matchedSlots > MaximumSlots)
+              return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
+          }
+
+          rva = runEnd;
+        }
       }
     }
 
+    if (unverifiedCandidate)
+      return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous, {}};
     if (plans.empty()) {
-      auto const& importDirectory = sourceLayout.directories[IMAGE_DIRECTORY_ENTRY_IMPORT];
       if (importDirectory.address.value == 0 && importDirectory.size == 0)
         return {ImportRebuildPlan{}, ImportDiscoveryError::None, {}};
       return {std::nullopt, ImportDiscoveryError::ImportsNotFound, {}};
     }
     ImportRebuildPlan plan{};
+    std::sort(plans.begin(), plans.end(), [](auto const& left, auto const& right) {
+      return left.firstThunk.value < right.firstThunk.value;
+    });
     plan.modules = std::move(plans);
     return {std::move(plan), ImportDiscoveryError::None, {}};
   } catch (...) {

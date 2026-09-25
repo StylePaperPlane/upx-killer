@@ -14,7 +14,8 @@ namespace upx_killer::ui::composition {
 NavigationRouteRegistration ConfigurationRouteFactory::Create(
     ConfigurationRouteDependencies dependencies) {
   if (!dependencies.settingsStore || !dependencies.folderPicker ||
-      !dependencies.wslSettingsStore || !dependencies.wslDistributionCatalog)
+      !dependencies.wslSettingsStore || !dependencies.wslDistributionCatalog ||
+      !dependencies.releaseCatalog)
     throw std::invalid_argument("dependencies");
   return {
       L"configuration",
@@ -22,7 +23,8 @@ NavigationRouteRegistration ConfigurationRouteFactory::Create(
        settingsStore = std::move(dependencies.settingsStore),
        folderPicker = std::move(dependencies.folderPicker),
        wslSettingsStore = std::move(dependencies.wslSettingsStore),
-       wslDistributionCatalog = std::move(dependencies.wslDistributionCatalog)](
+       wslDistributionCatalog = std::move(dependencies.wslDistributionCatalog),
+       releaseCatalog = std::move(dependencies.releaseCatalog)](
           auto const& frame) {
         auto viewModel = winrt::make<
             winrt::upx_killer::implementation::ConfigurationViewModel>();
@@ -34,7 +36,9 @@ NavigationRouteRegistration ConfigurationRouteFactory::Create(
                 std::make_unique<application::TemporaryFileSettingsWorkflow>(
                     settingsStore, folderPicker),
                 std::make_unique<application::WslRuntimeSettingsWorkflow>(
-                    wslSettingsStore, wslDistributionCatalog));
+                    wslSettingsStore, wslDistributionCatalog),
+                std::make_unique<application::UpdateCheckWorkflow>(
+                    releaseCatalog));
         return frame.Navigate(
             winrt::xaml_typename<winrt::upx_killer::ConfigurationPage>(),
             viewModel);

@@ -156,8 +156,10 @@
     <ClInclude Include="Infrastructure\Settings\LocalSettingsPath.h" />
     <ClInclude Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.h" />
     <ClInclude Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.h" />
+    <ClInclude Include="Infrastructure\Updates\GitHubReleaseCatalog.h" />
     <ClInclude Include="Application\Runtime\WslRuntimeSettings.h" />
     <ClInclude Include="Application\Runtime\WslRuntimeSettingsWorkflow.h" />
+    <ClInclude Include="Application\Updates\UpdateCheckWorkflow.h" />
     <ClInclude Include="Infrastructure\EngineHost\EngineHostClient.h" />
     <ClInclude Include="Infrastructure\EngineHost\Pipes\EngineHostPipeTransport.h" />
     <ClInclude Include="Infrastructure\EngineHost\Process\EngineHostProcessSession.h" />
@@ -176,6 +178,7 @@
     <ClInclude Include="UI\ViewModels\RelayCommand.h" />
     <ClInclude Include="UI\Presentation\UnpackStatusPresentation.h" />
     <ClInclude Include="UI\Presentation\PackerInformationPresentation.h" />
+    <ClInclude Include="UI\Presentation\UpdateCheckPresentation.h" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
@@ -212,6 +215,8 @@
     <ClCompile Include="Infrastructure\Settings\LocalWslRuntimeSettingsStore.cpp" />
     <ClCompile Include="Infrastructure\WSL\Discovery\WslDistributionCatalog.cpp" />
     <ClCompile Include="Application\Runtime\WslRuntimeSettingsWorkflow.cpp" />
+    <ClCompile Include="Application\Updates\UpdateCheckWorkflow.cpp" />
+    <ClCompile Include="Infrastructure\Updates\GitHubReleaseCatalog.cpp" />
     <ClCompile Include="UI\Navigation\NavigationPaneController.cpp" />
     <ClCompile Include="UI\Navigation\NavigationRouter.cpp" />
     <ClCompile Include="UI\Composition\OverviewRouteFactory.cpp" />
@@ -226,6 +231,7 @@
     <ClCompile Include="UI\ViewModels\ConfigurationViewModel.cpp" />
     <ClCompile Include="UI\Presentation\UnpackStatusPresentation.cpp" />
     <ClCompile Include="UI\Presentation\PackerInformationPresentation.cpp" />
+    <ClCompile Include="UI\Presentation\UpdateCheckPresentation.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +276,7 @@
     <Text Include="..\docs\adr\0010-exact-image-addressing-capabilities.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0011-isolated-elf-shared-object-loading.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\adr\0012-deep-backend-and-ui-boundaries.md"><DeploymentContent>false</DeploymentContent></Text>
+    <Text Include="..\docs\adr\0013-github-release-catalog-and-future-bootstrap.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf64-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf32-wsl-validation.md"><DeploymentContent>false</DeploymentContent></Text>
     <Text Include="..\docs\testing\elf-shared-object-validation.md"><DeploymentContent>false</DeploymentContent></Text>

@@ -40,14 +40,17 @@
     <Grid
         AutomationProperties.AutomationId="ConfigurationPageRoot"
         Background="{ThemeResource LayerOnMicaBaseAltFillColorDefaultBrush}">
-        <Border
-            AutomationProperties.AutomationId="TemporaryFilesTile"
-            Margin="24"
-            Padding="0"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderThickness="0">
-            <StackPanel Spacing="24">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <Border
+                AutomationProperties.AutomationId="TemporaryFilesTile"
+                Margin="24"
+                Padding="0"
+                VerticalAlignment="Top"
+                Background="Transparent"
+                BorderThickness="0">
+                <StackPanel Spacing="24">
                 <TextBlock
                     x:Uid="TemporaryFilesTitle"
                     Style="{StaticResource SubtitleTextBlockStyle}" />
@@ -142,7 +145,7 @@
                     Height="1"
                     Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
 
-                <StackPanel Spacing="16">
+                    <StackPanel Spacing="16">
                     <TextBlock
                         x:Uid="WslRuntimeTitle"
                         Style="{StaticResource SubtitleTextBlockStyle}" />
@@ -173,8 +176,46 @@
                             SelectedIndex="{x:Bind ViewModel.SelectedWslDistributionIndex, Mode=TwoWay}"
                             TabIndex="4" />
                     </Grid>
+                    </StackPanel>
+
+                    <Border
+                        Height="1"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            x:Uid="AboutTitle"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                x:Uid="CurrentVersionLabel"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock
+                                x:Name="CurrentVersionTextBlock"
+                                AutomationProperties.AutomationId="CurrentVersionTextBlock"
+                                AutomationProperties.LiveSetting="Polite"
+                                Grid.Column="1"
+                                MinWidth="144"
+                                VerticalAlignment="Center"
+                                Text="{x:Bind ViewModel.VersionDisplayText, Mode=OneWay}" />
+                            <Button
+                                x:Name="CheckForUpdatesButton"
+                                x:Uid="CheckForUpdatesButton"
+                                AutomationProperties.AutomationId="CheckForUpdatesButton"
+                                Grid.Column="2"
+                                MinHeight="32"
+                                Command="{x:Bind ViewModel.CheckForUpdatesCommand, Mode=OneWay}"
+                                TabIndex="5" />
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
-        </Border>
+            </Border>
+        </ScrollViewer>
     </Grid>
 </Page>

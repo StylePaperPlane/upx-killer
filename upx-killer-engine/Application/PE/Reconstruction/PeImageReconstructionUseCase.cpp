@@ -19,8 +19,9 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
     if (!imports) {
       if (progress) progress(EngineStage::RebuildingImports);
       auto discovered = pe::imports::ImportDiscovery::Discover(
-          evidence.runs.front().image.bytes, target.layout,
-          evidence.runs.front().runtimeImports);
+          evidence.runs.front().image.bytes, target.sourceBytes, target.layout,
+          evidence.runs.front().runtimeImports,
+          evidence.runs.front().entryPoint);
       if (!discovered.plan) {
         // A valid /NOENTRY DLL can have no imports at all. The packed source
         // still contains the loader stub's import directory, so only the

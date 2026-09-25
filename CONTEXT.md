@@ -121,6 +121,14 @@ _Avoid_: Process state, temporary file
 The use case that stages a reconstructed image, performs structural and loader validation through an adapter, and atomically promotes the validated artifact.
 _Avoid_: Fixer write, direct output stream
 
+**Release Catalog**:
+The replaceable source of the latest stable application version. The current adapter reads GitHub Releases; version comparison remains in Application and no network type crosses the seam.
+_Avoid_: update server, GitHub logic in the ViewModel
+
+**Update Bootstrap**:
+A future minimal process that verifies, stages, atomically activates, health-checks, and can roll back a complete application version after the running UI and hosts exit.
+_Avoid_: in-process binary replacement, unverified hot patch
+
 **ELF Target Image**:
 An ELF little-endian executable or shared object selected for unpacking. Production capability includes ELF32 x86 and ELF64 x86-64 fixed-address `ET_EXEC`, dynamically linked PIE, static PIE, and the validated UPX shared-object slice. Image Kind and Image Addressing remain format-neutral capability dimensions.
 _Avoid_: Linux file, extensionless executable, file-extension classification

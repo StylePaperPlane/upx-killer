@@ -51,6 +51,28 @@ Test-Ui 'WSL2 discovery selects an available distribution' {
     }
 }
 
+Test-Ui 'About section shows the current version' {
+    & $WinApp ui wait-for CurrentVersionTextBlock -a $AppPid --value 'v0.00.4' -t 3000
+}
+Test-Ui 'Update check is available' {
+    & $WinApp ui wait-for CheckForUpdatesButton -a $AppPid -p IsEnabled --value True -t 3000
+}
+Test-Ui 'Update check reports a result' {
+    & $WinApp ui invoke CheckForUpdatesButton -a $AppPid
+    if ($LASTEXITCODE -ne 0) { return }
+    $deadline = [DateTime]::UtcNow.AddSeconds(20)
+    do {
+        Start-Sleep -Milliseconds 250
+        $value = & $WinApp ui get-value CurrentVersionTextBlock -a $AppPid --json 2>$null |
+            ConvertFrom-Json
+        if (-not [string]::IsNullOrWhiteSpace([string]$value.text) -and
+            [string]$value.text -ne 'v0.00.4') {
+            return
+        }
+    } while ([DateTime]::UtcNow -lt $deadline)
+    throw 'The update check did not publish a result.'
+}
+
 $inspection = & $WinApp ui inspect -a $AppPid --interactive --json 2>$null | ConvertFrom-Json
 $elements = @($inspection.windows |
     Where-Object { @($_.elements.automationId) -contains 'RootNavigationView' } |

@@ -6,6 +6,7 @@
 #include "Infrastructure/Settings/LocalTemporaryFileSettingsStore.h"
 #include "Infrastructure/Settings/LocalWslRuntimeSettingsStore.h"
 #include "Infrastructure/WSL/Discovery/WslDistributionCatalog.h"
+#include "Infrastructure/Updates/GitHubReleaseCatalog.h"
 #include "Infrastructure/Storage/TemporaryFolderPicker.h"
 #include "Infrastructure/Storage/LocalTemporaryArtifactWorkspace.h"
 #include "UI/Composition/ConfigurationRouteFactory.h"
@@ -69,6 +70,8 @@ void App::OnLaunched([[maybe_unused]] LaunchActivatedEventArgs const& e) {
       std::make_shared<::upx_killer::infrastructure::TemporaryFolderPicker>();
   auto const wslDistributionCatalog =
       std::make_shared<::upx_killer::infrastructure::WslDistributionCatalog>();
+  auto const releaseCatalog =
+      std::make_shared<::upx_killer::infrastructure::GitHubReleaseCatalog>();
 
   auto const nativeWindow = mainWindow.as<::IWindowNative>();
   HWND ownerWindow{};
@@ -84,7 +87,7 @@ void App::OnLaunched([[maybe_unused]] LaunchActivatedEventArgs const& e) {
   routes.emplace_back(
       ::upx_killer::ui::composition::ConfigurationRouteFactory::Create(
           {ownerWindowHandle, temporaryFileSettings, folderPicker, wslSettings,
-           wslDistributionCatalog}));
+           wslDistributionCatalog, releaseCatalog}));
   get_self<MainWindow>(mainWindow)->InitializeShell(std::move(routes));
 
   window = mainWindow;

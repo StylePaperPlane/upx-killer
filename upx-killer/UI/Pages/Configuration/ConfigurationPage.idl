@@ -10,6 +10,8 @@ namespace upx_killer
         Windows.Foundation.Collections.IVector<String> WslDistributions{ get; };
         Int32 SelectedWslDistributionIndex;
         Microsoft.UI.Xaml.Input.ICommand RefreshWslDistributionsCommand{ get; };
+        String VersionDisplayText{ get; };
+        Microsoft.UI.Xaml.Input.ICommand CheckForUpdatesCommand{ get; };
     };
 
     runtimeclass ConfigurationPage : Microsoft.UI.Xaml.Controls.Page

@@ -10,7 +10,9 @@ namespace upx_killer::engine::pe::imports {
 class ImportDiscovery final {
  public:
   [[nodiscard]] static ImportDiscoveryResult Discover(
-      std::span<std::byte const> dumpedBytes, PeImageLayout const& sourceLayout,
-      RuntimeModuleSnapshot const& runtime) noexcept;
+      std::span<std::byte const> dumpedBytes,
+      std::span<std::byte const> sourceBytes, PeImageLayout const& sourceLayout,
+      RuntimeModuleSnapshot const& runtime,
+      RelativeVirtualAddress recoveredEntryPoint) noexcept;
 };
 }

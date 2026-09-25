@@ -31,13 +31,9 @@ ELF 脱壳依赖 **WSL2** 提供真实的 Linux 加载与 `ptrace` 调试环境�
 
 `wsl.exe` 只用于发现已安装的发行版；实际脱壳任务通过 Windows WSL API 启动。目标文件、相邻依赖和 Linux Host 会被暂存到独立任务目录，验证完成后再将脱壳结果复制回 Windows。
 
-> 当前 ELF 生产能力包括小端 **ELF64 x86-64** 与 **ELF32 x86** 可执行文件，均支持 `ET_EXEC`、动态 PIE 和 static PIE。ELF 共享对象仍待后续扩展。
+> 当前 ELF 生产能力包括小端 **ELF64 x86-64** 与 **ELF32 x86** 可执行文件，均支持 `ET_EXEC`、动态 PIE 和 static PIE。
 <br>
 <br>
-
-### 发布回归
-
-发布前使用 `scripts/stabilization-regression.ps1` 执行统一稳定化回归。该入口覆盖 Release 构建、原生测试、CMake/CTest、Filter 审计、四组 ELF32 PIE UPX fixture、双击启动约束、双语资源和 WinUI 基础自动化。
 
 <br>
 

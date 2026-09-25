@@ -4,7 +4,7 @@ param(
     [string]$Configuration = 'Release',
     [ValidateSet('x64')]
     [string]$Platform = 'x64',
-    [string]$Distribution = 'kali-linux',
+    [string]$Distribution = '',
     [string]$UpxPath = '',
     [string]$SharedObjectFixtureDirectory =
         'D:\Users\31007\Desktop\TXHook.Server\elf-shared-object-fixtures',
@@ -14,6 +14,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repository = Split-Path -Parent $PSScriptRoot
+. (Join-Path $repository 'upx-killer-elf-host\Resolve-WslDistribution.ps1')
+$Distribution = Resolve-WslDistribution -RequestedName $Distribution
 $solution = Join-Path $repository 'upx-killer.slnx'
 $releaseDirectory = Join-Path $repository "upx-killer\$Platform\$Configuration\upx-killer"
 $application = Join-Path $releaseDirectory 'upx_killer.exe'

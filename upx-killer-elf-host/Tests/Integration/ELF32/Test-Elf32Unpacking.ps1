@@ -1,10 +1,12 @@
 param(
-    [string]$Distribution = "kali-linux",
+    [string]$Distribution = "",
     [string]$Configuration = "Release"
 )
 
 $ErrorActionPreference = "Stop"
 $repository = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)))
+. (Join-Path $repository 'upx-killer-elf-host\Resolve-WslDistribution.ps1')
+$Distribution = Resolve-WslDistribution -RequestedName $Distribution
 $wsl = Join-Path $env:SystemRoot "System32\wsl.exe"
 $buildScript = Join-Path $repository "upx-killer-elf-host\Build-ElfHost.ps1"
 $testClient = Join-Path $repository "upx-killer-engine-tests\x64\$Configuration\upx-killer-engine-tests.exe"

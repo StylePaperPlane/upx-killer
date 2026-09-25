@@ -153,6 +153,17 @@ int RunLayerDependencyTests() {
       {"Application/"},
       "MainWindow must remain a navigation shell without use-case dependencies");
   failures += RequireAbsent(
+      *root / "upx-killer" / "Application" / "Updates",
+      {"#include \"Infrastructure/", "#include <Windows", "winrt/",
+       "WinHttp", "api.github.com"},
+      "Update workflow must remain portable and independent of its release catalog adapter");
+  failures += RequireAbsent(
+      *root / "upx-killer" / "UI" / "ViewModels" /
+          "ConfigurationViewModel.cpp",
+      {"GitHubReleaseCatalog", "WinHttp", "api.github.com",
+       "UpdateAvailability::"},
+      "Configuration ViewModel must delegate update transport and result presentation");
+  failures += RequireAbsent(
       *root / "upx-killer" / "Infrastructure" / "EngineHost" /
           "EngineHostClient.cpp",
       {"TemporaryFileSettings", "temp_directory_path", "remove_all",

@@ -21,7 +21,7 @@
   <PropertyGroup>
     <NMakeBuildCommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)Build-ElfHost.ps1" -Configuration $(Configuration)</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>$(NMakeBuildCommandLine)</NMakeReBuildCommandLine>
-    <NMakeCleanCommandLine>"$(SystemRoot)\System32\wsl.exe" -d kali-linux -- bash -lc "rm -rf /tmp/upx-killer-elf-host-$(Configuration)"</NMakeCleanCommandLine>
+    <NMakeCleanCommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)Build-ElfHost.ps1" -Configuration $(Configuration) -Clean</NMakeCleanCommandLine>
     <NMakeOutput>$(SolutionDir)upx-killer\x64\$(Configuration)\upx-killer\upx_killer_elf_host</NMakeOutput>
   </PropertyGroup>
   <ItemGroup>
@@ -72,6 +72,7 @@
     <None Include="Tests\Integration\ELF32\PIE\VerifyPieBehavior.sh" />
     <None Include="Tests\Integration\ELF\SharedObject\Test-ElfSharedObjectUnpacking.ps1" />
     <None Include="Build-ElfHost.ps1" />
+    <None Include="Resolve-WslDistribution.ps1" />
     <None Include="CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
