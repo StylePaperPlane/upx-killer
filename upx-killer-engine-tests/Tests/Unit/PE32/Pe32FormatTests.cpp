@@ -4,6 +4,7 @@
 #include "Core/PE/Parsing/PeParser.h"
 #include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Core/PE/Relocations/RelocationReconstructor.h"
+#include "Core/PE/Validation/RebuiltPeImageValidator.h"
 
 #include <Windows.h>
 
@@ -147,6 +148,40 @@ int RunPe32FormatTests() {
            "ASLR-enabled PE32 DLL separates stable evidence bases from its canonical output base");
   }
 
+  auto strippedWithStubRelocations = file;
+  auto* strippedNt = reinterpret_cast<IMAGE_NT_HEADERS32*>(
+      strippedWithStubRelocations.data() + 0x80);
+  strippedNt->FileHeader.Characteristics |= IMAGE_FILE_RELOCS_STRIPPED;
+  strippedNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC] = {0x2000, 12};
+  IMAGE_BASE_RELOCATION stubBlock{0x2000, 12};
+  std::memcpy(strippedWithStubRelocations.data() + 0x400, &stubBlock, sizeof(stubBlock));
+  auto* stubEntries = reinterpret_cast<WORD*>(strippedWithStubRelocations.data() + 0x408);
+  stubEntries[0] = static_cast<WORD>((IMAGE_REL_BASED_HIGHLOW << 12) | 0x20);
+  stubEntries[1] = 0;
+  auto stubPointer = std::uint32_t{0x00401100};
+  std::memcpy(strippedWithStubRelocations.data() + 0x420, &stubPointer,
+              sizeof(stubPointer));
+  auto strippedLayout = pe::PeParser::Parse(strippedWithStubRelocations);
+  expect(strippedLayout.layout && !strippedLayout.layout->sourceLoadPolicy.hasRelocations,
+         "stripped PE32 with shell relocation entries is fixed-base");
+  if (strippedLayout.layout) {
+    application::PeBackendCapabilities executableCapabilities{{
+        {upx_killer::contracts::BinaryFamily::Pe,
+         upx_killer::contracts::BinaryClass::Bits32,
+         upx_killer::contracts::CpuArchitecture::X86,
+         upx_killer::contracts::ImageKind::Executable},
+    }};
+    auto fixedPlan = application::pe_preparation::PeExecutionPlanFactory::Create(
+        *strippedLayout.layout, executableCapabilities);
+    expect(fixedPlan && fixedPlan->captureCount == 1 && !fixedPlan->rebuildRelocations &&
+               fixedPlan->captureBases[0].value == 0x00400000,
+           "stripped PE32 with a shell directory captures only the preferred base");
+    auto staged = pe::rebasing::PeFileRebaser::Rebase(
+        strippedWithStubRelocations, *strippedLayout.layout, LoadedAddress{0x00400000});
+    expect(staged.Succeeded() && staged.image && staged.image->sourceSlots.size() == 1,
+           "PE32 shell relocation directory is validated at the preferred base");
+  }
+
   auto oep = AnalyzePe32UpxTail();
   expect(oep.plan && oep.plan->candidates.size() == 1 &&
              oep.plan->candidates.front().transfer.value == 0x2181 &&
@@ -227,5 +262,24 @@ int RunPe32FormatTests() {
               (IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE |
                IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA)) == 0,
          "fixed-base PE32 output preserves its base without inventing relocations or ASLR");
+  if (strippedLayout.layout) {
+    auto strippedOutput = pe::PeImageFixer::Rebuild(
+        *strippedLayout.layout, fixedBaseDump,
+        {{0x1000}, ImportRebuildPlan{},
+         pe::fixing::FixedImagePlacement{LoadedAddress{0x00400000}}});
+    expect(strippedOutput.image.has_value(),
+           "fixed PE32 source with shell relocations can be rebuilt");
+    if (strippedOutput.image) {
+      auto validated = pe::validation::RebuiltPeImageValidator::Validate(
+          {strippedOutput.image->bytes, *strippedLayout.layout,
+           LoadedAddress{0x00400000}, LoadedAddress{0x10000000}, false,
+           std::nullopt});
+      expect(validated.Succeeded() &&
+                 validated.layout->directories[IMAGE_DIRECTORY_ENTRY_BASERELOC]
+                         .address.value == 0 &&
+                 (validated.layout->characteristics & IMAGE_FILE_RELOCS_STRIPPED) != 0,
+             "fixed output discards shell relocation metadata and validates");
+    }
+  }
   return failures;
 }

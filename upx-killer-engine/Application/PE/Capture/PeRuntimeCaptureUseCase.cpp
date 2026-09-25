@@ -19,7 +19,7 @@ PeRuntimeCaptureResult PeRuntimeCaptureUseCase::Execute(
     stagedImages.reserve(target.executionPlan.captureCount);
     for (std::size_t index = 0; index < target.executionPlan.captureCount; ++index) {
       auto const base = target.executionPlan.captureBases[index];
-      if (!target.hasSourceRelocations) {
+      if (!target.hasSourceRelocationDirectory) {
         auto staging = pe::rebasing::NoSourceRelocationsImagePreparer::Prepare(
             target.sourceBytes, target.layout, base);
         if (!staging.image) {
@@ -47,7 +47,7 @@ PeRuntimeCaptureResult PeRuntimeCaptureUseCase::Execute(
 
     PeCaptureEvidence evidence{};
     evidence.runs.reserve(stagedImages.size());
-    if (target.hasSourceRelocations && progress)
+    if (target.executionPlan.rebuildRelocations && progress)
       progress(EngineStage::CapturingRelocations);
     for (std::size_t index = 0; index < stagedImages.size(); ++index) {
       auto captured = snapshotCapture_.CaptureOne(
@@ -73,7 +73,7 @@ PeRuntimeCaptureResult PeRuntimeCaptureUseCase::Execute(
       }
       evidence.runs.push_back(std::move(*captured.capture));
     }
-    if (!stagedImages.empty())
+    if (target.executionPlan.rebuildRelocations && !stagedImages.empty())
       evidence.sourceRelocationSlots = std::move(stagedImages.front().sourceSlots);
     return {std::move(evidence), PeCaptureError::None};
   } catch (...) {

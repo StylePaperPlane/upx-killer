@@ -78,7 +78,8 @@ upx_killer::engine::pe::PeParseResult ParseTyped(
       optional.ImageBase,
       (optional.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE) != 0,
       (optional.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA) != 0,
-      relocations.address.value != 0 && relocations.size != 0};
+      (fileHeader.Characteristics & IMAGE_FILE_RELOCS_STRIPPED) == 0 &&
+          relocations.address.value != 0 && relocations.size != 0};
 
   std::uint64_t previousEnd{};
   for (std::uint16_t index = 0; index < fileHeader.NumberOfSections; ++index) {

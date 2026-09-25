@@ -65,9 +65,9 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
 
     auto const& relocationDirectory =
         parsed.layout->directories[BaseRelocationDirectoryIndex];
-    auto const hasSourceRelocations =
+    auto const hasSourceRelocationDirectory =
         relocationDirectory.address.value != 0 || relocationDirectory.size != 0;
-    if (!hasSourceRelocations &&
+    if (!hasSourceRelocationDirectory &&
         !std::holds_alternative<pe::oep::OepDiscoveryPlan>(entryPointTarget)) {
       return {std::nullopt, PePreparationError::SourceRelocationsInvalid};
     }
@@ -79,7 +79,7 @@ PePreparationResult PeTargetPreparationUseCase::Execute(
     prepared.layout = std::move(*parsed.layout);
     prepared.entryPointTarget = std::move(entryPointTarget);
     prepared.executionPlan = *executionPlan;
-    prepared.hasSourceRelocations = hasSourceRelocations;
+    prepared.hasSourceRelocationDirectory = hasSourceRelocationDirectory;
     return {std::move(prepared), PePreparationError::None};
   } catch (...) {
     return {std::nullopt, PePreparationError::UnexpectedFailure};

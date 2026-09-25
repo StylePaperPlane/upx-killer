@@ -13,7 +13,7 @@ Whether a PE Target Image is an Executable or a Dynamic Library. Image Kind cont
 _Avoid_: File extension, launch mode
 
 **Source Load Policy**:
-The Target Image's preferred base, `DYNAMIC_BASE`, `HIGH_ENTROPY_VA`, and validated relocation availability. The Repaired Image preserves this intent instead of enabling ASLR merely because a relocation table can be built.
+The Target Image's preferred base, `DYNAMIC_BASE`, `HIGH_ENTROPY_VA`, and eligibility for controlled-base relocation. A nonempty Base Relocation Directory does not grant that eligibility when `RELOCS_STRIPPED` requires fixed-base loading; such a directory can describe only packer-stub data. The Repaired Image preserves the source's placement intent.
 _Avoid_: Output ASLR preference, fixer defaults
 
 **DLL Loader**:
@@ -78,7 +78,7 @@ A Memory Dump captured after the same supported target reaches the same OEP RVA 
 _Avoid_: Random ASLR dump, rebased output
 
 **Source Relocation Evidence**:
-Validated DIR64 slots read from the Target Image's Base Relocation Directory. These slots are used only to prepare controlled-base copies and to exclude unchanged packer-stub residue.
+Validated relocation slots read from the Target Image's Base Relocation Directory. They prepare source copies and exclude unchanged packer-stub residue when relocation reconstruction is eligible. A fixed-base source can still have validated stub slots without requiring multiple snapshots or retaining those slots in the Repaired Image.
 _Avoid_: Reconstructed relocations, guessed pointers
 
 **No Source Relocations Path**:

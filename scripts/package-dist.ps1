@@ -77,25 +77,39 @@ Get-ChildItem -LiteralPath $sourceDirectory -Recurse -File |
     }
 
 $runScript = @'
-[CmdletBinding()]
 param(
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$Argument
 )
 
 $ErrorActionPreference = 'Stop'
-$distributionDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'upx-killer'))
+
+$distributionDirectory = [System.IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot 'upx-killer')
+)
+
 $applicationPath = Join-Path $distributionDirectory 'upx_killer.exe'
 
 if (-not (Test-Path -LiteralPath $applicationPath -PathType Leaf)) {
     throw "upx_killer.exe was not found in the upx-killer payload directory: $applicationPath"
 }
 
-$process = Start-Process -FilePath $applicationPath `
-    -WorkingDirectory $distributionDirectory `
-    -ArgumentList $Argument `
-    -PassThru `
-    -Wait
+if ($null -eq $Argument -or $Argument.Count -eq 0) {
+    $process = Start-Process `
+        -FilePath $applicationPath `
+        -WorkingDirectory $distributionDirectory `
+        -PassThru `
+        -Wait
+}
+else {
+    $process = Start-Process `
+        -FilePath $applicationPath `
+        -WorkingDirectory $distributionDirectory `
+        -ArgumentList $Argument `
+        -PassThru `
+        -Wait
+}
+
 exit $process.ExitCode
 '@
 Set-Content -LiteralPath (Join-Path $destinationDirectory 'run.ps1') -Value $runScript -Encoding utf8NoBOM

@@ -50,7 +50,8 @@ struct PreparedPeTarget {
   pe::PeImageLayout layout;
   std::variant<RelativeVirtualAddress, pe::oep::OepDiscoveryPlan> entryPointTarget;
   PeExecutionPlan executionPlan;
-  bool hasSourceRelocations{};
+  // Selects source staging; the execution plan separately decides output placement.
+  bool hasSourceRelocationDirectory{};
 };
 
 struct PePreparationResult {

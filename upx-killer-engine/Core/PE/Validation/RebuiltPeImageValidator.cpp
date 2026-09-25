@@ -16,7 +16,7 @@ RebuiltPeImageValidationResult RebuiltPeImageValidator::Validate(
 
   auto const& relocations =
       parsed.layout->directories[IMAGE_DIRECTORY_ENTRY_BASERELOC];
-  if (!request.hasSourceRelocations) {
+  if (!request.expectRebuiltRelocations) {
     auto const forbiddenFlags = IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE |
                                 IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA;
     if (parsed.layout->preferredImageBase !=

@@ -72,6 +72,17 @@ int RunPeJobContractTranslatorTests() {
              timedOut.detailCode == "job.timed_out" && timedOut.nativeCode == 258,
          "snapshot timeout remains local until contract translation", failures);
 
+  auto crashed = PeJobContractTranslator::CaptureFailure(
+      {std::nullopt,
+       engine::application::pe_capture::PeCaptureError::SnapshotFailed,
+       engine::application::pe_capture::PeSnapshotCaptureError::TargetExited,
+       0xC0000005});
+  Expect(crashed.outcome == contracts::JobOutcome::Failed &&
+             crashed.category == contracts::ErrorCategory::Execution &&
+             crashed.detailCode == "pe.capture.failed" &&
+             crashed.nativeCode == 0xC0000005,
+         "target exception remains a capture failure with its native code", failures);
+
   engine::application::artifacts::PublishedArtifact artifact{
       L"sample.dumped.exe", contracts::ArtifactQuality::Complete, true, {}};
   auto published = PeJobContractTranslator::Publication(

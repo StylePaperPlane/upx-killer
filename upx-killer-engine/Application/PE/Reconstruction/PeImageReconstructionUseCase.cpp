@@ -43,7 +43,7 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
 
     pe::fixing::ImagePlacementPlan imagePlacement;
     std::optional<std::size_t> expectedRelocationCount;
-    if (!target.hasSourceRelocations) {
+    if (!target.executionPlan.rebuildRelocations) {
       imagePlacement = pe::fixing::FixedImagePlacement{
           LoadedAddress{target.layout.preferredImageBase}};
     } else {
@@ -90,7 +90,7 @@ PeImageReconstructionResult PeImageReconstructionUseCase::Execute(
       return {std::nullopt, PeReconstructionError::FixingFailed, fixed.error};
     auto validation = pe::validation::RebuiltPeImageValidator::Validate(
         {fixed.image->bytes, target.layout, target.executionPlan.outputBase,
-         target.executionPlan.validationBase, target.hasSourceRelocations,
+         target.executionPlan.validationBase, target.executionPlan.rebuildRelocations,
          expectedRelocationCount});
     if (!validation.layout) {
       if (validation.error ==

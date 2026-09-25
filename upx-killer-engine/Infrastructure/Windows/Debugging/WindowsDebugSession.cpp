@@ -144,6 +144,7 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
   DWORD entryThreadId{};
   std::uint64_t entryStackPointer{};
   bool processAttachValidated{request.imageKind == pe::PeImageKind::Executable};
+  std::optional<std::uint32_t> unhandledExceptionCode;
   std::vector<std::array<std::byte, ValidationByteCount> > baselines;
   if (discovery) baselines.resize(discovery->candidates.size());
 
@@ -341,13 +342,17 @@ DebugCaptureResult WindowsDebugSession::Capture(DebugLaunchRequest const& reques
         }
       } else if (!IsBreakpointException(exception.ExceptionCode)) {
         continueStatus = DBG_EXCEPTION_NOT_HANDLED;
+        if (event.dwProcessId == process->ProcessId() &&
+            event.u.Exception.dwFirstChance == 0)
+          unhandledExceptionCode = exception.ExceptionCode;
       }
     } else if (event.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT) {
       terminal = true;
       terminalEventIsExit = true;
-      terminalError = discovery ? DebugSessionError::EntryPointNotFound
-                                : DebugSessionError::TargetExited;
-      terminalNativeError = event.u.ExitProcess.dwExitCode;
+      terminalError = discovery && !unhandledExceptionCode
+                          ? DebugSessionError::EntryPointNotFound
+                          : DebugSessionError::TargetExited;
+      terminalNativeError = unhandledExceptionCode.value_or(event.u.ExitProcess.dwExitCode);
     }
 
     CloseDebugEventHandles(event);

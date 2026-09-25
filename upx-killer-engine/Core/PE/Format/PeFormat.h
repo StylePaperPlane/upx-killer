@@ -17,6 +17,7 @@ struct SourceLoadPolicy {
   std::uint64_t preferredImageBase{};
   bool dynamicBase{};
   bool highEntropyVa{};
+  // Eligible for controlled-base relocation, not merely a nonempty directory.
   bool hasRelocations{};
 };
 }

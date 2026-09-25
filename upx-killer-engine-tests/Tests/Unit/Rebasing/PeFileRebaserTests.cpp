@@ -1,3 +1,5 @@
+#include "Application/PE/Capture/PeRuntimeCaptureUseCase.h"
+#include "Application/PE/Preparation/PeExecutionPlanFactory.h"
 #include "Core/PE/Rebasing/PeFileRebaser.h"
 #include "Core/PE/Parsing/PeParser.h"
 
@@ -11,6 +13,21 @@
 
 namespace {
 using namespace upx_killer::engine;
+
+class RecordingSnapshotCapture final : public application::pe_capture::IPeSnapshotCapture {
+ public:
+  application::pe_capture::PeSnapshotCaptureResult CaptureOne(
+      application::pe_capture::PeSnapshotCaptureRequest const& request,
+      std::function<void(EngineStage)> const&, std::stop_token) const noexcept override {
+    bases.push_back(request.requiredBase.value);
+    application::pe_capture::PeCapturedRun run{};
+    run.image.loadedAddress = {request.requiredBase.value};
+    run.entryPoint = {0x1000};
+    return {std::move(run), application::pe_capture::PeSnapshotCaptureError::None};
+  }
+
+  mutable std::vector<std::uint64_t> bases;
+};
 
 std::vector<std::byte> MakeRelocatablePe() {
   std::vector<std::byte> bytes(0x600);
@@ -97,6 +114,52 @@ int RunPeFileRebaserTests() {
            "source relocation evidence is preserved for stub-residue filtering");
   }
 
+  application::PeBackendCapabilities capabilities{{
+      {upx_killer::contracts::BinaryFamily::Pe,
+       upx_killer::contracts::BinaryClass::Bits64,
+       upx_killer::contracts::CpuArchitecture::X64,
+       upx_killer::contracts::ImageKind::Executable},
+  }};
+  auto relocatablePlan = application::pe_preparation::PeExecutionPlanFactory::Create(
+      *parsed.layout, capabilities);
+  expect(parsed.layout->sourceLoadPolicy.hasRelocations && relocatablePlan &&
+             relocatablePlan->captureCount == 3 && relocatablePlan->rebuildRelocations,
+         "unstripped source relocation directory keeps three controlled captures");
+
+  auto stripped = source;
+  auto* strippedNt = reinterpret_cast<IMAGE_NT_HEADERS64*>(stripped.data() + 0x80);
+  strippedNt->FileHeader.Characteristics |= IMAGE_FILE_RELOCS_STRIPPED;
+  auto strippedLayout = pe::PeParser::Parse(stripped);
+  expect(strippedLayout.layout && !strippedLayout.layout->sourceLoadPolicy.hasRelocations,
+         "stripped PE64 with a shell relocation directory is fixed-base");
+  if (strippedLayout.layout) {
+    auto fixedPlan = application::pe_preparation::PeExecutionPlanFactory::Create(
+        *strippedLayout.layout, capabilities);
+    expect(fixedPlan && !fixedPlan->rebuildRelocations && fixedPlan->captureCount == 1 &&
+               fixedPlan->captureBases[0].value == strippedLayout.layout->preferredImageBase,
+           "stripped PE64 requests only its preferred base");
+    if (fixedPlan) {
+      application::pe_preparation::PreparedPeTarget target{};
+      target.sourceBytes = stripped;
+      target.layout = *strippedLayout.layout;
+      target.entryPointTarget = RelativeVirtualAddress{0x1000};
+      target.executionPlan = *fixedPlan;
+      target.hasSourceRelocationDirectory = true;
+      RecordingSnapshotCapture snapshot;
+      application::pe_capture::PeRuntimeCaptureUseCase capture{snapshot};
+      UnpackRequest request{};
+      auto result = capture.Execute(request, target);
+      expect(result.Succeeded() && snapshot.bases.size() == 1 &&
+                 snapshot.bases.front() == strippedLayout.layout->preferredImageBase,
+             "fixed source with a shell relocation directory captures once");
+    }
+    auto staged = pe::rebasing::PeFileRebaser::Rebase(
+        stripped, *strippedLayout.layout,
+        LoadedAddress{strippedLayout.layout->preferredImageBase});
+    expect(staged.Succeeded() && staged.image && staged.image->sourceSlots.size() == 1,
+           "shell relocation entries remain validated at the preferred base");
+  }
+
   auto malformed = source;
   auto* entries = reinterpret_cast<WORD*>(malformed.data() + 0x408);
   entries[0] = static_cast<WORD>((IMAGE_REL_BASED_HIGHLOW << 12) | 0x20);
@@ -105,5 +168,16 @@ int RunPeFileRebaserTests() {
                                                       LoadedAddress{0x180000000ull});
   expect(rejected.error == pe::rebasing::PeFileRebaseError::UnsupportedRelocationType,
          "non-DIR64 source relocations are rejected");
+  if (strippedLayout.layout) {
+    auto malformedStripped = stripped;
+    auto* malformedEntries = reinterpret_cast<WORD*>(malformedStripped.data() + 0x408);
+    malformedEntries[0] = static_cast<WORD>((IMAGE_REL_BASED_HIGHLOW << 12) | 0x20);
+    auto malformedStrippedLayout = pe::PeParser::Parse(malformedStripped);
+    auto rejectedFixed = pe::rebasing::PeFileRebaser::Rebase(
+        malformedStripped, *malformedStrippedLayout.layout,
+        LoadedAddress{strippedLayout.layout->preferredImageBase});
+    expect(rejectedFixed.error == pe::rebasing::PeFileRebaseError::UnsupportedRelocationType,
+           "fixed-base staging rejects malformed shell relocation entries");
+  }
   return failures;
 }

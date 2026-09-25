@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -93,6 +94,45 @@ int RunHostIntegrationTests() {
       expect(fourth.Succeeded(),
              "repaired artifact reaches OEP at a fourth controlled base");
     }
+  }
+
+  std::optional<std::size_t> entryRaw;
+  for (auto const& section : parsed.layout->sections) {
+    if (parsed.layout->entryPoint.value >= section.virtualAddress.value &&
+        parsed.layout->entryPoint.value - section.virtualAddress.value < section.rawSize) {
+      entryRaw = section.rawOffset.value +
+                 parsed.layout->entryPoint.value - section.virtualAddress.value;
+      break;
+    }
+  }
+  expect(entryRaw && *entryRaw + 2 <= bytes.size(),
+         "debugger exit fixture has a file-backed entry point");
+  if (entryRaw && *entryRaw + 2 <= bytes.size()) {
+    auto runBeforeCandidate = [&](std::byte first, std::byte second) {
+      auto staged = bytes;
+      staged[*entryRaw] = first;
+      staged[*entryRaw + 1] = second;
+      engine::pe::oep::OepDiscoveryPlan discovery{};
+      discovery.packedEntryPoint = parsed.layout->entryPoint;
+      discovery.candidates.push_back({
+          engine::pe::oep::OepTransferKind::DirectJump,
+          {parsed.layout->entryPoint.value + 0x20},
+          {parsed.layout->entryPoint.value + 0x40},
+          {parsed.layout->entryPoint.value + 0x40}});
+      return engine::debugging::WindowsDebugSession::Capture(
+          {fixture, parsed.layout->format, parsed.layout->imageKind,
+           std::move(discovery), parsed.layout->sizeOfImage,
+           std::chrono::seconds{10}, false, staged,
+           std::nullopt},
+          [](auto const&, auto const&, auto, auto const&) { return false; });
+    };
+    auto cleanExit = runBeforeCandidate(bytes[*entryRaw], bytes[*entryRaw + 1]);
+    expect(cleanExit.error == engine::debugging::DebugSessionError::EntryPointNotFound,
+           "normal exit before a candidate remains an OEP evidence failure");
+    auto crash = runBeforeCandidate(std::byte{0x0f}, std::byte{0x0b});
+    expect(crash.error == engine::debugging::DebugSessionError::TargetExited &&
+               crash.nativeError == EXCEPTION_ILLEGAL_INSTRUCTION,
+           "unhandled target exception is not reported as missing OEP");
   }
   std::error_code ignored;
   std::filesystem::remove(output, ignored);

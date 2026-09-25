@@ -20,7 +20,7 @@ struct RebuiltPeImageValidationRequest {
   PeImageLayout const& sourceLayout;
   LoadedAddress outputBase;
   LoadedAddress relocationValidationBase;
-  bool hasSourceRelocations{};
+  bool expectRebuiltRelocations{};
   std::optional<std::size_t> expectedRelocationCount;
 };
 
