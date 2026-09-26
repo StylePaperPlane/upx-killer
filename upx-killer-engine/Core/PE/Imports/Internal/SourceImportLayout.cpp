@@ -8,8 +8,10 @@
 #include <cstring>
 #include <limits>
 #include <optional>
+#include <string>
 
 namespace {
+using namespace upx_killer::engine;
 using namespace upx_killer::engine::pe;
 using namespace upx_killer::engine::pe::imports::internal;
 
@@ -56,7 +58,8 @@ std::optional<std::uint32_t> NameLength(std::span<std::byte const> bytes,
 }
 
 bool HasImportName(std::span<std::byte const> bytes, PeImageLayout const& layout,
-                   std::uint64_t thunk, std::vector<ImportRange>& ranges) noexcept {
+                   std::uint64_t thunk, std::vector<ImportRange>& ranges,
+                   ImportSymbol& symbol) noexcept {
   if (thunk > std::numeric_limits<std::uint32_t>::max() - sizeof(WORD)) return false;
   WORD hint{};
   auto const name = static_cast<std::uint32_t>(thunk) + static_cast<std::uint32_t>(sizeof(hint));
@@ -64,13 +67,24 @@ bool HasImportName(std::span<std::byte const> bytes, PeImageLayout const& layout
   auto const length = NameLength(bytes, layout, name);
   if (!length || *length > std::numeric_limits<std::uint32_t>::max() - name) return false;
   ranges.push_back({static_cast<std::uint32_t>(thunk), name + *length});
+  symbol.hint = hint;
+  std::string value;
+  value.reserve(*length - 1);
+  for (std::uint32_t index = 0; index + 1 < *length; ++index) {
+    char character{};
+    if (!Read(bytes, layout, name + index, character)) return false;
+    value.push_back(character);
+  }
+  symbol.name = std::move(value);
   return true;
 }
 
 bool AddThunkRanges(std::span<std::byte const> bytes, PeImageLayout const& layout,
                     IMAGE_IMPORT_DESCRIPTOR const& descriptor, std::size_t pointerSize,
                     std::uint64_t ordinalFlag, std::vector<ImportRange>& ranges,
-                    std::uint32_t& totalThunks) noexcept {
+                    std::uint32_t& totalThunks,
+                    std::string const& moduleName,
+                    std::vector<ImportProviderHint>& providers) noexcept {
   if (descriptor.FirstThunk == 0) return false;
   auto const lookup =
       descriptor.OriginalFirstThunk != 0 ? descriptor.OriginalFirstThunk : descriptor.FirstThunk;
@@ -104,11 +118,14 @@ bool AddThunkRanges(std::span<std::byte const> bytes, PeImageLayout const& layou
     }
     if (++totalThunks > MaximumThunks) return false;
     if (firstThunkValue == 0) return false;
+    ImportSymbol symbol{};
     if ((lookupValue & ordinalFlag) != 0) {
       if ((lookupValue & 0xffffu) == 0) return false;
-    } else if (!HasImportName(bytes, layout, lookupValue, ranges)) {
+      symbol.ordinal = static_cast<std::uint16_t>(lookupValue & 0xffffu);
+    } else if (!HasImportName(bytes, layout, lookupValue, ranges, symbol)) {
       return false;
     }
+    providers.push_back({firstThunkRva, moduleName, std::move(symbol)});
   }
   return false;
 }
@@ -131,6 +148,7 @@ SourceImportLayoutResult SourceImportLayout::Analyze(std::span<std::byte const> 
                                  : format::Pe64Traits::OrdinalFlag;
     auto const limit = std::min(directory.size / DescriptorSize, MaximumDescriptors);
     std::vector<ImportRange> ranges;
+    std::vector<ImportProviderHint> providers;
     std::uint32_t totalThunks{};
     bool terminated{};
     for (std::uint32_t index = 0; index < limit; ++index) {
@@ -145,17 +163,27 @@ SourceImportLayoutResult SourceImportLayout::Analyze(std::span<std::byte const> 
         break;
       }
       auto const nameLength = NameLength(sourceBytes, layout, descriptor.Name);
+      std::string moduleName;
+      if (nameLength) {
+        moduleName.reserve(*nameLength - 1);
+        for (std::uint32_t character = 0; character + 1 < *nameLength; ++character) {
+          char value{};
+          if (!Read(sourceBytes, layout, descriptor.Name + character, value)) return {};
+          moduleName.push_back(value);
+        }
+      }
       if (!nameLength ||
+          moduleName.find('.') == std::string::npos ||
           *nameLength > std::numeric_limits<std::uint32_t>::max() - descriptor.Name ||
           !AddThunkRanges(sourceBytes, layout, descriptor, pointerSize, ordinalFlag, ranges,
-                          totalThunks))
+                          totalThunks, moduleName, providers))
         return {};
       ranges.push_back({descriptor.Name, descriptor.Name + *nameLength});
     }
     if (!terminated) return {};
     std::sort(ranges.begin(), ranges.end(),
               [](auto const& left, auto const& right) { return left.begin < right.begin; });
-    return {true, std::move(ranges)};
+    return {true, std::move(ranges), std::move(providers)};
   } catch (...) {
     return {};
   }

@@ -1,19 +1,18 @@
 #include "Core/PE/Imports/ImportDiscovery.h"
 
 #include "Core/PE/Format/PeFormatTraits.h"
+#include "Core/PE/Imports/Internal/ImportProviderResolver.h"
 #include "Core/PE/Imports/Internal/SourceImportLayout.h"
+#include "Core/PE/Imports/Internal/UpxImportHint.h"
 
 #include <Windows.h>
 
 #include <algorithm>
-#include <cctype>
 #include <cstring>
 #include <iterator>
 #include <limits>
-#include <map>
 #include <set>
 #include <string>
-#include <string_view>
 
 namespace {
 using namespace upx_killer::engine;
@@ -21,13 +20,6 @@ using namespace upx_killer::engine::pe;
 using namespace upx_killer::engine::pe::imports;
 
 constexpr std::size_t MaximumSlots = 16'384;
-
-std::string NormalizeModule(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(),
-                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-  if (value.find('.') == std::string::npos) value += ".dll";
-  return value;
-}
 
 bool IsWritable(PeSection const& section) noexcept {
   return (section.characteristics & IMAGE_SCN_MEM_WRITE) != 0;
@@ -55,92 +47,22 @@ bool IsZeroPointer(std::span<std::byte const> bytes, std::uint32_t rva,
   return ReadPointer(bytes, rva, pointerSize, value) && value == 0;
 }
 
-struct Match {
-  std::string module;
-  ImportSymbol symbol;
-};
-
-struct AddressEntry {
-  std::vector<Match> matches;
-};
-
-bool AddMatch(std::map<std::uint64_t, AddressEntry>& index, RuntimeExport const& exported) {
-  // PE imports may target exported data as well as executable functions.
-  // The IAT run boundary and single-module checks below provide the
-  // structural evidence; executable page membership is not an import invariant.
-  if (exported.address.value == 0 || exported.moduleName.empty())
-    return true;
-  if (!exported.name && !exported.ordinal) return true;
-  ImportSymbol symbol{};
-  symbol.name = exported.name;
-  if (!symbol.name) symbol.ordinal = exported.ordinal;
-  auto& entry = index[exported.address.value];
-  auto const module = NormalizeModule(exported.moduleName);
-  // A DLL may expose multiple aliases at one address. They are
-  // equivalent for rebuilding the IAT; ambiguity only remains when
-  // different provider modules claim the same runtime address.
-  auto const duplicateModule =
-      std::find_if(entry.matches.begin(), entry.matches.end(),
-                   [&](Match const& existing) { return existing.module == module; });
-  if (duplicateModule == entry.matches.end()) entry.matches.push_back({module, std::move(symbol)});
-  return true;
-}
-
 bool AddCandidate(std::vector<ImportModulePlan>& modules, std::uint32_t firstThunk,
-                  Match const& match, std::size_t pointerSize) {
-  if (match.module.empty() || (!match.symbol.name && !match.symbol.ordinal)) return false;
+                  internal::ResolvedImportProvider const& match, std::size_t pointerSize) {
+  if (match.moduleName.empty() || (!match.symbol.name && !match.symbol.ordinal)) return false;
 
-  if (!modules.empty() && modules.back().moduleName == match.module &&
+  if (!modules.empty() && modules.back().moduleName == match.moduleName &&
       modules.back().firstThunk.value + modules.back().symbols.size() * pointerSize ==
           firstThunk) {
     modules.back().symbols.push_back(match.symbol);
     return true;
   }
   ImportModulePlan module{};
-  module.moduleName = match.module;
+  module.moduleName = match.moduleName;
   module.firstThunk = {firstThunk};
   module.symbols.push_back(match.symbol);
   modules.push_back(std::move(module));
   return true;
-}
-
-int ModulePriority(std::string const& module) noexcept {
-  if (module.rfind("api-", 0) == 0) return 100;
-  if (module == "kernel32.dll" || module == "user32.dll" || module == "advapi32.dll") return 90;
-  if (module == "ucrtbase.dll" || module == "vcruntime140.dll" || module == "msvcp140.dll")
-    return 80;
-  if (module == "kernelbase.dll" || module == "ntdll.dll") return 10;
-  return 50;
-}
-
-std::optional<Match> SelectMatch(AddressEntry const& entry,
-                                 std::string_view preferredModule) {
-  if (!preferredModule.empty()) {
-    auto const preferred = std::find_if(
-        entry.matches.begin(), entry.matches.end(), [&](Match const& match) {
-          return match.module == preferredModule;
-        });
-    if (preferred != entry.matches.end()) return *preferred;
-  }
-  if (entry.matches.empty()) return std::nullopt;
-  if (entry.matches.size() == 1) return entry.matches.front();
-
-  auto selected = entry.matches.front();
-  auto selectedPriority = ModulePriority(selected.module);
-  bool tie{};
-  for (std::size_t index = 1; index < entry.matches.size(); ++index) {
-    auto const priority = ModulePriority(entry.matches[index].module);
-    if (priority > selectedPriority) {
-      selected = entry.matches[index];
-      selectedPriority = priority;
-      tie = false;
-    } else if (priority == selectedPriority &&
-               entry.matches[index].module != selected.module) {
-      tie = true;
-    }
-  }
-  if (tie) return std::nullopt;
-  return selected;
 }
 
 }
@@ -162,20 +84,22 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
     // A source import table is loader residue only when execution has moved
     // from the packed entry point to a recovered one. In an ordinary PE it is
     // the program's own table even if the optional IAT Directory is absent.
-    auto const sourceImports =
+    auto const shellImports =
         sourceLayout.entryPoint.value != recoveredEntryPoint.value &&
-                iatDirectory.address.value == 0 && iatDirectory.size == 0
+        iatDirectory.address.value == 0 && iatDirectory.size == 0;
+    auto const sourceImports =
+        importDirectory.address.value != 0 || importDirectory.size != 0
             ? internal::SourceImportLayout::Analyze(sourceBytes, sourceLayout)
-            : internal::SourceImportLayoutResult{true, {}};
+            : internal::SourceImportLayoutResult{true, {}, {}};
     auto const isSourceImport = [&](std::uint32_t rva) {
-      return std::any_of(sourceImports.occupiedRanges.begin(),
+      return shellImports && std::any_of(sourceImports.occupiedRanges.begin(),
                          sourceImports.occupiedRanges.end(),
                          [rva, pointerSize](auto const& range) {
                            return range.Overlaps(rva, pointerSize);
                          });
     };
     auto const unverifiedSourceDirectory = [&](std::uint32_t rva) {
-      return !sourceImports.complete && importDirectory.address.value != 0 &&
+      return shellImports && !sourceImports.complete && importDirectory.address.value != 0 &&
              importDirectory.size <= sourceLayout.sizeOfImage -
                                          std::min(importDirectory.address.value,
                                                   sourceLayout.sizeOfImage) &&
@@ -183,13 +107,13 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
              rva - importDirectory.address.value < importDirectory.size;
     };
 
-    std::map<std::uint64_t, AddressEntry> addressIndex;
-    for (auto const& module : runtime.modules) {
-      if (module.moduleName.empty() || module.imageSize == 0) continue;
-      for (auto const& exported : module.exports) AddMatch(addressIndex, exported);
-    }
+    internal::ImportProviderResolver providers{runtime};
 
-    std::vector<ImportModulePlan> plans;
+    struct ObservedSlot {
+      std::uint32_t rva{};
+      std::uint64_t address{};
+    };
+    std::vector<ObservedSlot> slots;
     std::set<std::uint32_t> acceptedSlots;
     std::size_t matchedSlots{};
     bool unverifiedCandidate{};
@@ -249,8 +173,7 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
             rva += scanStep;
             continue;
           }
-          auto found = addressIndex.find(target);
-          if (found == addressIndex.end()) {
+          if (!providers.Contains(target)) {
             rva += scanStep;
             continue;
           }
@@ -265,8 +188,7 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
             if (isSourceImport(runEnd) || unverifiedSourceDirectory(runEnd)) break;
             std::uint64_t runTarget{};
             if (!ReadPointer(dumpedBytes, runEnd, pointerSize, runTarget) || runTarget == 0) break;
-            auto const runMatch = addressIndex.find(runTarget);
-            if (runMatch == addressIndex.end()) break;
+            if (!providers.Contains(runTarget)) break;
             ++runLength;
             runEnd += static_cast<std::uint32_t>(pointerSize);
           }
@@ -285,7 +207,6 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
             rva += scanStep;
             continue;
           }
-          std::string previousModule;
           for (auto slot = rva; slot < runEnd; slot += static_cast<std::uint32_t>(pointerSize)) {
             auto const next = acceptedSlots.lower_bound(slot);
             if (next != acceptedSlots.end() && *next == slot) continue;
@@ -296,14 +217,7 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
             std::uint64_t slotTarget{};
             if (!ReadPointer(dumpedBytes, slot, pointerSize, slotTarget))
               return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
-            auto const slotMatch = addressIndex.find(slotTarget);
-            auto selected = slotMatch != addressIndex.end()
-                                ? SelectMatch(slotMatch->second, previousModule)
-                                : std::nullopt;
-            if (!selected || !AddCandidate(plans, slot, *selected, pointerSize)) {
-              return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous, {}};
-            }
-            previousModule = selected->module;
+            slots.push_back({slot, slotTarget});
             ++matchedSlots;
             if (matchedSlots > MaximumSlots)
               return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
@@ -316,17 +230,76 @@ ImportDiscoveryResult ImportDiscovery::Discover(std::span<std::byte const> dumpe
 
     if (unverifiedCandidate)
       return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous, {}};
-    if (plans.empty()) {
+    std::vector<internal::ImportProviderHint> hints =
+        !shellImports && sourceImports.complete
+            ? sourceImports.providers
+            : std::vector<internal::ImportProviderHint>{};
+    auto hintAt = [&](std::uint32_t rva) -> std::optional<internal::ImportProviderHint> {
+      auto const found = std::find_if(hints.begin(), hints.end(),
+                                     [rva](auto const& hint) { return hint.slotRva == rva; });
+      return found == hints.end() ? std::nullopt : std::optional{*found};
+    };
+    auto requiresHints = shellImports || slots.empty();
+    if (!requiresHints)
+      for (auto const& slot : slots)
+        if (!providers.Resolve(slot.address, hintAt(slot.rva))) {
+          requiresHints = true;
+          break;
+        }
+    std::vector<std::string> warnings;
+    auto rejectHint = [&](std::uint32_t rva) {
+      warnings.push_back("upx_hint_rejected:rva=" + std::to_string(rva));
+    };
+    if (requiresHints && shellImports) {
+      hints = internal::UpxImportHint::Analyze(
+          dumpedBytes, sourceBytes, sourceLayout, recoveredEntryPoint);
+      for (auto const& hint : hints) {
+        if (acceptedSlots.contains(hint.slotRva)) continue;
+        std::uint64_t target{};
+        if (isSourceImport(hint.slotRva) ||
+            !ReadPointer(dumpedBytes, hint.slotRva, pointerSize, target) || target == 0 ||
+            !providers.Resolve(target, hint)) {
+          rejectHint(hint.slotRva);
+          continue;
+        }
+        auto const next = acceptedSlots.lower_bound(hint.slotRva);
+        if ((next != acceptedSlots.end() && *next - hint.slotRva < pointerSize) ||
+            (next != acceptedSlots.begin() && hint.slotRva - *std::prev(next) < pointerSize)) {
+          rejectHint(hint.slotRva);
+          continue;
+        }
+        if (acceptedSlots.size() >= MaximumSlots)
+          return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
+        acceptedSlots.insert(hint.slotRva);
+        slots.push_back({hint.slotRva, target});
+      }
+    }
+    if (slots.empty()) {
       if (importDirectory.address.value == 0 && importDirectory.size == 0)
         return {ImportRebuildPlan{}, ImportDiscoveryError::None, {}};
       return {std::nullopt, ImportDiscoveryError::ImportsNotFound, {}};
     }
+    std::sort(slots.begin(), slots.end(),
+              [](auto const& left, auto const& right) { return left.rva < right.rva; });
+    std::vector<ImportModulePlan> plans;
+    for (auto const& slot : slots) {
+      auto const hint = std::find_if(hints.begin(), hints.end(), [&](auto const& item) {
+        return item.slotRva == slot.rva;
+      });
+      auto selected = providers.Resolve(
+          slot.address, hint == hints.end() ? std::nullopt
+                                            : std::optional{*hint});
+      if (!selected && shellImports && hint != hints.end()) {
+        rejectHint(slot.rva);
+        selected = providers.Resolve(slot.address, std::nullopt);
+      }
+      if (!selected || !AddCandidate(plans, slot.rva, *selected, pointerSize))
+        return {std::nullopt, ImportDiscoveryError::ImportsAmbiguous,
+                std::move(warnings)};
+    }
     ImportRebuildPlan plan{};
-    std::sort(plans.begin(), plans.end(), [](auto const& left, auto const& right) {
-      return left.firstThunk.value < right.firstThunk.value;
-    });
     plan.modules = std::move(plans);
-    return {std::move(plan), ImportDiscoveryError::None, {}};
+    return {std::move(plan), ImportDiscoveryError::None, std::move(warnings)};
   } catch (...) {
     return {std::nullopt, ImportDiscoveryError::InvalidInput, {}};
   }

@@ -33,6 +33,7 @@
     <Filter Include="Core\PE\Relocations"><UniqueIdentifier>{C8435023-CBEA-40ED-8276-7ACB154BA658}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Imports"><UniqueIdentifier>{A56D0B1B-8B64-4F37-8E95-6C5D24A8D42A}</UniqueIdentifier></Filter>
     <Filter Include="Core\PE\Imports\Internal"><UniqueIdentifier>{03D9B40A-B99F-4669-A54E-2C27BF33907B}</UniqueIdentifier></Filter>
+    <Filter Include="Core\PE\Metadata"><UniqueIdentifier>{66E1E37D-14B9-4B9B-9D24-EE752FA29167}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Debugging"><UniqueIdentifier>{49E8AA47-D6FC-4870-9094-220432928B0F}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Debugging\ThreadContext"><UniqueIdentifier>{7D5DB5A1-EB72-4C9F-A864-8A13815403A9}</UniqueIdentifier></Filter>
     <Filter Include="Infrastructure\Windows\Debugging\Staging"><UniqueIdentifier>{4B6F49A0-C861-4B93-AC61-A0AF0316855C}</UniqueIdentifier></Filter>
@@ -102,6 +103,9 @@
     <ClInclude Include="Core\PE\Imports\ImportTypes.h"><Filter>Core\PE\Imports</Filter></ClInclude>
     <ClInclude Include="Core\PE\Imports\ImportDiscovery.h"><Filter>Core\PE\Imports</Filter></ClInclude>
     <ClInclude Include="Core\PE\Imports\Internal\SourceImportLayout.h"><Filter>Core\PE\Imports\Internal</Filter></ClInclude>
+    <ClInclude Include="Core\PE\Imports\Internal\ImportProviderResolver.h"><Filter>Core\PE\Imports\Internal</Filter></ClInclude>
+    <ClInclude Include="Core\PE\Imports\Internal\UpxImportHint.h"><Filter>Core\PE\Imports\Internal</Filter></ClInclude>
+    <ClInclude Include="Core\PE\Metadata\EmbeddedOriginalPeHeader.h"><Filter>Core\PE\Metadata</Filter></ClInclude>
     <ClInclude Include="Core\PE\Imports\PeExportParser.h"><Filter>Core\PE\Imports</Filter></ClInclude>
     <ClInclude Include="Core\PE\Imports\ImportTableValidator.h"><Filter>Core\PE\Imports</Filter></ClInclude>
     <ClInclude Include="Infrastructure\Windows\Debugging\DebugProcess.h"><Filter>Infrastructure\Windows\Debugging</Filter></ClInclude>
@@ -160,6 +164,9 @@
     <ClCompile Include="Core\PE\Relocations\RelocationReconstructor.cpp"><Filter>Core\PE\Relocations</Filter></ClCompile>
     <ClCompile Include="Core\PE\Imports\ImportDiscovery.cpp"><Filter>Core\PE\Imports</Filter></ClCompile>
     <ClCompile Include="Core\PE\Imports\Internal\SourceImportLayout.cpp"><Filter>Core\PE\Imports\Internal</Filter></ClCompile>
+    <ClCompile Include="Core\PE\Imports\Internal\ImportProviderResolver.cpp"><Filter>Core\PE\Imports\Internal</Filter></ClCompile>
+    <ClCompile Include="Core\PE\Imports\Internal\UpxImportHint.cpp"><Filter>Core\PE\Imports\Internal</Filter></ClCompile>
+    <ClCompile Include="Core\PE\Metadata\EmbeddedOriginalPeHeader.cpp"><Filter>Core\PE\Metadata</Filter></ClCompile>
     <ClCompile Include="Core\PE\Imports\PeExportParser.cpp"><Filter>Core\PE\Imports</Filter></ClCompile>
     <ClCompile Include="Core\PE\Imports\ImportTableValidator.cpp"><Filter>Core\PE\Imports</Filter></ClCompile>
     <ClCompile Include="Infrastructure\Windows\Debugging\DebugProcess.cpp"><Filter>Infrastructure\Windows\Debugging</Filter></ClCompile>

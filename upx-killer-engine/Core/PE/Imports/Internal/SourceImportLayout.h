@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Core/PE/Parsing/PeParser.h"
+#include "Core/PE/Imports/Internal/ImportProviderResolver.h"
 
 namespace upx_killer::engine::pe::imports::internal {
 struct ImportRange {
@@ -20,6 +21,7 @@ struct ImportRange {
 struct SourceImportLayoutResult {
   bool complete{};
   std::vector<ImportRange> occupiedRanges;
+  std::vector<ImportProviderHint> providers;
 };
 
 // Identifies only source-file bytes proven to belong to the loader's import

@@ -1,4 +1,5 @@
 #include "Core/PE/Sections/SectionLayoutRebuilder.h"
+#include "Core/PE/Metadata/EmbeddedOriginalPeHeader.h"
 
 #include "Core/PE/Format/PeFormatTraits.h"
 
@@ -220,14 +221,22 @@ std::optional<PeDataDirectory> DiscoverTlsCodeRanges(
     evidence = ValidateTlsDirectory<Traits>(
         source, input, source.directories[IMAGE_DIRECTORY_ENTRY_TLS], false);
   } else {
-    // UPX restores the original data directories in the mapped image before
-    // transferring control. That runtime header is stronger evidence than a
-    // broad scan, which can find multiple TLS-shaped byte sequences in x64
-    // read-only data.
-    if (auto runtimeDirectory = ReadRuntimeTlsDirectory<Traits>(input, source);
-        runtimeDirectory &&
-        !InSourceEntrySection(source, runtimeDirectory->address.value)) {
-      evidence = ValidateTlsDirectory<Traits>(source, input, *runtimeDirectory, false);
+    // A validated embedded original header identifies the program's TLS
+    // directory. The mapped PE header can still describe UPX's loader TLS.
+    if (auto original = metadata::FindEmbeddedOriginalPeHeader(
+            input.loadedImage, source, input.oep);
+        original && original->tlsDirectory.address.value != 0) {
+      evidence = ValidateTlsDirectory<Traits>(
+          source, input, original->tlsDirectory, false);
+    }
+    // Some packers restore the mapped header. Check it before the broad scan,
+    // which can find multiple TLS-shaped sequences in read-only data.
+    if (!evidence) {
+      if (auto runtimeDirectory = ReadRuntimeTlsDirectory<Traits>(input, source);
+          runtimeDirectory &&
+          !InSourceEntrySection(source, runtimeDirectory->address.value)) {
+        evidence = ValidateTlsDirectory<Traits>(source, input, *runtimeDirectory, false);
+      }
     }
     if (!evidence) {
       std::uint32_t bestScore{};

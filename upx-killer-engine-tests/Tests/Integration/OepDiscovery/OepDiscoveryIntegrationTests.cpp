@@ -153,8 +153,8 @@ int ValidateAutomaticOepTargetThroughHost(std::filesystem::path const& target) {
   std::cout << "detail_code=" << execution.result.detailCode << '\n';
   std::wcout << L"native_error=" << execution.result.nativeCode << L'\n';
   if (execution.result.artifact) {
-    std::wcout << L"artifact=" << execution.result.artifact->path.wstring() << L'\n';
     std::wcout << L"loader_mappable=" << execution.result.artifact->loaderVerified << L'\n';
+    std::wcout << L"artifact=" << execution.result.artifact->path.wstring() << L'\n';
   }
   return execution.protocolSucceeded &&
                  (execution.result.outcome == contracts::JobOutcome::Partial ||

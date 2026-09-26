@@ -113,15 +113,6 @@ bool ReadMappedImage(HANDLE process, std::uint64_t base, std::uint32_t imageSize
   return true;
 }
 
-int ProviderPriority(std::string const& module) noexcept {
-  if (module == "kernelbase.dll") return 100;
-  if (module == "kernel32.dll" || module == "user32.dll" || module == "advapi32.dll") return 90;
-  if (module == "ucrtbase.dll" || module == "vcruntime140.dll" || module == "msvcp140.dll")
-    return 80;
-  if (module == "ntdll.dll") return 10;
-  return 50;
-}
-
 bool ResolveExport(RuntimeModuleSnapshot const& snapshot, RuntimeExport const& input,
                    RuntimeExport& resolved, std::size_t depth) {
   if (depth > MaxForwardDepth) return false;
@@ -159,28 +150,6 @@ bool ResolveExport(RuntimeModuleSnapshot const& snapshot, RuntimeExport const& i
         match = &candidate;
       }
     }
-  }
-  // API-set contracts may have several implementation exports at
-  // the same name. Prefer the stable user-mode provider rather than
-  // discarding the logical forwarding alias as ambiguous.
-  if (!match && moduleName.rfind("api-", 0) == 0) {
-    int bestPriority = -1;
-    bool ambiguous{};
-    for (auto const& module : snapshot.modules) {
-      auto const priority = ProviderPriority(Normalize(module.moduleName));
-      for (auto const& candidate : module.exports)
-        if ((name && candidate.name && EqualName(*candidate.name, *name)) ||
-            (ordinal && candidate.ordinal == ordinal)) {
-          if (priority > bestPriority) {
-            bestPriority = priority;
-            match = &candidate;
-            ambiguous = false;
-          } else if (priority == bestPriority && match != &candidate) {
-            ambiguous = true;
-          }
-        }
-    }
-    if (ambiguous) match = nullptr;
   }
   if (!match) return false;
   return ResolveExport(snapshot, *match, resolved, depth + 1);
@@ -248,13 +217,18 @@ RemoteModuleCatalogResult RemoteModuleCatalog::Capture(HANDLE process, DWORD pro
     filtered.reserve(module.exports.size());
     for (auto const& exported : module.exports) {
       RuntimeExport value{};
-      if (!ResolveExport(resolved, exported, value, 0)) continue;
+      if (!ResolveExport(resolved, exported, value, 0)) {
+        if (exported.forwarder) filtered.push_back(exported);
+        continue;
+      }
       // Keep the logical import contract that owned the forwarder;
       // the resolved address still comes from the final provider.
       value.moduleName = module.moduleName;
       value.name = exported.name;
       value.ordinal = exported.ordinal;
-      value.forwarder.reset();
+      // Preserve the validated logical forwarding relation. The final
+      // address alone cannot identify the original import owner.
+      value.forwarder = exported.forwarder;
       filtered.push_back(std::move(value));
     }
     module.exports = std::move(filtered);

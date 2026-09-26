@@ -180,11 +180,67 @@ void Pe32AutomaticTlsDiscoveryRejectsReservedCharacteristics() {
   Expect(oep && (oep->characteristics & IMAGE_SCN_MEM_EXECUTE) != 0,
          "rejected false TLS evidence cannot remove execute permission from the OEP page");
 }
+
+void EmbeddedOriginalHeaderRestoresProgramTls() {
+  PeImageLayout source{};
+  source.format = PeFormat::Pe64;
+  source.sizeOfImage = 0x6000;
+  source.entryPoint = {0x4800};
+  source.sectionAlignment = 0x1000;
+  source.fileAlignment = 0x200;
+  source.sections.push_back(MakeSection(
+      "packed", 0x1000, 0x3000,
+      IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_EXECUTE));
+  source.sections.push_back(MakeSection(
+      "loader", 0x4000, 0x2000,
+      IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE | IMAGE_SCN_MEM_EXECUTE));
+
+  constexpr std::uint64_t base = 0x140000000ull;
+  std::vector<std::byte> loaded(source.sizeOfImage);
+  IMAGE_TLS_DIRECTORY64 originalTls{};
+  originalTls.StartAddressOfRawData = base + 0x2300;
+  originalTls.EndAddressOfRawData = base + 0x2308;
+  originalTls.AddressOfIndex = base + 0x2310;
+  originalTls.AddressOfCallBacks = base + 0x2320;
+  originalTls.Characteristics = IMAGE_SCN_ALIGN_4BYTES;
+  std::memcpy(loaded.data() + 0x2200, &originalTls, sizeof(originalTls));
+  std::uint64_t callback = base + 0x1300;
+  std::memcpy(loaded.data() + 0x2320, &callback, sizeof(callback));
+
+  IMAGE_NT_HEADERS64 originalHeader{};
+  originalHeader.Signature = IMAGE_NT_SIGNATURE;
+  originalHeader.FileHeader.Machine = IMAGE_FILE_MACHINE_AMD64;
+  originalHeader.FileHeader.NumberOfSections = 1;
+  originalHeader.FileHeader.SizeOfOptionalHeader = sizeof(IMAGE_OPTIONAL_HEADER64);
+  originalHeader.OptionalHeader.Magic = IMAGE_NT_OPTIONAL_HDR64_MAGIC;
+  originalHeader.OptionalHeader.AddressOfEntryPoint = 0x1200;
+  originalHeader.OptionalHeader.SizeOfImage = source.sizeOfImage;
+  originalHeader.OptionalHeader.NumberOfRvaAndSizes = IMAGE_NUMBEROF_DIRECTORY_ENTRIES;
+  originalHeader.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT] = {0x3000, 0x28};
+  originalHeader.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS] = {
+      0x2200, static_cast<DWORD>(sizeof(IMAGE_TLS_DIRECTORY64))};
+  std::memcpy(loaded.data() + 0x5000, &originalHeader, sizeof(originalHeader));
+  IMAGE_SECTION_HEADER first{};
+  first.VirtualAddress = 0x1000;
+  first.Misc.VirtualSize = 0x3000;
+  std::memcpy(loaded.data() + 0x5000 + sizeof(originalHeader), &first, sizeof(first));
+  IMAGE_IMPORT_DESCRIPTOR import{};
+  import.Name = 0x3100;
+  import.FirstThunk = 0x3200;
+  std::memcpy(loaded.data() + 0x3000, &import, sizeof(import));
+
+  auto restored = SectionLayoutRebuilder::Build(
+      source, {loaded, LoadedAddress{base}, RelativeVirtualAddress{0x1200}, nullptr});
+  Expect(restored.plan && restored.plan->tlsDirectory &&
+             restored.plan->tlsDirectory->address.value == 0x2200,
+         "validated embedded original header restores PE64 program TLS");
+}
 }
 
 int RunSectionLayoutRebuilderTests() {
   PackedSectionsBecomeAnalysisGradeSections();
   Pe32TlsDirectoryIsPreservedOnlyWithValidVaEvidence();
   Pe32AutomaticTlsDiscoveryRejectsReservedCharacteristics();
+  EmbeddedOriginalHeaderRestoresProgramTls();
   return failures;
 }
