@@ -41,3 +41,18 @@ The validation entry sends a normal version-6 `ExecuteJob` request to `upx_kille
 - Repaired structure: loader-valid dynamic PIE with 13 section headers, including `.text`, `.rodata`, `.data`, `.dynamic`, `.dynstr`, `.dynsym`, `.rela.dyn`, and `.rela.plt`.
 
 The acceptance run used temporary copies only and did not modify the source sample.
+
+## Editor configuration for the Linux Host
+
+The Linux Host sources are compiled by GCC inside WSL, so `upx-killer-elf-host` is an NMake project whose only build step is `Build-ElfHost.ps1`. Nothing in the project otherwise tells the Microsoft compiler where those sources or the Linux C library live, which leaves every `#include` in the target unresolved in the editor. The project configures IntelliSense explicitly:
+
+- `NMakeIncludeSearchPath` is prepended to `IncludePath` by `Microsoft.Cpp.DesignTime.targets`, so it carries the repository headers together with `UpxKillerElfHostLinuxArchIncludePath`, which defaults to `<distribution include path>\x86_64-linux-gnu`. That multiarch directory owns the Linux `sys/`, `bits/` and `gnu/` headers and must come before the Microsoft ones, or the Linux types they declare are replaced by the incompatible Microsoft equivalents.
+- `UpxKillerElfHostLinuxIncludePath` points at the distribution's own `/usr/include` and is appended after the Microsoft headers. It cannot be prepended: it also holds `stdio.h`, `stdint.h` and the rest, and letting those shadow the Microsoft headers breaks the Microsoft standard library.
+- `NMakePreprocessorDefinitions` sets `_GNU_SOURCE` and the Linux target macros, so the C library headers select their 64-bit branches such as `gnu/stubs-64.h`.
+
+Both paths are empty by default, because a WSL distribution is a machine-local dependency; set them through the environment or the NMake property page. Validation used `\\wsl.localhost\Kali\usr\include`. None of this affects the build, which still runs CMake and GCC inside WSL.
+
+Two classes of editor diagnostics remain and are not configuration defects:
+
+- The C library and the Microsoft C runtime disagree about `time_t` and `int64_t`, so a translation unit that sees both reports a redefinition.
+- Kali installs several kernel UAPI headers as symlinks into `/usr/lib/linux/uapi`, and Windows cannot follow Linux symlinks across the WSL share, so `asm/...` stays unresolved. Adding `\\wsl.localhost\<distribution>\usr\lib\linux\uapi\x86` to `UpxKillerElfHostLinuxArchIncludePath` recovers those on Kali.

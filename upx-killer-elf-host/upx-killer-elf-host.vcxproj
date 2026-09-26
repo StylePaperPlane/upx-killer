@@ -12,10 +12,14 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Makefile</ConfigurationType><PlatformToolset>v143</PlatformToolset>
+    <ConfigurationType>Makefile</ConfigurationType>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Makefile</ConfigurationType><PlatformToolset>v143</PlatformToolset>
+    <ConfigurationType>Makefile</ConfigurationType>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &gt;= '18.0'">v145</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' &lt; '18.0'">v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup>
@@ -24,6 +28,32 @@
     <NMakeCleanCommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)Build-ElfHost.ps1" -Configuration $(Configuration) -Clean</NMakeCleanCommandLine>
     <NMakeOutput>$(SolutionDir)upx-killer\x64\$(Configuration)\upx-killer\upx_killer_elf_host</NMakeOutput>
   </PropertyGroup>
+  <!-- IntelliSense configuration. The build runs CMake and GCC inside WSL, so
+       nothing else tells the Microsoft compiler where these sources live.
+       Microsoft.Cpp.DesignTime.targets prepends NMakeIncludeSearchPath to
+       IncludePath, so that is where the repository headers go, together with
+       the multiarch C library directory that owns the Linux sys/ and bits/
+       headers.
+       UpxKillerElfHostLinuxIncludePath points at the C library headers of a WSL
+       distribution, for example \\wsl.localhost\Kali\usr\include, and is empty
+       when no distribution is visible to Windows. That directory is appended
+       after the Microsoft headers on purpose: it also holds stdio.h, stdint.h
+       and the rest, and letting those shadow the Microsoft ones breaks the
+       Microsoft standard library. The Linux target macros keep the C library
+       headers on their 64-bit branches. -->
+  <PropertyGroup>
+    <UpxKillerElfHostLinuxIncludePath Condition="'$(UpxKillerElfHostLinuxIncludePath)' == ''"></UpxKillerElfHostLinuxIncludePath>
+    <UpxKillerElfHostLinuxArchIncludePath Condition="'$(UpxKillerElfHostLinuxArchIncludePath)' == '' AND '$(UpxKillerElfHostLinuxIncludePath)' != ''">$(UpxKillerElfHostLinuxIncludePath)\x86_64-linux-gnu</UpxKillerElfHostLinuxArchIncludePath>
+    <NMakeIncludeSearchPath>$(ProjectDir);$(ProjectDir)..\upx-killer-engine;$(ProjectDir)..\upx-killer-contracts;$(UpxKillerElfHostLinuxArchIncludePath)</NMakeIncludeSearchPath>
+    <NMakePreprocessorDefinitions>_GNU_SOURCE;__x86_64__;__linux__;__gnu_linux__;__unix__;__ELF__</NMakePreprocessorDefinitions>
+    <IncludePath Condition="'$(UpxKillerElfHostLinuxIncludePath)' != ''">$(IncludePath);$(UpxKillerElfHostLinuxIncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(NMakeIncludeSearchPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Application\Host\ElfHostMain.cpp" />
     <ClCompile Include="Application\SharedObjectLoader\ElfSharedObjectLoaderMain.c" />
